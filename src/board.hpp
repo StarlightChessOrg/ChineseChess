@@ -1,4 +1,7 @@
+#ifndef DEFINES_HPP
 #include "defines.hpp"
+#endif
+#include "calculateScore.hpp"
 
 // -----类声明----- //
 
@@ -578,27 +581,7 @@ ACTIONS Board::getAllAvailableActionsOfTeam(TEAM team)
 /// @brief 获取指定位置上的棋子的分数
 int Board::getScore(CHESSMAP chessMap, int x, int y)
 {
-  // 暂时简单写写，以后会改进
-  CHESSDEF chess = toChessdef(chessMap.at(x).at(y));
-  switch (chess)
-  {
-  case KING:
-    return 10000;
-  case GUARD:
-    return 10;
-  case BISHOP:
-    return 10;
-  case KNIGHT:
-    return 300;
-  case ROOK:
-    return 1000;
-  case CANNON:
-    return 400;
-  case PAWN:
-    return 4;
-  default:
-    return 0;
-  }
+  return calculateScore(chessMap, x, y);
 }
 
 /// @brief AI决定最佳着法（对外接口）
@@ -607,6 +590,7 @@ void Board::makeDecision()
   Result_ActionAndScore result = evaluateBestAction(*this, isRedTurn, 0, 3);
   Action &action = result.action;
   moveTo(action.x1, action.y1, action.x2, action.y2);
+  cout << "评分："  << result.score << endl;
 }
 
 /// @brief 评估最佳着法
@@ -627,6 +611,7 @@ Result_ActionAndScore Board::evaluateBestAction(Board board, bool isRedTurn, int
     Board board2 = board;
     CHESSMAP &chessMap = board2.chessMap;
     int score = getScore(chessMap, v.x2, v.y2);
+
     // 如果深度没有达到
     if (depth < maxDepth)
     {

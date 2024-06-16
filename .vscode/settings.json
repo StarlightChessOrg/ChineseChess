@@ -2,5 +2,6 @@
   "files.associations": {
     "array": "cpp",
     "ostream": "cpp"
-  }
+  },
+  "editor.showUnused": false
 }
