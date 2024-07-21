@@ -1,7 +1,10 @@
 {
-  "files.associations": {
-    "array": "cpp",
-    "ostream": "cpp"
-  },
-  "editor.showUnused": false
+    "files.associations": {
+        "vector": "cpp",
+        "array": "cpp",
+        "stdexcept": "cpp",
+        "ostream": "cpp",
+        "xutility": "cpp",
+        "xstring": "cpp"
+    }
 }

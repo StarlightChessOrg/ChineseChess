@@ -1,28 +1,42 @@
-#ifndef DEFINES_HPP
+#pragma once
 #include "defines.hpp"
-#endif
+#include "utils.hpp"
 
-int calculateScore(CHESSMAP chessMap, int x, int y)
+int calculateScore(ChessMap chessMap, int x, int y)
 {
-  // 暂时简单写写，以后会改进
-  CHESSDEF chess = toChessdef(chessMap.at(x).at(y));
-  switch (chess)
-  {
-  case KING:
-    return 10000;
-  case GUARD:
-    return 10;
-  case BISHOP:
-    return 10;
-  case KNIGHT:
-    return 300;
-  case ROOK:
-    return 1000;
-  case CANNON:
-    return 400;
-  case PAWN:
-    return 4;
-  default:
-    return 0;
-  }
+    // 暂时简单写写，以后会改进
+    CHESSID chessid = chessMap.at(x, y);
+    CHESSDEF chessdef = toChessdef(chessid);
+    int result;
+    switch (chessdef)
+    {
+    case KING:
+        result = MAX_NUMBER;
+        break;
+    case GUARD:
+        result = 10;
+        break;
+    case BISHOP:
+        result = 10;
+        break;
+    case KNIGHT:
+        result = 300;
+        break;
+    case ROOK:
+        result = 1000;
+        break;
+    case CANNON:
+        result = 400;
+        break;
+    case PAWN:
+        result = 4;
+        break;
+    case 0:
+        result = 0;
+    }
+    if (toTeam(chessid) == RED)
+    {
+        result = -result;
+    }
+    return result;
 }

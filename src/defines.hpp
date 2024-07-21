@@ -1,13 +1,12 @@
-#define DEFINES_HPP "DEFINES_HPP"
-#include <iostream>
-#include <vector>
+#pragma once
 #include <array>
+#include <iostream>
 #include <string>
-#include <functional>
+#include <vector>
+#include <ctime>
 
 using namespace std;
 
-// -----常量----- //
 using CHESSID = int;
 using TEAM = int;
 using CHESSDEF = int;
@@ -37,115 +36,73 @@ const CHESSID B_CANNON = -6;
 const CHESSID B_PAWN = -7;
 const TEAM RED = 1;
 const TEAM BLACK = -1;
-
-// -----工具函数----- //
+const int MIN_NUMBER = -100000000;
+const int MAX_NUMBER = 100000000;
+const CHESSMAP DEFAULT_CHESSMAP{
+    {{R_ROOK, 0, 0, R_PAWN, 0, 0, B_PAWN, 0, 0, B_ROOK},
+     {R_KNIGHT, 0, R_CANNON, 0, 0, 0, 0, B_CANNON, 0, B_KNIGHT},
+     {R_BISHOP, 0, 0, R_PAWN, 0, 0, B_PAWN, 0, 0, B_BISHOP},
+     {R_GUARD, 0, 0, 0, 0, 0, 0, 0, 0, B_GUARD},
+     {R_KING, 0, 0, R_PAWN, 0, 0, B_PAWN, 0, 0, B_KING},
+     {R_GUARD, 0, 0, 0, 0, 0, 0, 0, 0, B_GUARD},
+     {R_BISHOP, 0, 0, R_PAWN, 0, 0, B_PAWN, 0, 0, B_BISHOP},
+     {R_KNIGHT, 0, R_CANNON, 0, 0, 0, 0, B_CANNON, 0, B_KNIGHT},
+     {R_ROOK, 0, 0, R_PAWN, 0, 0, B_PAWN, 0, 0, B_ROOK}}};
+int searchCount = 0;
 
 /// @brief 获取chessid的chessdef
 CHESSDEF toChessdef(CHESSID chessid)
 {
-  return abs(chessid);
+    return abs(chessid);
 }
 
 /// @brief 获取chessdef的team
-TEAM getTeam(CHESSID chessid)
+TEAM toTeam(CHESSID chessid)
 {
-  if (chessid == 0)
-  {
-    return 0;
-  }
-  else
-  {
-    return chessid > 0 ? RED : BLACK;
-  }
+    if (chessid == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return chessid > 0 ? RED : BLACK;
+    }
 }
 
 /// @brief 获取指定chessid的名称
 string getName(CHESSID chessid)
 {
-  switch (chessid)
-  {
-  case R_KING:
-    return "帅";
-  case B_KING:
-    return "将";
-  case R_GUARD:
-    return "士";
-  case B_GUARD:
-    return "仕";
-  case R_BISHOP:
-    return "相";
-  case B_BISHOP:
-    return "象";
-  case R_KNIGHT:
-    return "马";
-  case B_KNIGHT:
-    return "马";
-  case R_ROOK:
-    return "车";
-  case B_ROOK:
-    return "车";
-  case R_CANNON:
-    return "炮";
-  case B_CANNON:
-    return "炮";
-  case R_PAWN:
-    return "兵";
-  case B_PAWN:
-    return "卒";
-  default:
-    return "  ";
-  }
-}
-
-/// @brief 获取数组（或其他可迭代容器如vector）中最大值索引
-template <typename Arraylike>
-int getIndexOfMax(Arraylike array)
-{
-  int maxIndex = 0;
-  int maxNumber = -1000000000;
-  for (int i = 0; i < array.size(); i++)
-  {
-    int number = array.at(i);
-    if (number > maxNumber)
+    switch (chessid)
     {
-      maxNumber = number;
-      maxIndex = i;
+    case R_KING:
+        return "帅";
+    case B_KING:
+        return "将";
+    case R_GUARD:
+        return "士";
+    case B_GUARD:
+        return "仕";
+    case R_BISHOP:
+        return "相";
+    case B_BISHOP:
+        return "象";
+    case R_KNIGHT:
+        return "马";
+    case B_KNIGHT:
+        return "马";
+    case R_ROOK:
+        return "车";
+    case B_ROOK:
+        return "车";
+    case R_CANNON:
+        return "炮";
+    case B_CANNON:
+        return "炮";
+    case R_PAWN:
+        return "兵";
+    case B_PAWN:
+        return "卒";
+    default:
+        return "  ";
     }
-  }
-  return maxIndex;
 }
-// -----位置类----- //
-
-/// @brief 位置类
-struct Position
-{
-  Position(int x, int y) : x(x), y(y){};
-  int x;
-  int y;
-};
-
-using TARGETS = vector<Position>;
-
-// -----着法类----- //
-
-/// @brief 着法结构
-struct Action
-{
-  Action(int x1, int y1, int x2, int y2) : x1(x1), y1(y1), x2(x2), y2(y2){};
-  int x1;
-  int y1;
-  int x2;
-  int y2;
-};
-
-using ACTIONS = vector<Action>;
-
-// -----着法和分数的多返回值----- //
-
-/// @brief 着法和分数的多返回值结构
-struct Result_ActionAndScore
-{
-  Result_ActionAndScore(Action action, int score) : action(action), score(score){};
-  Action action;
-  int score;
-};

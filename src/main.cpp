@@ -1,16 +1,23 @@
 #include "board.hpp"
+#include <windows.h>
 
 int main()
 {
-  Board board;
-  board.printBoard();
-  board.makeDecision();
+    SetConsoleOutputCP(CP_UTF8);
 
-  board.printBoard();
+    try
+    {
+        Board board;
+        board.printBoard();
+        board.makeDecision(3);
 
-  while (true)
-  {
-  }
+        system("pause");
 
-  return 0;
+        return 0;
+    }
+    catch (exception err)
+    {
+        cerr << err.what() << endl;
+        system("pause");
+    }
 }
