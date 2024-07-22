@@ -5,19 +5,11 @@ int main()
 {
     SetConsoleOutputCP(CP_UTF8);
 
-    try
-    {
-        Board board;
-        board.printBoard();
-        board.makeDecision(3);
+    Board board;
+    board.printBoard();
+    board.makeDecision(3);
 
-        system("pause");
+    system("pause");
 
-        return 0;
-    }
-    catch (exception err)
-    {
-        cerr << err.what() << endl;
-        system("pause");
-    }
+    return 0;
 }

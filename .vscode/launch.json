@@ -1,26 +1,17 @@
 {
-  // Please edit the configs to fit on your C++ environment
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "C++ Debug",
-      "preLaunchTask": "cppbuild",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/_debug/test.exe",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": true,
-      "MIMode": "gdb",
-      "setupCommands": [
+    "version": "0.2.0",
+    "configurations": [
         {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
+            "name": "Debug C++ Program",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/_debug/main.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "externalTerminal",
+            "preLaunchTask": "cppbuild"
         }
-      ]
-    }
-  ]
+    ]
 }
