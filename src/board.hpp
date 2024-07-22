@@ -108,15 +108,13 @@ void Board::printBoard()
 void Board::makeDecision(int depth)
 {
     searchCount = 0;
-    time_t start = time(NULL);
     SearchNode searchNode{-100000, 100000};
     SearchNode result = this->evaluateBestNode(*this, 0, depth, searchNode);
-    time_t end = time(NULL);
     Action v = result.bestAction;
     this->moveTo(v.x1, v.y1, v.x2, v.y2);
     cout << "分数：" << result.score << "\t";
     cout << "迭代次数：" << searchCount << "\t";
-    cout << "耗时：" << end - start << endl;
+    cout << endl;
     this->printBoard();
 }
 
