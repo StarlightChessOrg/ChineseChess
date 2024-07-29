@@ -5,13 +5,13 @@
 int calculateScore(ChessMap chessMap, int x, int y)
 {
     // 暂时简单写写，以后会改进
-    CHESSID chessid = chessMap.at(x, y);
+    CHESSID chessid = chessMap.on(x, y);
     CHESSDEF chessdef = toChessdef(chessid);
-    int result;
+    int result = 114514;
     switch (chessdef)
     {
     case KING:
-        result = MAX_NUMBER;
+        result = 100000;
         break;
     case GUARD:
         result = 10;

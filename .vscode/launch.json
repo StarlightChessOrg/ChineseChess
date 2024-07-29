@@ -11,7 +11,7 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "externalTerminal",
-            "preLaunchTask": "cppbuild"
+            "preLaunchTask": "C++"
         }
     ]
 }

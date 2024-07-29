@@ -64,9 +64,7 @@ using TARGETS = vector<Position>;
 struct Action
 {
     Action(int x1, int y1, int x2, int y2) : x1(x1), y1(y1), x2(x2), y2(y2) {};
-    Action()
-    {
-    } // 空构造函数
+    Action() : x1(0), y1(0), x2(0), y2(0) {}
     int x1;
     int y1;
     int x2;
@@ -80,12 +78,12 @@ struct ChessMap
 {
     ChessMap(CHESSMAP chessMap) : main(chessMap) {};
     CHESSMAP main;
-    CHESSID &at(int x, int y);
+    CHESSID &on(int x, int y);
     array<CHESSID, 10> lineAt(int x);
 };
 
 /// @brief 访问棋盘
-CHESSID &ChessMap::at(int x, int y)
+CHESSID &ChessMap::on(int x, int y)
 {
     if (x > 8 || x < 0 || y > 9 || y < 0)
     {
@@ -106,23 +104,18 @@ array<CHESSID, 10> ChessMap::lineAt(int x)
     return v;
 }
 
-enum NODE_TYPE
-{
-    MIN,
-    MAX
-};
-
 /// @brief 搜索节点
-struct SearchNode
+struct Node
 {
-    SearchNode() {};
-    SearchNode(int alpha, int beta) : alpha(alpha), beta(beta) {};
-    Action bestAction;
-    ACTIONS childActions;
-    vector<int> childScores;
-    vector<SearchNode> children;
-    NODE_TYPE type;
-    int score;
+    Node(int alpha, int beta, bool type) : alpha(alpha), beta(beta), type(type) {};
+
     int alpha;
     int beta;
+    bool type;
+
+    int score = 0; // 节点分数
+    int scoreCumulation = 0; // 分数累计
+    Action action {}; // 节点着法
+
+    vector<Node> children {}; // 子节点
 };

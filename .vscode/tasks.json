@@ -2,8 +2,8 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "cppbuild",
-            "command": "cl.exe",
+            "label": "C++",
+            "command": "cl",
             "args": [
                 "/Zi",
                 "/EHsc",

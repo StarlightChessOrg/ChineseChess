@@ -2,11 +2,10 @@
 
 int main()
 {
-    Board board;
+    Board board {};
     board.printBoard();
     board.makeDecision(3);
-
-    system("pause");
-
+    cout << searchCount << endl;
+    board.printBoard();
     return 0;
 }

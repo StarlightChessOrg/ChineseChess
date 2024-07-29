@@ -33,8 +33,8 @@ protected: // 棋子函数
 
 public: // 自动走棋实现
     int getScore(int x, int y);
-    ACTIONS getAllAvailableActionsOfTeam(TEAM team);
-    SearchNode evaluateBestNode(Board board, int depth, int maxDepth, SearchNode &currentSearchNode);
+    ACTIONS getAllActionsOfTeam(TEAM team);
+    Node evaluateBestNode(int depth, int maxDepth, Node &father);
 };
 
 // -----对外接口----- //
@@ -107,15 +107,11 @@ void Board::printBoard()
 /// @param depth 深度
 void Board::makeDecision(int depth)
 {
-    searchCount = 0;
-    SearchNode searchNode{-100000, 100000};
-    SearchNode result = this->evaluateBestNode(*this, 0, depth, searchNode);
-    Action v = result.bestAction;
-    this->moveTo(v.x1, v.y1, v.x2, v.y2);
-    cout << "分数：" << result.score << "\t";
-    cout << "迭代次数：" << searchCount << "\t";
-    cout << endl;
-    this->printBoard();
+    Node root = Node{MIN_NUMBER, MAX_NUMBER, isRedTurn ? MAX : MIN};
+    Node bestNode = evaluateBestNode(0, depth, root);
+    Action v = bestNode.action;
+    moveTo(v.x1, v.y1, v.x2, v.y2);
+    cout << "分数：" << bestNode.score << endl;
 }
 
 // -----工具函数----- //
@@ -123,7 +119,7 @@ void Board::makeDecision(int depth)
 /// @brief 获取指定位置的棋子队伍
 TEAM Board::teamOn(int x, int y)
 {
-    return toTeam(chessMap.at(x, y));
+    return toTeam(chessMap.on(x, y));
 }
 
 /// @brief 过滤棋子行棋范围外的位置和己方棋子占据的位置，即排除不可能的行棋方案
@@ -188,7 +184,7 @@ CHESSID Board::chessOn(int x, int y)
 {
     if (x >= 0 && x <= 8 && y >= 0 && y <= 9)
     {
-        return chessMap.at(x, y);
+        return chessMap.on(x, y);
     }
     else
     {
@@ -199,8 +195,8 @@ CHESSID Board::chessOn(int x, int y)
 /// @brief 移动棋子
 void Board::moveTo(int x1, int y1, int x2, int y2)
 {
-    chessMap.at(x2, y2) = chessMap.at(x1, y1);
-    chessMap.at(x1, y1) = 0;
+    chessMap.on(x2, y2) = chessMap.on(x1, y1);
+    chessMap.on(x1, y1) = 0;
     isRedTurn = !isRedTurn;
 }
 
@@ -555,7 +551,7 @@ int Board::getScore(int x, int y)
 /// @brief 获取某一个队伍所有可行着法
 /// @param team 队伍
 /// @return 所有可行着法的vector
-ACTIONS Board::getAllAvailableActionsOfTeam(TEAM team)
+ACTIONS Board::getAllActionsOfTeam(TEAM team)
 {
     ACTIONS result{};
     int x = 0, y = 0;
@@ -592,62 +588,86 @@ ACTIONS Board::getAllAvailableActionsOfTeam(TEAM team)
     }
 }
 
-/// @brief 评估最佳着法（MINMAX算法 + Alpha-beta剪枝）
+/// @brief 评估最佳着法（函数外调用时须传空父节点）
 /// @param board Board对象
 /// @param depth 深度（用于递归）
 /// @param maxDepth 最大深度（用于递归）
-/// @return 最佳着法及其得分
-SearchNode Board::evaluateBestNode(Board board, int depth, int maximumDepth, SearchNode &father)
+Node Board::evaluateBestNode(int depth, int maximumDepth, Node &father)
 {
     searchCount++;
-    SearchNode node{father.alpha, father.beta};
-    node.childActions = board.getAllAvailableActionsOfTeam(board.isRedTurn ? RED : BLACK);
-    node.type = board.isRedTurn ? MAX : MIN;
-
-    // 别名
-    ACTIONS &childActions = node.childActions;
-    vector<int> &childScores = node.childScores;
-    int &alpha = node.alpha;
-    int &beta = node.beta;
+    // 节点类型
+    NODE_TYPE currentType = !father.type;
+    // 列出的所有可行着法
+    ACTIONS availableActions = this->getAllActionsOfTeam(isRedTurn ? RED : BLACK);
+    // 着法分数表
+    vector<int> scores{};
 
     // 遍历
-    for (Action action : childActions)
+    for (Action v : availableActions)
     {
-        Board board_temp = board;
-        int score = board_temp.getScore(action.x2, action.y2);
+        // 初始化
+        Node node{father.alpha, father.beta, currentType};
+        node.action = v;
+        node.scoreCumulation = father.scoreCumulation + this->getScore(v.x2, v.y2);
+
+        // 若没有到达最大深度
         if (depth < maximumDepth)
         {
-            // 假装走棋
-            board_temp.moveTo(action.x1, action.y1, action.x2, action.y2);
-            // 把计算丢给下一个函数
-            SearchNode searchNode = evaluateBestNode(board_temp, depth + 1, maximumDepth, father);
-            node.children.push_back(searchNode);
-            // 加上下一个节点的分数
-            score += searchNode.score;
-        }
-
-        childScores.push_back(score);
-    }
-
-    // 困毙或杀棋判断
-    if (childActions.empty() != true)
-    {
-        int index;
-        if (node.type == MAX)
-        {
-            index = getIndexOfMax<vector<int>>(childScores);
+            // 创建一个虚拟棋盘，并假装走棋
+            Board boardCopy = *this;
+            boardCopy.moveTo(v.x1, v.y1, v.x2, v.y2);
+            // 获取最佳子节点
+            Node bestChild = boardCopy.evaluateBestNode(depth + 1, maximumDepth, node);
+            // 设置节点分数
+            node.score = bestChild.score;
         }
         else
         {
-            index = getIndexOfMin<vector<int>>(childScores);
+            // 设置节点分数
+            node.score = node.scoreCumulation;
         }
-        node.score = childScores.at(index);
-        node.bestAction = childActions.at(index);
+
+        // 向父节点推送当前节点
+        father.children.push_back(node);
+        // 分数表内推送当前节点
+        scores.push_back(node.score);
+
+        // Alpha beta剪枝算法
+        if (father.type == MAX && node.score > father.alpha)
+        {
+            cout << "s";
+            father.alpha = node.score;
+        }
+        else if (father.type == MIN && node.score < father.beta)
+        {
+            father.beta = node.score;
+        }
+        if (father.alpha > father.beta)
+        {
+            break;
+        }
     }
-    else // 若困毙或自己的将被吃
+
+    // 若是没有任何可行着法
+    if (father.children.empty())
     {
-        node.score = node.type == MAX ? MAX_NUMBER : MIN_NUMBER;
-        node.bestAction = Action{0, 0, 0, 0};
+        // 创建一个最差分数的着法并传给父亲
+        Node placeholder{father.alpha, father.beta, currentType};
+        placeholder.score = this->isRedTurn ? MIN_NUMBER : MAX_NUMBER;
+        return placeholder;
     }
-    return node;
+
+    // 获取最好的节点
+    int bestIndex = -1;
+    if (father.type == MAX)
+    {
+        bestIndex = getIndexOfMax<vector<int>>(scores);
+    }
+    else
+    {
+        bestIndex = getIndexOfMin<vector<int>>(scores);
+    }
+
+    // 返回给父亲
+    return father.children.at(bestIndex);
 }

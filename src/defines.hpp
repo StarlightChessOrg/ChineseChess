@@ -9,6 +9,7 @@ using namespace std;
 using CHESSID = int;
 using TEAM = int;
 using CHESSDEF = int;
+using NODE_TYPE = bool;
 using CHESSMAP = array<array<CHESSID, 10>, 9>;
 const CHESSDEF EMPTY = 0;
 const CHESSDEF OUT = 8;
@@ -37,6 +38,8 @@ const TEAM RED = 1;
 const TEAM BLACK = -1;
 const int MIN_NUMBER = -100000000;
 const int MAX_NUMBER = 100000000;
+const NODE_TYPE MAX = true;
+const NODE_TYPE MIN = false;
 const CHESSMAP DEFAULT_CHESSMAP{
     {{R_ROOK, 0, 0, R_PAWN, 0, 0, B_PAWN, 0, 0, B_ROOK},
      {R_KNIGHT, 0, R_CANNON, 0, 0, 0, 0, B_CANNON, 0, B_KNIGHT},
