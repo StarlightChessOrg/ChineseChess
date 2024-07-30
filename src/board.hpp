@@ -635,7 +635,6 @@ Node Board::evaluateBestNode(int depth, int maximumDepth, Node &father)
         // Alpha beta剪枝算法
         if (father.type == MAX && node.score > father.alpha)
         {
-            cout << "s";
             father.alpha = node.score;
         }
         else if (father.type == MIN && node.score < father.beta)
