@@ -7,12 +7,12 @@
             "args": [
                 "/Zi",
                 "/EHsc",
-                "/nologo",
                 "/Fe${workspaceFolder}/build/main.exe",
                 "/Fd${workspaceFolder}/build/vc140.pdb",
                 "/Fo${workspaceFolder}/build/main.obj",
                 "/utf-8",
-                "${workspaceFolder}/src/main.cpp"
+                "${workspaceFolder}/src/main.cpp",
+                // "/Ox" // 是否尽可能优化
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
