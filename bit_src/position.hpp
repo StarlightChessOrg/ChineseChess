@@ -296,14 +296,22 @@ private:
     friend class position;
 };
 
+enum gameSide{
+    Red = 1,
+    Mid = 0,
+    Black = -1
+};
+
 class position{
 public:
-    position(const int anotherBoard[256]){
+    explicit position(const int anotherBoard[256] = initBasicBoard,int initSide = Red){
+        this->Side = initSide;
         this->Board.readFromBoard(anotherBoard);
         this->swapBoard.readFromBoard(anotherBoard);
         this->bitBoard.readFromBoard(anotherBoard);
     }
     void makeMove(int yFrom,int xFrom,int yTo,int xTo){
+        ChangeSide();
         const int fromPos = basicBoard::getPos(yFrom,xFrom);
         const int toPos = basicBoard::getPos(yTo,xTo);
         const int fromPiece = this->Board.board[fromPos];
@@ -312,12 +320,37 @@ public:
         this->bitBoard.makeMove(yFrom,xFrom,yTo,xTo);
     }
     void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,int fromPiece,int toPiece){
+        ChangeSide();
         this->Board.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
         this->swapBoard.unmakeMove(fromPiece,toPiece,basicBoard::getPos(yFrom,xFrom),basicBoard::getPos(yTo,xTo));
         this->bitBoard.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
     }
+    void ChangeSide(){
+        this->Side = -this->Side;
+    }
 protected:
-private:
+    //判断是否为将的步长
+    static bool kingSpan(int src, int dst) {
+        return legalSpan[dst - src + 256] == 1;
+    }
+    //判断是否为士的步长
+    static bool AdvisorSpan(int src, int dst) {
+        return legalSpan[dst - src + 256] == 2;
+    }
+    //判断是否为象的步长
+    static bool bishopSpan(int src, int dst) {
+        return legalSpan[dst - src + 256] == 3;
+    }
+    //计算象眼的位置
+    static int bishopPin(int src, int dst) {
+        return (dst - src) >> 1;
+    }
+    //计算马腿的位置
+    static int KnightPin(int src,int dst) {
+        return src + knightPin[dst - src + 256];
+    }
+protected:
+    int Side;
     basicBoard Board;
     swapBasicBoard swapBoard;
     bitBoard bitBoard;
