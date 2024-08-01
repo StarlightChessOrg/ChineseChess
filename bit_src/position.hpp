@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
+#include <iomanip>
 #include <algorithm>
 #include "base.hpp"
 
@@ -85,16 +86,16 @@ public:
     }
     void printBitBoard(bool printTranspose = true){
         //打印整个棋盘的bit位
-        cout<<"yBits:"<<endl;
-        for(unsigned short yBit : yBits){
-            printBitLine(yBit);
+        cout<<endl;
+        cout<<"xBits:"<<endl;
+        for(unsigned short xBit : xBits){
+            printBitLine(xBit);
         }
         //打印转置棋盘的bit位
         if(printTranspose){
-            cout<<endl;
-            cout<<"xBits:"<<endl;
-            for(unsigned short xBit : xBits){
-                printBitLine(xBit);
+            cout<<"yBits:"<<endl;
+            for(unsigned short yBit : yBits){
+                printBitLine(yBit);
             }
         }
     }
@@ -196,10 +197,6 @@ enum piece{
     Pawn = 7
 };
 
-const int initBasicBoard[256] = {
-
-};
-
 class basicBoard{
 public:
     basicBoard(){
@@ -213,6 +210,20 @@ public:
     }
     void clearBoard(){
         memset(this->board,0,sizeof(int)*256);
+    }
+    void printBasicBoard(){
+        for(int y = 0;y < 16;y++){
+            for(int x = 0;x < 16;x++){
+                const int pos = getPos(y,x);
+                const int piece = this->board[pos];
+                if(piece){
+                    cout<<setw(4)<<piece;
+                }else{
+                    cout<<setw(4)<<".";
+                }
+            }
+            cout<<endl;
+        }
     }
 protected:
     int makeMove(int yFrom,int xFrom,int yTo,int xTo){
@@ -265,6 +276,12 @@ public:
     void clearBoard(){
         memset(this->swapBoard,0,sizeof(int) * 32);
     }
+    void printSwapBoard(){
+        for(int i = 0;i < 32;i++){
+            cout<<this->swapBoard[i]<<" ";
+        }
+        cout<<endl;
+    }
 protected:
     void makeMove(int fromPiece,int toPiece,int toPos){
         const int fromPieceIndex = pieceToSwapBoardIndex(fromPiece);
@@ -304,7 +321,7 @@ enum gameSide{
 
 class position{
 public:
-    explicit position(const int anotherBoard[256] = initBasicBoard,int initSide = Red){
+    explicit position(const int anotherBoard[256] = initGameBoard,int initSide = Red){
         this->side = initSide;
         this->board.readFromBoard(anotherBoard);
         this->swapBoard.readFromBoard(anotherBoard);
@@ -349,7 +366,7 @@ protected:
     static int getKnightPin(int src,int dst) {
         return src + knightPin[dst - src + 256];
     }
-protected:
+public:
     int side;
     basicBoard board;
     swapBasicBoard swapBoard;
