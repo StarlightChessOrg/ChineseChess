@@ -305,8 +305,8 @@ enum gameSide{
 class position{
 public:
     explicit position(const int anotherBoard[256] = initBasicBoard,int initSide = Red){
-        this->Side = initSide;
-        this->Board.readFromBoard(anotherBoard);
+        this->side = initSide;
+        this->board.readFromBoard(anotherBoard);
         this->swapBoard.readFromBoard(anotherBoard);
         this->bitBoard.readFromBoard(anotherBoard);
     }
@@ -314,44 +314,44 @@ public:
         ChangeSide();
         const int fromPos = basicBoard::getPos(yFrom,xFrom);
         const int toPos = basicBoard::getPos(yTo,xTo);
-        const int fromPiece = this->Board.board[fromPos];
-        const int toPiece = this->Board.makeMove(yFrom,xFrom,yTo,xTo);
+        const int fromPiece = this->board.board[fromPos];
+        const int toPiece = this->board.makeMove(yFrom,xFrom,yTo,xTo);
         this->swapBoard.makeMove(fromPiece,toPiece,toPos);
         this->bitBoard.makeMove(yFrom,xFrom,yTo,xTo);
     }
     void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,int fromPiece,int toPiece){
         ChangeSide();
-        this->Board.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
+        this->board.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
         this->swapBoard.unmakeMove(fromPiece,toPiece,basicBoard::getPos(yFrom,xFrom),basicBoard::getPos(yTo,xTo));
         this->bitBoard.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
     }
     void ChangeSide(){
-        this->Side = -this->Side;
+        this->side = -this->side;
     }
 protected:
     //判断是否为将的步长
-    static bool kingSpan(int src, int dst) {
+    static bool isKingSpan(int src, int dst) {
         return legalSpan[dst - src + 256] == 1;
     }
     //判断是否为士的步长
-    static bool AdvisorSpan(int src, int dst) {
+    static bool isAdvisorSpan(int src, int dst) {
         return legalSpan[dst - src + 256] == 2;
     }
     //判断是否为象的步长
-    static bool bishopSpan(int src, int dst) {
+    static bool isBishopSpan(int src, int dst) {
         return legalSpan[dst - src + 256] == 3;
     }
     //计算象眼的位置
-    static int bishopPin(int src, int dst) {
+    static int getBishopPin(int src, int dst) {
         return (dst - src) >> 1;
     }
     //计算马腿的位置
-    static int KnightPin(int src,int dst) {
+    static int getKnightPin(int src,int dst) {
         return src + knightPin[dst - src + 256];
     }
 protected:
-    int Side;
-    basicBoard Board;
+    int side;
+    basicBoard board;
     swapBasicBoard swapBoard;
     bitBoard bitBoard;
 };
