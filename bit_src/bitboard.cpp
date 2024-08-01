@@ -5,7 +5,7 @@ int board[256] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,1,0,5,0,0,2,0,0,0,0,0,0,0,
-        0,0,0,1,0,3,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,1,1,3,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -23,11 +23,12 @@ int board[256] = {
 int main(){
     bitBoard b;
     b.readFromBoard(board);
-    cout<<b.getRayTarget(69,rightTarget)<<endl;
-    cout<<b.getRayTarget(69,downTarget)<<endl;
+    cout<<b.getRayTarget(69,rightTarget,0)<<endl;
+    cout<<b.getRayTarget(69,downTarget,0)<<endl;
 
-    cout<<b.getRayTarget(69,leftTarget)<<endl;
-    cout<<b.getRayTarget(69,upTarget)<<endl;
+    cout<<b.getRayTarget(69,leftTarget,0)<<endl;
+    cout<<b.getRayTarget(69,leftTarget,1)<<endl;
+    cout<<b.getRayTarget(69,upTarget,0)<<endl;
     cout<<endl;
     return 0;
 }

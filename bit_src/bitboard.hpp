@@ -20,6 +20,11 @@ enum target{
     downTarget = 3
 };
 
+enum low_or_up{
+    lowIndex = 0,
+    upIndex = 1
+};
+
 class bitBoard{
 public:
     bitBoard(){
@@ -40,23 +45,23 @@ public:
             }
         }
         //初始化检测车炮攻击目标的数组
-        memset(RayBits,-1,sizeof(int) * 1024 * 10 * 2);
+        memset(RayBits,-1,sizeof(int) * 1024 * 10 * 2 * 4);
         for(uint16 bits = 0;bits < 1024;bits++){
             for(int from = 0;from < 10;from++){
                 //low -> 下标减小的一侧
                 const int low_index = 0;
-                for(int to = from - 1;to >= 0;to--){
+                for(int to = from - 1,cnt = 0;to >= 0 && cnt < 4;to--){
                     if(bits & ((uint16)1 << to)){
-                        RayBits[bits][from][low_index] = to;
-                        break;
+                        RayBits[bits][from][low_index][cnt] = to;
+                        cnt++;
                     }
                 }
                 //up -> 下标增加的一侧
                 const int up_index = 1;
-                for(int to = from + 1;to < 10;to++){
+                for(int to = from + 1,cnt = 0;to < 10 && cnt < 4;to++){
                     if(bits & ((uint16)1 << to)){
-                        RayBits[bits][from][up_index] = to;
-                        break;
+                        RayBits[bits][from][up_index][cnt] = to;
+                        cnt++;
                     }
                 }
             }
@@ -129,22 +134,25 @@ public:
         xBits[xFrom] |= ((uint16)1 << yFrom);
         xBits[xTo] &= ~((uint16)1 << yTo);
     }
-    int getRayTarget(const int pos,const int target){
+    int getRayTarget(const int pos,const int target,int num){
+        assert(num >= 0 && num < 4);
+        //pos 棋子位置 | target 攻击方向 | num 第几个棋子(从0开始数)
         const int x = getX(pos);
         const int y = getY(pos);
+        //-2 错误值 | -1 没有被攻击到的棋子 | 攻击到的棋子索引(需要±3和存储格式对齐)
         int rayTarget = -2;
         switch (target) {
             case leftTarget:
-                rayTarget = RayBits[yBits[y] >> 3][x - 3][0];
+                rayTarget = RayBits[yBits[y] >> 3][x - 3][lowIndex][num];
                 break;
             case rightTarget:
-                rayTarget = RayBits[yBits[y] >> 3][x - 3][1];
+                rayTarget = RayBits[yBits[y] >> 3][x - 3][upIndex][num];
                 break;
             case upTarget:
-                rayTarget = RayBits[xBits[x] >> 3][y - 3][0];
+                rayTarget = RayBits[xBits[x] >> 3][y - 3][lowIndex][num];
                 break;
             case downTarget:
-                rayTarget = RayBits[xBits[x] >> 3][y - 3][1];
+                rayTarget = RayBits[xBits[x] >> 3][y - 3][upIndex][num];
                 break;
             default:
                 cout<<"error occurred in the func named getRayTarget()"<<endl;
@@ -166,7 +174,7 @@ protected:
         return (pos >> 4);
     }
 protected:
-    int RayBits[1024][10][2]; //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
+    int RayBits[1024][10][2][4]; //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
     uint16 mayExistBarrier[16][16]; //用于检测棋子之间的障碍物
 private:
     uint16 yBits[16]{}; //横向是位向量
