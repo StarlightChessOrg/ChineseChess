@@ -4,8 +4,8 @@ int board[256] = {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-        0,0,0,1,0,5,0,0,0,0,0,0,0,0,0,0,
-        0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,1,0,5,0,0,2,0,0,0,0,0,0,0,
+        0,0,0,1,0,3,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -23,18 +23,11 @@ int board[256] = {
 int main(){
     bitBoard b;
     b.readFromBoard(board);
-    b.printBitBoard();
-    //cout<<endl;
-    //cout<<b.checkLineExistBarrier(3,3,3,10)<<endl;
-    //cout<<b.checkLineExistBarrier(3,3,5,3)<<endl;
+    cout<<b.getRayTarget(69,rightTarget)<<endl;
+    cout<<b.getRayTarget(69,downTarget)<<endl;
+
+    cout<<b.getRayTarget(69,leftTarget)<<endl;
+    cout<<b.getRayTarget(69,upTarget)<<endl;
     cout<<endl;
-    b.makeMove(3,3,4,5);
-    b.printBitBoard();
-    b.unMakeMove(3,3,4,5);
-    b.printBitBoard();
-    b.makeMove(3,3,3,7);
-    b.printBitBoard();
-    b.unMakeMove(3,3,3,7);
-    b.printBitBoard();
     return 0;
 }
