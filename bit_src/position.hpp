@@ -5,6 +5,7 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include "base.hpp"
 
 using namespace std;
 
@@ -20,7 +21,7 @@ enum target{
     downTarget = 3
 };
 
-enum low_or_up{
+enum lowOrUp{
     lowIndex = 0,
     upIndex = 1
 };
@@ -127,12 +128,14 @@ public:
         xBits[xFrom] &= ~((uint16)1 << yFrom);
         xBits[xTo] |= ((uint16)1 << yTo);
     }
-    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo){
+    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,bool eaten){
         //撤销步进
         yBits[yFrom] |= ((uint16)1 << xFrom);
-        yBits[yTo] &= ~((uint16)1 << xTo);
         xBits[xFrom] |= ((uint16)1 << yFrom);
-        xBits[xTo] &= ~((uint16)1 << yTo);
+        if(!eaten){
+            yBits[yTo] &= ~((uint16)1 << xTo);
+            xBits[xTo] &= ~((uint16)1 << yTo);
+        }
     }
     int getRayTarget(const int pos,const int target,int num){
         assert(num >= 0 && num < 4);
@@ -179,4 +182,143 @@ protected:
 private:
     uint16 yBits[16]{}; //横向是位向量
     uint16 xBits[16]{}; //纵向是位向量
+    friend class position;
+};
+
+enum piece{
+    Empty = 0,
+    King = 1,
+    Advisor = 2,
+    Bishop = 3,
+    Knight = 4,
+    Rook = 5,
+    Cannon = 6,
+    Pawn = 7
+};
+
+const int initBasicBoard[256] = {
+
+};
+
+class basicBoard{
+public:
+    basicBoard(){
+        clearBoard();
+    }
+    explicit basicBoard(const int anotherBoard[256]){
+        readFromBoard(anotherBoard);
+    }
+    void readFromBoard(const int anotherBoard[256]){
+        memcpy(this->board,anotherBoard,sizeof(int)*256);
+    }
+    void clearBoard(){
+        memset(this->board,0,sizeof(int)*256);
+    }
+protected:
+    int makeMove(int yFrom,int xFrom,int yTo,int xTo){
+        const int fromPos = getPos(yFrom,xFrom);
+        const int toPos = getPos(yTo,xTo);
+        const int toPiece = this->board[toPos];
+        this->board[toPos] = this->board[fromPos];
+        this->board[fromPos] = 0;
+        return toPiece;
+    }
+    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,int toPiece){
+        const int fromPos = getPos(yFrom,xFrom);
+        const int toPos = getPos(yTo,xTo);
+        this->board[fromPos] = this->board[toPos];
+        this->board[toPos] = toPiece;
+    }
+    static int getPos(int y,int x){
+        //转换二维坐标到一维坐标
+        return ((y << 4) | x);
+    }
+private:
+    int board[256]{};
+    friend class position;
+};
+
+//将士象马车炮兵
+static const int swapVector[17] = {
+    Empty,King,Advisor,Advisor,Bishop,Bishop,
+    Knight,Knight,Rook,Rook,Cannon,Cannon,
+    Pawn,Pawn,Pawn,Pawn, Pawn
+};
+
+class swapBasicBoard{
+public:
+    swapBasicBoard(){
+        clearBoard();
+    }
+    explicit swapBasicBoard(const int anotherBoard[256]){
+        readFromBoard(anotherBoard);
+    }
+    void readFromBoard(const int anotherBoard[256]){
+        clearBoard();
+        for(int pos = 51;pos < 205;pos++){
+            const int piece = anotherBoard[pos];
+            if(piece){
+                this->swapBoard[pieceToSwapBoardIndex(piece)] = pos;
+            }
+        }
+    }
+    void clearBoard(){
+        memset(this->swapBoard,0,sizeof(int) * 32);
+    }
+protected:
+    void makeMove(int fromPiece,int toPiece,int toPos){
+        const int fromPieceIndex = pieceToSwapBoardIndex(fromPiece);
+        this->swapBoard[fromPieceIndex] = toPos;
+        if(toPiece){
+            const int toPieceIndex = pieceToSwapBoardIndex(toPiece);
+            this->swapBoard[toPieceIndex] = 0;
+        }
+    }
+    void unmakeMove(int fromPiece,int toPiece,int fromPos,int toPos){
+        const int fromPieceIndex = pieceToSwapBoardIndex(fromPiece);
+        this->swapBoard[fromPieceIndex] = fromPos;
+        if(toPiece){
+            const int toPieceIndex = pieceToSwapBoardIndex(toPiece);
+            this->swapBoard[toPieceIndex] = toPos;
+        }
+    }
+protected:
+    static int pieceToSwapBoardIndex(int piece){
+        //转换棋子编号到反映射数组下标
+        return piece > 0 ? piece - 1 : abs(piece) + 15;
+    }
+    static int pieceToType(int piece){
+        //转换棋子编号到棋子类型
+        return piece > 0 ? swapVector[piece] : -swapVector[abs(piece)];
+    }
+private:
+    int swapBoard[32]{};
+    friend class position;
+};
+
+class position{
+public:
+    position(const int anotherBoard[256]){
+        this->Board.readFromBoard(anotherBoard);
+        this->swapBoard.readFromBoard(anotherBoard);
+        this->bitBoard.readFromBoard(anotherBoard);
+    }
+    void makeMove(int yFrom,int xFrom,int yTo,int xTo){
+        const int fromPos = basicBoard::getPos(yFrom,xFrom);
+        const int toPos = basicBoard::getPos(yTo,xTo);
+        const int fromPiece = this->Board.board[fromPos];
+        const int toPiece = this->Board.makeMove(yFrom,xFrom,yTo,xTo);
+        this->swapBoard.makeMove(fromPiece,toPiece,toPos);
+        this->bitBoard.makeMove(yFrom,xFrom,yTo,xTo);
+    }
+    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,int fromPiece,int toPiece){
+        this->Board.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
+        this->swapBoard.unmakeMove(fromPiece,toPiece,basicBoard::getPos(yFrom,xFrom),basicBoard::getPos(yTo,xTo));
+        this->bitBoard.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
+    }
+protected:
+private:
+    basicBoard Board;
+    swapBasicBoard swapBoard;
+    bitBoard bitBoard;
 };
