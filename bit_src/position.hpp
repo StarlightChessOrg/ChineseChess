@@ -146,6 +146,10 @@ public:
             xBits[xTo] &= ~((uint16)1 << yTo);
         }
     }
+    int getRayTargetPos(const int pos,const int target,const int num){
+        return convertRayTargetToPos(pos,target, getRayTarget(pos,target,num));
+    }
+protected:
     int getRayTarget(const int pos,const int target,int num){
         assert(num >= 0 && num < 4);
         //pos 棋子位置 | target 攻击方向 | num 第几个棋子(从0开始数)
@@ -176,24 +180,34 @@ public:
         }
         return rayTarget;
     }
-protected:
-    int RayBits[1024][10][2][4]{}; //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
-    uint16 mayExistBarrier[16][16]{}; //用于检测棋子之间的障碍物
+    static int convertRayTargetToPos(const int pos,const int target,const int rayTarget){
+        int convertPos = -1;
+        if(rayTarget > -1){
+            if(target == leftTarget || target == rightTarget){
+                convertPos = getPos(getY(pos),rayTarget);
+            }else{
+                convertPos = getPos(rayTarget, getX(pos));
+            }
+        }
+        return convertPos;
+    }
 private:
-    uint16 yBits[16]{}; //横向是位向量
-    uint16 xBits[16]{}; //纵向是位向量
+    int RayBits[1024][10][2][4]{};          //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
+    uint16 mayExistBarrier[16][16]{};       //用于检测棋子之间的障碍物
+    uint16 yBits[16]{};                     //横向是位向量
+    uint16 xBits[16]{};                     //纵向是位向量
     friend class position;
 };
 
 enum piece{
-    Empty = 0,
-    King = 1,
-    Advisor = 2,
-    Bishop = 3,
-    Knight = 4,
-    Rook = 5,
-    Cannon = 6,
-    Pawn = 7
+    empty = 0,
+    king = 1,
+    advisor = 2,
+    bishop = 3,
+    knight = 4,
+    rook = 5,
+    cannon = 6,
+    pawn = 7
 };
 
 class basicBoard{
@@ -248,9 +262,9 @@ private:
 
 //将士象马车炮兵
 static const int swapVector[17] = {
-    Empty,King,Advisor,Advisor,Bishop,Bishop,
-    Knight,Knight,Rook,Rook,Cannon,Cannon,
-    Pawn,Pawn,Pawn,Pawn,Pawn
+    empty,king,advisor,advisor,bishop,bishop,
+    knight,knight,rook,rook,cannon,cannon,
+    pawn,pawn,pawn,pawn,pawn
 };
 
 class swapBasicBoard{

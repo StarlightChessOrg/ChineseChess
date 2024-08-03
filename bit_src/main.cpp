@@ -3,6 +3,7 @@
 
 int main(){
     test t;
-    t.testGenKingMove(red);
+    t.testGenMoveList(black);
+
     return 0;
 }

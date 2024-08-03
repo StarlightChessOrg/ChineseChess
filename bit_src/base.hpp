@@ -11,7 +11,7 @@ const int initGameBoard[256] = {
         0,  0,  0,-12,  0,-13,  0,-14,  0,-15,  0,-16,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0, 12,  0,  0,  0, 14,  0, 15,  0, 16,  0,  0,  0,  0,
+        0,  0,  0, 12,  0, 13,  0, 14,  0, 15,  0, 16,  0,  0,  0,  0,
         0,  0,  0,  0, 10,  0,  0,  0,  0,  0, 11,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  8,  6,  4,  2,  1,  3,  5,  7,  9,  0,  0,  0,  0,
@@ -26,7 +26,7 @@ const int blackPawnPieceList[5] = {-12,-13,-14,-15,-16};
 const int redCannonPieceList[2] = {10,11};
 const int blackCannonPieceList[2] = {-10,-11};
 const int redRookPieceList[2] = {8,9};
-const int balckRookPieceList[2] = {-8,-9};
+const int blackRookPieceList[2] = {-8,-9};
 const int redKnightPieceList[2] = {6,7};
 const int blackKnightPieceList[2] = {-6,-7};
 const int redBishopPieceList[2] = {4,5};
@@ -122,7 +122,7 @@ const int inFortCenter[256] = {
 };
 
 //根据步长判断棋子类型
-const int legalSpan[512] = {
+const int legalStep[512] = {
         0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -159,7 +159,7 @@ const int legalSpan[512] = {
 };
 
 //根据步长计算在棋盘数组中的偏移量
-const int knightPin[512] = {
+const int knightLeg[512] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -202,43 +202,50 @@ const int rayDelta[4] = {-16, -1, 1, 16};
 const int advisorDelta[4] = {-17, -15, 15, 17};
 
 //马的八个位置对应的偏移量
-const int knightDelta[4][2] = {{-33, -31}, {-18, 14}, {-14, 18}, {31, 33}};
+const int knightDelta[8] = {-33, -31, -18, 14, -14, 18, 31, 33};
 
 //可能被马攻击的八个位置对应的偏移量
-const char knightCheckDelta[4][2] = {{-33, -18}, {-31, -14}, {14, 31}, {18, 33}};
+const char knightCheckDelta[8] = {-33, -18, -31, -14, 14, 31, 18, 33};
+
+//象的四个位置对应的偏移量
+const int bishopDelta[4] = {-34,34,-30,30};
 
 //判断是否为将的步长
 inline bool isKingStep(int src, int dst) {
-    return legalSpan[dst - src + 256] == 1;
-}
-//判断是否为士的步长
-inline bool isAdvisorStep(int src, int dst) {
-    return legalSpan[dst - src + 256] == 2;
-}
-//判断是否为象的步长
-inline bool isBishopStep(int src, int dst) {
-    return legalSpan[dst - src + 256] == 3;
-}
-//计算象眼的位置
-inline int getBishopEye(int src, int dst) {
-    return (dst - src) >> 1;
-}
-//计算马腿的位置
-inline int getKnightLeg(int src,int dst) {
-    return src + knightPin[dst - src + 256];
+    return legalStep[dst - src + 256] == 1;
 }
 
+//判断是否为士的步长
+inline bool isAdvisorStep(int src, int dst) {
+    return legalStep[dst - src + 256] == 2;
+}
+
+//判断是否为象的步长
+inline bool isBishopStep(int src, int dst) {
+    return legalStep[dst - src + 256] == 3;
+}
+
+//计算象眼的位置
+inline int getBishopEye(int src, int dst) {
+    return (dst + src) >> 1;
+}
+
+//计算马腿的位置
+inline int getKnightLeg(int src,int dst) {
+    return src + knightLeg[dst - src + 256];
+}
+
+//转换二维坐标到一维坐标
 inline int getPos(int y,int x){
-    //转换二维坐标到一维坐标
     return ((y << 4) | x);
 }
 
+//获得棋子的列索引
 inline int getX(int pos){
-    //获得棋子的列索引
     return pos & 15;
 }
 
+//获得棋子的行索引
 inline int getY(int pos){
-    //获得棋子的行索引
     return (pos >> 4);
 }

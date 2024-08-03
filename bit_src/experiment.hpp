@@ -16,27 +16,67 @@ public:
         cout<<endl;
     }
 
-    static void testGenPawnMove(int side){
+    static void testGenPawnMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
         vector<step> moveList;
-        genMove::genPawnMove(p, moveList);
+        genMove::genPawnMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
 
-    static void testGenAdvisorMove(int side){
+    static void testGenAdvisorMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
         vector<step> moveList;
-        genMove::genAdvisorMove(p, moveList);
+        genMove::genAdvisorMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
 
-    static void testGenKingMove(int side){
+    static void testGenKingMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
         vector<step> moveList;
-        genMove::genKingMove(p, moveList);
+        genMove::genKingMove(p, moveList,genType);
+        step::printMoveList(moveList);
+    }
+
+    static void testGenBishopMove(int side,int genType = all){
+        position p = position(initGameBoard);
+        p.side = side;
+        vector<step> moveList;
+        genMove::genBishopMove(p, moveList,genType);
+        step::printMoveList(moveList);
+    }
+
+    static void testGenKnightMove(int side,int genType = all){
+        position p = position(initGameBoard);
+        p.side = side;
+        vector<step> moveList;
+        genMove::genKnightMove(p, moveList,genType);
+        step::printMoveList(moveList);
+    }
+
+    static void testGenRookMove(int side,int genType = all){
+        position p = position(initGameBoard);
+        p.side = side;
+        vector<step> moveList;
+        genMove::genRookMove(p, moveList,genType);
+        step::printMoveList(moveList);
+    }
+
+    static void testGenCannonMove(int side,int genType = all){
+        position p = position(initGameBoard);
+        p.side = side;
+        vector<step> moveList;
+        genMove::genCannonMove(p, moveList,genType);
+        step::printMoveList(moveList);
+    }
+
+    static void testGenMoveList(int side,int genType = all){
+        position p = position(initGameBoard);
+        p.side = side;
+        vector<step> moveList;
+        genMove::genMoveList(p,moveList,genType);
         step::printMoveList(moveList);
     }
 };
