@@ -122,14 +122,22 @@ public:
         }
         return mayExistBarrier[yFrom][yTo] & xBits[xFrom];
     }
-    void makeMove(int yFrom,int xFrom,int yTo,int xTo){
+    void makeMove(int fromPos,int toPos){
+        const int xFrom = getX(fromPos);
+        const int yFrom = getY(fromPos);
+        const int xTo = getX(toPos);
+        const int yTo = getY(toPos);
         //步进
         yBits[yFrom] &= ~((uint16)1 << xFrom);
         yBits[yTo] |= ((uint16)1 << xTo);
         xBits[xFrom] &= ~((uint16)1 << yFrom);
         xBits[xTo] |= ((uint16)1 << yTo);
     }
-    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,bool eaten){
+    void unMakeMove(int fromPos,int toPos,bool eaten){
+        const int xFrom = getX(fromPos);
+        const int yFrom = getY(fromPos);
+        const int xTo = getX(toPos);
+        const int yTo = getY(toPos);
         //撤销步进
         yBits[yFrom] |= ((uint16)1 << xFrom);
         xBits[xFrom] |= ((uint16)1 << yFrom);
@@ -169,17 +177,8 @@ public:
         return rayTarget;
     }
 protected:
-    static int getX(int pos){
-        //获得棋子的列索引
-        return pos & 15;
-    }
-    static int getY(int pos){
-        //获得棋子的行索引
-        return (pos >> 4);
-    }
-protected:
-    int RayBits[1024][10][2][4]; //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
-    uint16 mayExistBarrier[16][16]; //用于检测棋子之间的障碍物
+    int RayBits[1024][10][2][4]{}; //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
+    uint16 mayExistBarrier[16][16]{}; //用于检测棋子之间的障碍物
 private:
     uint16 yBits[16]{}; //横向是位向量
     uint16 xBits[16]{}; //纵向是位向量
@@ -225,35 +224,33 @@ public:
             cout<<endl;
         }
     }
-protected:
-    int makeMove(int yFrom,int xFrom,int yTo,int xTo){
-        const int fromPos = getPos(yFrom,xFrom);
-        const int toPos = getPos(yTo,xTo);
+
+    int makeMove(int fromPos,int toPos){
         const int toPiece = this->board[toPos];
         this->board[toPos] = this->board[fromPos];
         this->board[fromPos] = 0;
         return toPiece;
     }
-    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,int toPiece){
-        const int fromPos = getPos(yFrom,xFrom);
-        const int toPos = getPos(yTo,xTo);
+
+    void unMakeMove(int fromPos,int toPos,int toPiece){
         this->board[fromPos] = this->board[toPos];
         this->board[toPos] = toPiece;
     }
-    static int getPos(int y,int x){
-        //转换二维坐标到一维坐标
-        return ((y << 4) | x);
+protected:
+    int getPieceByPos(int pos) const {
+        return board[pos];
     }
 private:
     int board[256]{};
     friend class position;
+    friend class genMove;
 };
 
 //将士象马车炮兵
 static const int swapVector[17] = {
     Empty,King,Advisor,Advisor,Bishop,Bishop,
     Knight,Knight,Rook,Rook,Cannon,Cannon,
-    Pawn,Pawn,Pawn,Pawn, Pawn
+    Pawn,Pawn,Pawn,Pawn,Pawn
 };
 
 class swapBasicBoard{
@@ -277,12 +274,12 @@ public:
         memset(this->swapBoard,0,sizeof(int) * 32);
     }
     void printSwapBoard(){
-        for(int i = 0;i < 32;i++){
-            cout<<this->swapBoard[i]<<" ";
+        for(int i : this->swapBoard){
+            cout<<i<<" ";
         }
         cout<<endl;
     }
-protected:
+
     void makeMove(int fromPiece,int toPiece,int toPos){
         const int fromPieceIndex = pieceToSwapBoardIndex(fromPiece);
         this->swapBoard[fromPieceIndex] = toPos;
@@ -291,6 +288,7 @@ protected:
             this->swapBoard[toPieceIndex] = 0;
         }
     }
+
     void unmakeMove(int fromPiece,int toPiece,int fromPos,int toPos){
         const int fromPieceIndex = pieceToSwapBoardIndex(fromPiece);
         this->swapBoard[fromPieceIndex] = fromPos;
@@ -299,7 +297,11 @@ protected:
             this->swapBoard[toPieceIndex] = toPos;
         }
     }
+
 protected:
+    int getPosByPiece(int piece){
+        return swapBoard[pieceToSwapBoardIndex(piece)];
+    }
     static int pieceToSwapBoardIndex(int piece){
         //转换棋子编号到反映射数组下标
         return piece > 0 ? piece - 1 : abs(piece) + 15;
@@ -311,64 +313,46 @@ protected:
 private:
     int swapBoard[32]{};
     friend class position;
+    friend class genMove;
 };
 
 enum gameSide{
-    Red = 1,
-    Mid = 0,
-    Black = -1
+    red = 1,
+    mid = 0,
+    black = -1
 };
 
 class position{
 public:
-    explicit position(const int anotherBoard[256] = initGameBoard,int initSide = Red){
+    explicit position(const int anotherBoard[256] = initGameBoard, int initSide = red){
         this->side = initSide;
         this->board.readFromBoard(anotherBoard);
         this->swapBoard.readFromBoard(anotherBoard);
         this->bitBoard.readFromBoard(anotherBoard);
     }
-    void makeMove(int yFrom,int xFrom,int yTo,int xTo){
-        ChangeSide();
-        const int fromPos = basicBoard::getPos(yFrom,xFrom);
-        const int toPos = basicBoard::getPos(yTo,xTo);
+    void makeMove(int fromPos,int toPos){
+        changeSide();
         const int fromPiece = this->board.board[fromPos];
-        const int toPiece = this->board.makeMove(yFrom,xFrom,yTo,xTo);
+        const int toPiece = this->board.makeMove(fromPos,toPos);
         this->swapBoard.makeMove(fromPiece,toPiece,toPos);
-        this->bitBoard.makeMove(yFrom,xFrom,yTo,xTo);
+        this->bitBoard.makeMove(fromPos,toPos);
     }
-    void unMakeMove(int yFrom,int xFrom,int yTo,int xTo,int fromPiece,int toPiece){
-        ChangeSide();
-        this->board.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
-        this->swapBoard.unmakeMove(fromPiece,toPiece,basicBoard::getPos(yFrom,xFrom),basicBoard::getPos(yTo,xTo));
-        this->bitBoard.unMakeMove(yFrom,xFrom,yTo,xTo,toPiece);
-    }
-    void ChangeSide(){
-        this->side = -this->side;
+    void unMakeMove(int fromPos,int toPos,int fromPiece,int toPiece){
+        changeSide();
+        this->board.unMakeMove(fromPos,toPos,toPiece);
+        this->swapBoard.unmakeMove(fromPiece,toPiece,fromPos,toPos);
+        this->bitBoard.unMakeMove(fromPos,toPos,toPiece);
     }
 protected:
-    //判断是否为将的步长
-    static bool isKingSpan(int src, int dst) {
-        return legalSpan[dst - src + 256] == 1;
+    void changeSide(){
+        this->side = -this->side;
     }
-    //判断是否为士的步长
-    static bool isAdvisorSpan(int src, int dst) {
-        return legalSpan[dst - src + 256] == 2;
-    }
-    //判断是否为象的步长
-    static bool isBishopSpan(int src, int dst) {
-        return legalSpan[dst - src + 256] == 3;
-    }
-    //计算象眼的位置
-    static int getBishopPin(int src, int dst) {
-        return (dst - src) >> 1;
-    }
-    //计算马腿的位置
-    static int getKnightPin(int src,int dst) {
-        return src + knightPin[dst - src + 256];
-    }
-public:
+
+protected:
     int side;
     basicBoard board;
     swapBasicBoard swapBoard;
     bitBoard bitBoard;
+    friend class genMove;
+    friend class test;
 };

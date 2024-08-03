@@ -10,6 +10,8 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 
 add_executable(bit_src
-        position.cpp
+        main.cpp
         position.hpp
-        base.hpp)
+        base.hpp
+        genMove.hpp
+        experiment.hpp)
