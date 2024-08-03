@@ -79,5 +79,26 @@ public:
         genMove::genMoveList(p,moveList,genType);
         step::printMoveList(moveList);
     }
+
+    static void testLegalMove(int side){
+        position p = position(initGameBoard);
+        p.side = side;
+        vector<step> moveList;
+        genMove::genMoveList(p,moveList);
+        for(step& s : moveList){
+            s.printMove();
+            assert(genMove::legalMove(p,s));
+        }
+    }
+
+    static void testGetRelation(){
+        position p = position(initGameBoard);
+        cout<<genMove::getRelation(p,52,beThreatened)<<endl;
+        cout<<genMove::getRelation(p,52,beProtected)<<endl;
+        cout<<genMove::getRelation(p,54,beThreatened)<<endl;
+        cout<<genMove::getRelation(p,54,beProtected)<<endl;
+        cout<<genMove::getRelation(p,51,beThreatened)<<endl;
+        cout<<genMove::getRelation(p,51,beProtected)<<endl;
+    }
 };
 

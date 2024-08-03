@@ -114,8 +114,27 @@ public:
         cout<<endl;
     }
 public:
-    bool checkLineExistBarrier(int yFrom,int xFrom,int yTo,int xTo){
-        assert((xFrom != xTo) || (yFrom != yTo));
+    //只能用于射线类棋子
+    static int selectTarget(int fromPos,int toPos){
+        if(toPos - fromPos > 16){
+            return downTarget;
+        }
+        if(toPos - fromPos < -16){
+            return upTarget;
+        }
+        if(toPos - fromPos > 0){
+            return rightTarget;
+        }
+        if(toPos - fromPos < 0){
+            return leftTarget;
+        }
+    }
+    bool checkLineExistBarrier(int fromPos,int toPos){
+        const int xFrom = getX(fromPos);
+        const int yFrom = getY(fromPos);
+        const int xTo = getX(toPos);
+        const int yTo = getY(toPos);
+        assert(((xFrom != xTo) + (yFrom != yTo)) == 1);
         //检查啷个棋子中间是否有障碍物
         if(xFrom != xTo){
             return mayExistBarrier[xFrom][xTo] & yBits[yFrom];

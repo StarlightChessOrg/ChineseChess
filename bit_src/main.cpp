@@ -2,8 +2,6 @@
 #include "experiment.hpp"
 
 int main(){
-    test t;
-    t.testGenMoveList(black);
-
+    test::testGetRelation();
     return 0;
 }
