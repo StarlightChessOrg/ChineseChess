@@ -1,4 +1,5 @@
 #pragma once
+#include "evaluate.hpp"
 #include "genMove.hpp"
 
 class test{
@@ -105,8 +106,15 @@ public:
         evaluate e = evaluate(initGameBoard);
         e.resetEvaBoard();
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
-        e.makeMove(84,195);
+        e.makeMove(84,196);
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+        e.unMakeMove(84,196,-10,6);
+        cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+        e.board.printBasicBoard();
+        int vl = e.rookMobility(red);
+        cout<<vl<<endl;
+        vl = e.knightTrap(red);
+        cout<<vl<<endl;
     }
 };
 
