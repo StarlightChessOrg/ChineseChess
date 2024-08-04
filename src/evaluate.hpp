@@ -101,26 +101,6 @@ const int advisorBishopThreatless[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 可升变的，没受威胁的仕(士)和相(象)
-const int advisorBishopPromotionThreatless[256] = {
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0, 30,  0,  0,  0, 30,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0, 28,  0,  0, 30, 33, 30,  0,  0, 28,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0, 33,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0, 30, 30,  0, 30, 30,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
-};
-
 // 受到威胁的仕(士)和相(象)，参照“象眼”
 const int advisorBishopThreatened[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -262,7 +242,7 @@ const int cannonEndgame[256] = {
 };
 
 // 空头炮的威胁分值，指标是对红方来说的行号(即黑方要用15去减)，大体上空头炮位置越高威胁越大。进入残局时，该值要相应减少。
-const int hollowThreat[16] = {
+static const int hollowThreat[16] = {
         0,  0,  0,  0,  0,  0, 60, 65, 70, 75, 80, 80, 80,  0,  0,  0
 };
 
@@ -364,12 +344,13 @@ public:
     void makeMove(int fromPos,int toPos) override{
         const int fromPiece = position::board.getPieceByPos(fromPos);
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
+        const int toPiece = position::board.getPieceByPos(toPos);
+        //步进
         if(fromPiece > 0){
             this->vlRed += vlRedBoard[fromIndex][toPos] - vlRedBoard[fromIndex][fromPos];
         }else if(fromPiece < 0){
             this->vlBlack += vlBlackBoard[fromIndex][toPos] - vlBlackBoard[fromIndex][fromPos];
         }
-        const int toPiece = position::board.getPieceByPos(toPos);
         if(toPiece){
             const int toIndex = swapBasicBoard::pieceToAbsType(toPiece) - 1;
             if(toPiece > 0){
@@ -378,10 +359,29 @@ public:
                 this->vlBlack -= vlBlackBoard[toIndex][toPos];
             }
         }
-
         position::makeMove(fromPos,toPos);
+        //优先记录走法
+        moveRoad.emplace_back(fromPos,toPos,fromPiece,toPiece);
+        //判断对方是否被我方将军
+        const bool chase = genMove::ChasedBy(*this,moveRoad.back());
+        const bool check = genMove::CheckedBy(*this,position::side);
+        const int lastDrawMoveSum = drawMoveStatus.empty() ? 0 : drawMoveStatus.back();
+        if(check || (!checkMoveStatus.empty() && checkMoveStatus.back())){
+           drawMoveStatus.push_back(lastDrawMoveSum);
+        }else if(toPiece){
+            drawMoveStatus.push_back(0);
+        }else {
+            drawMoveStatus.push_back(lastDrawMoveSum + 1);
+        }
+        //记录剩余棋规状态
+        checkMoveStatus.push_back(check);
+        chaseMoveStatus.push_back(chase);
     }
-    void unMakeMove(int fromPos,int toPos,int fromPiece,int toPiece) override{
+    void unMakeMove() {
+        const int fromPos = moveRoad.back().fromPos;
+        const int toPos = moveRoad.back().toPos;
+        const int fromPiece = moveRoad.back().fromPiece;
+        const int toPiece = moveRoad.back().toPiece;
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
         if(fromPiece > 0){
             this->vlRed -= vlRedBoard[fromIndex][toPos] - vlRedBoard[fromIndex][fromPos];
@@ -396,15 +396,17 @@ public:
                 this->vlBlack += vlBlackBoard[toIndex][toPos];
             }
         }
-
         position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
+        //撤销棋规记录
+        assert(!moveRoad.empty());
+        drawMoveStatus.pop_back();
+        checkMoveStatus.pop_back();
+        chaseMoveStatus.pop_back();
+        moveRoad.pop_back();
     }
     int getEvaluate(int side,int vlAlpha,int vlBeta){
-        int vl = 0;
-        // 偷懒的局面评价函数分以下几个层次：
-
         // 四级偷懒评价(彻底偷懒评价)，只包括子力平衡；
-        vl = this->material(side);
+        int vl = this->material(side);
         if (vl + EVAL_MARGIN1 <= vlAlpha) {
             return vl + EVAL_MARGIN1;
         } else if (vl - EVAL_MARGIN1 >= vlBeta) {
@@ -473,7 +475,7 @@ protected:
         }
         //空头炮(中炮)和窝心马的威胁向量
         for (int i = 0;i < 16;i++) {
-            vlHollowThreat[i] = hollowThreat[i] * (midgameValue + TOTAL_MIDGAME_VALUE) / (TOTAL_MIDGAME_VALUE * 2.0);
+            vlHollowThreat[i] = hollowThreat[i] * (midgameValue + TOTAL_MIDGAME_VALUE) / (TOTAL_MIDGAME_VALUE * 2);
             vlCentralThreat[i] = centralThreat[i];
         }
         //计算士的危险程度
@@ -483,7 +485,7 @@ protected:
         for(int pos = 51;pos < 205;pos++){
             if(inBoard[pos]){
                 //士象
-                const int vlAdvisorOrBishop = advisorBishopThreatless[pos] * (TOTAL_ATTACK_VALUE - blackAttackValue) / TOTAL_ATTACK_VALUE;
+                const int vlAdvisorOrBishop = (advisorBishopThreatened[pos] * blackAttackValue + (advisorBishopThreatless[pos]) * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
                 vlRedBoard[vlIndex(advisor)][pos] = vlBlackBoard[vlIndex(advisor)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
                 vlRedBoard[vlIndex(bishop)][pos] = vlBlackBoard[vlIndex(bishop)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
                 //兵
@@ -515,7 +517,7 @@ protected:
     }
 private:
     //物质分
-    int material(int side){
+    int material(int side) const{
         if(side == red){
             return vlRed - vlBlack + vlFirstGo;
         }
@@ -1008,6 +1010,11 @@ private:
         }
         vl = (2 * TOTAL_MIDGAME_VALUE - vl) * vl / TOTAL_MIDGAME_VALUE;
     }
+protected:
+    vector<int> drawMoveStatus;             //走法路线对应的和棋走法数
+    vector<bool> checkMoveStatus;           //走法路线对应的将军状态
+    vector<bool> chaseMoveStatus;           //走法瑞安对应的捉子状态
+    vector<step> moveRoad;                  //走法路线
 private:
     int vlRed{};
     int vlBlack{};

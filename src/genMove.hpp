@@ -226,7 +226,6 @@ private:
         return false;
     }
     static bool getPawnRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
-        const int stepList[3] = {1,-1,16 * p.side * relationType};
         if(inRiver[fromPos]){
             const int step = 16 * p.side * relationType;
             const int toPos = fromPos + step;

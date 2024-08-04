@@ -16,4 +16,5 @@ add_executable(bit_src
         genMove.hpp
         experiment.hpp
         evaluate.hpp
+        search.hpp
 )

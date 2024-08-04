@@ -1,7 +1,6 @@
-#include "genMove.hpp"
 #include "experiment.hpp"
 
 int main(){
-    test::testChasedBy();
+    test::testCheckChaseMakeMove();
     return 0;
 }

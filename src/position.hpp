@@ -358,7 +358,6 @@ private:
 
 enum gameSide{
     red = 1,
-    mid = 0,
     black = -1
 };
 
@@ -389,7 +388,6 @@ protected:
     void changeSide(){
         this->side = -this->side;
     }
-
 protected:
     int side;
     basicBoard board;

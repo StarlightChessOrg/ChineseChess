@@ -1,6 +1,5 @@
 #pragma once
-#include "evaluate.hpp"
-#include "genMove.hpp"
+#include "search.hpp"
 
 class test{
 public:
@@ -108,7 +107,7 @@ public:
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
         e.makeMove(84,196);
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
-        e.unMakeMove(84,196,-10,6);
+        e.unMakeMove();
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
         e.board.printBasicBoard();
     }
@@ -146,6 +145,18 @@ public:
         e.resetEvaBoard();
         step move = step(51,51 + 32 + 1,-6,0);
         cout<<genMove::ChasedBy(e,move);
+    }
+
+    static void testCheckChaseMakeMove(){
+        evaluate e = evaluate(initGameBoard);
+        e.resetEvaBoard();
+        e.board.printBasicBoard();
+        e.makeMove(164,167);
+        e.makeMove(84,87);
+        e.makeMove(167,103);
+        e.makeMove(54,71);
+        e.makeMove(196,165);
+        e.board.printBasicBoard();
     }
 };
 
