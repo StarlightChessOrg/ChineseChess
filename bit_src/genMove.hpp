@@ -66,7 +66,7 @@ protected:
             return false;
         }
 
-        const int pieceType = abs(swapBasicBoard::pieceToType(s.fromPiece));
+        const int pieceType = swapBasicBoard::pieceToAbsType(s.fromPiece);
         if(pieceType == rook){
             return !p.bitBoard.checkLineExistBarrier(s.fromPos,s.toPos);
         }
@@ -118,7 +118,7 @@ private:
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,0);
             const int toPiece = p.board.getPieceByPos(targetPos);
-            if(abs(swapBasicBoard::pieceToType(toPiece)) == rook &&
+            if(swapBasicBoard::pieceToAbsType(toPiece) == rook &&
                 toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
                 return true;
             }
@@ -130,7 +130,7 @@ private:
             const int toPos = fromPos + step;
             const int reverseLegPos = getKnightLeg(toPos,fromPos);
             const int toPiece = p.board.getPieceByPos(toPos);
-            if(abs(swapBasicBoard::pieceToType(toPiece)) == knight &&
+            if(swapBasicBoard::pieceToAbsType(toPiece) == knight &&
                 toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
                 !p.board.getPieceByPos(reverseLegPos)){
                 return true;
@@ -143,7 +143,7 @@ private:
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,1);
             const int toPiece = p.board.getPieceByPos(targetPos);
-            if(abs(swapBasicBoard::pieceToType(toPiece)) == cannon &&
+            if(swapBasicBoard::pieceToAbsType(toPiece) == cannon &&
                 toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
                 return true;
             }
@@ -155,7 +155,7 @@ private:
         if(inRiver[fromPos]){
             const int step = 16 * p.side * relationType;
             const int toPiece = p.board.getPieceByPos(fromPos + step);
-            if(abs(swapBasicBoard::pieceToType(toPiece)) == pawn &&
+            if(swapBasicBoard::pieceToAbsType(toPiece) == pawn &&
                 toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
                 return true;
             }
@@ -167,7 +167,7 @@ private:
             for(int step : advisorDelta){
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
-                if(abs(swapBasicBoard::pieceToType(toPos)) == advisor &&
+                if(swapBasicBoard::pieceToAbsType(toPiece) == advisor &&
                     toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
                     return true;
                 }
@@ -180,7 +180,7 @@ private:
             for(int step : bishopDelta){
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
-                if(abs(swapBasicBoard::pieceToType(toPos)) == bishop &&
+                if(swapBasicBoard::pieceToAbsType(toPiece) == bishop &&
                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
                     return true;
                 }
@@ -191,7 +191,7 @@ private:
 
     static bool getKingRelation(position& p,int fromPos,int relationType){
         const int fromPiece = p.board.getPieceByPos(fromPos);
-        if(relationType == beThreatened && abs(swapBasicBoard::pieceToType(fromPiece)) == king){
+        if(relationType == beThreatened && swapBasicBoard::pieceToAbsType(fromPiece) == king){
             const int toPos = p.swapBoard.getPosByPiece(-fromPiece);
             assert(toPos);
             if(getX(fromPos) == getX(toPos) &&
@@ -204,7 +204,7 @@ private:
             for(int step : rayDelta){
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
-                if(abs(swapBasicBoard::pieceToType(toPiece)) == king &&
+                if(swapBasicBoard::pieceToAbsType(toPiece) == king &&
                     toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
                     return true;
                 }

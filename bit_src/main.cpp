@@ -2,6 +2,6 @@
 #include "experiment.hpp"
 
 int main(){
-    test::testGetRelation();
+    test::testEvaluate();
     return 0;
 }

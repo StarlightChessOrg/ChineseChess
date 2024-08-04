@@ -100,5 +100,13 @@ public:
         cout<<genMove::getRelation(p,51,beThreatened)<<endl;
         cout<<genMove::getRelation(p,51,beProtected)<<endl;
     }
+
+    static void testEvaluate(){
+        evaluate e = evaluate(initGameBoard);
+        e.resetEvaBoard();
+        cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+        e.makeMove(84,195);
+        cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+    }
 };
 
