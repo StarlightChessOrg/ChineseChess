@@ -276,6 +276,7 @@ static const int bottomThreat[16] = {
         0,  0,  0, 40, 30,  0,  0,  0,  0,  0, 30, 40,  0,  0,  0,  0
 };
 
+// 计算游戏进行到的状态
 static const int ROOK_MIDGAME_VALUE = 6;
 static const int KNIGHT_CANNON_MIDGAME_VALUE = 3;
 static const int OTHER_MIDGAME_VALUE = 1;
@@ -284,6 +285,12 @@ static const int TOTAL_ADVANCED_VALUE = 4;
 static const int TOTAL_ATTACK_VALUE = 8;
 static const int ADVISOR_BISHOP_ATTACKLESS_VALUE = 90;
 static const int TOTAL_ADVISOR_LEAKAGE = 80;
+
+// 偷懒评价的边界
+const int EVAL_MARGIN1 = 160;
+const int EVAL_MARGIN2 = 80;
+const int EVAL_MARGIN3 = 40;
+const int EVAL_MARGIN4 = 20;
 
 // 常数表"inKnightEdgeSquares"给定了不利于马的位置，处于棋盘边缘和两个花心位置的马都是坏马
 static const int inKnightEdge[256] = {
@@ -392,6 +399,45 @@ public:
 
         position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
     }
+    int getEvaluate(int side,int vlAlpha,int vlBeta){
+        int vl = 0;
+        // 偷懒的局面评价函数分以下几个层次：
+
+        // 四级偷懒评价(彻底偷懒评价)，只包括子力平衡；
+        vl = this->material(side);
+        if (vl + EVAL_MARGIN1 <= vlAlpha) {
+            return vl + EVAL_MARGIN1;
+        } else if (vl - EVAL_MARGIN1 >= vlBeta) {
+            return vl - EVAL_MARGIN1;
+        }
+
+        // 三级偷懒评价，包括特殊棋型；
+        vl += this->advisorShape(side);
+        if (vl + EVAL_MARGIN2 <= vlAlpha) {
+            return vl + EVAL_MARGIN2;
+        } else if (vl - EVAL_MARGIN2 >= vlBeta) {
+            return vl - EVAL_MARGIN2;
+        }
+
+        // 二级偷懒评价，包括牵制；
+        vl += this->stringHold(side);
+        if (vl + EVAL_MARGIN3 <= vlAlpha) {
+            return vl + EVAL_MARGIN3;
+        } else if (vl - EVAL_MARGIN3 >= vlBeta) {
+            return vl - EVAL_MARGIN3;
+        }
+
+        // 一级偷懒评价，包括车的灵活性；
+        vl += this->rookMobility(side);
+        if (vl + EVAL_MARGIN4 <= vlAlpha) {
+            return vl + EVAL_MARGIN4;
+        } else if (vl - EVAL_MARGIN4 >= vlBeta) {
+            return vl - EVAL_MARGIN4;
+        }
+
+        // 零级偷懒评价(完全评价)，包括马的阻碍。
+        return vl + this->knightTrap(side);
+    }
 protected:
     //更新估值矩阵
     void resetEvaBoard(){
@@ -466,6 +512,14 @@ protected:
                 this->vlBlack += vlBlackBoard[index][pos];
             }
         }
+    }
+private:
+    //物质分
+    int material(int side){
+        if(side == red){
+            return this->vlRed - this->vlBlack;
+        }
+        return this->vlBlack - this->vlRed;
     }
     //车的机动性
     int rookMobility(int side){
@@ -783,7 +837,6 @@ protected:
         }
         return vlBlackAdvisorShape - vlRedAdvisorShape;
     }
-
     //牵制
     int stringHold(int side){
         int vlRedStringHold = 0;
