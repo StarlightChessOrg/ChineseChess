@@ -1,11 +1,7 @@
-#include "board.hpp"
+#include "genMove.hpp"
+#include "experiment.hpp"
 
-int main()
-{
-    Board board {};
-    board.printBoard();
-    board.makeDecision(4);
-    cout << searchCount << endl;
-    board.printBoard();
+int main(){
+    test::testEvaluate();
     return 0;
 }
