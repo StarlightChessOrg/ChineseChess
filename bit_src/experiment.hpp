@@ -102,7 +102,7 @@ public:
         cout<<genMove::getRelation(p,51,beProtected)<<endl;
     }
 
-    static void testEvaluate(){
+    static void testEvaluateMakeMove(){
         evaluate e = evaluate(initGameBoard);
         e.resetEvaBoard();
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
@@ -111,6 +111,12 @@ public:
         e.unMakeMove(84,196,-10,6);
         cout<<e.vlRed<<" "<<e.vlBlack<<endl;
         e.board.printBasicBoard();
+    }
+
+    static void testEvaluate(){
+        evaluate e = evaluate(initGameBoard);
+        e.board.printBasicBoard();
+        e.resetEvaBoard();
         int vl = e.rookMobility(red);
         cout<<vl<<endl;
         vl = e.knightTrap(red);
@@ -120,6 +126,13 @@ public:
         cout<<vl<<endl;
         vl = e.stringHold(black);
         cout<<vl<<endl;
+        cout<<"-----------------------"<<endl;
+        vl = e.advisorShape(red);
+        cout<<vl<<endl;
+        vl = e.advisorShape(black);
+        cout<<vl<<endl;
+
     }
+
 };
 
