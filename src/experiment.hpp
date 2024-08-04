@@ -131,8 +131,21 @@ public:
         cout<<vl<<endl;
         vl = e.advisorShape(black);
         cout<<vl<<endl;
-
     }
 
+    static void testCheckedBy(){
+        evaluate e = evaluate(initGameBoard);
+        e.board.printBasicBoard();
+        e.resetEvaBoard();
+        cout<<genMove::CheckedBy(e,red);
+    }
+
+    static void testChasedBy(){
+        evaluate e = evaluate(initGameBoard);
+        e.board.printBasicBoard();
+        e.resetEvaBoard();
+        step move = step(51,51 + 32 + 1,-6,0);
+        cout<<genMove::ChasedBy(e,move);
+    }
 };
 

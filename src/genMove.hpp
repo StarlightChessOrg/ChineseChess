@@ -58,6 +58,78 @@ public:
         genKingMove(p,moveList,genType);
     }
 protected:
+    //将军检测
+    static bool CheckedBy(position& p,int side){
+        const int kingPiece = (side == red) ? redKingPiece : blackKingPiece;
+        const int kingPos = p.swapBoard.getPosByPiece(kingPiece);
+        return getRelation(p,kingPos,beThreatened);
+    }
+    //捉子判断
+    static bool ChasedBy(position& p,step& move){
+        const int fromType = swapBasicBoard::pieceToAbsType(move.fromPiece);
+        if(fromType == rook){
+            const int pIndex = 2 * (getX(move.fromPos) != getX(move.toPos));
+            //横向移动看列方向上是否有被捉的子(马炮过河兵)，反之亦然
+            const int targetPool[2] = {leftTarget + pIndex,rightTarget + pIndex};
+            for(int target : targetPool){
+                const int toChasePos = p.bitBoard.getRayTargetPos(move.toPos,target,0);
+                if(toChasePos > -1){
+                    const int toChasePiece = p.board.getPieceByPos(toChasePos);
+                    const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
+                    if(move.fromPiece * toChasePiece < 0){
+                        if((toChaseType == cannon || toChaseType == knight)){
+                            return !getRelation(p,toChasePos,beProtected);
+                        }else if(toChaseType == pawn){
+                            if(inSideBoard[toChasePos] * toChasePiece < 0){
+                                return !getRelation(p,toChasePos,beProtected);
+                            }
+                        }
+                    }
+                }
+            }
+        }else if(fromType == knight){
+            for(int step : knightDelta){
+                const int toChasePos = move.toPos + step;
+                const int toChaseLegPos = getKnightLeg(move.toPos,toChasePos);
+                if(!p.board.getPieceByPos(toChaseLegPos)){
+                    const int toChasePiece = p.board.getPieceByPos(toChasePos);
+                    const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
+                    if(move.fromPiece * toChasePiece < 0){
+                        if(toChaseType == rook){
+                            return true;
+                        }else if((toChaseType == cannon || toChaseType == knight)){
+                            return !getRelation(p,toChasePos,beProtected);
+                        }else if(toChaseType == pawn){
+                            if(inSideBoard[toChasePos] * toChasePiece < 0){
+                                return !getRelation(p,toChasePos,beProtected);
+                            }
+                        }
+                    }
+                }
+            }
+        }else if(fromType == cannon){
+            const int pIndex = 2 * (getX(move.fromPos) != getX(move.toPos));
+            //横向移动看列方向上是否有被捉的子(马炮过河兵)，反之亦然
+            const int targetPool[2] = {leftTarget + pIndex,rightTarget + pIndex};
+            for(int target : targetPool){
+                const int toChasePos = p.bitBoard.getRayTargetPos(move.toPos,target,1);
+                if(toChasePos > -1){
+                    const int toChasePiece = p.board.getPieceByPos(toChasePos);
+                    const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
+                    if(move.fromPiece * toChasePiece < 0){
+                        if((toChaseType == cannon || toChaseType == knight)){
+                            return !getRelation(p,toChasePos,beProtected);
+                        }else if(toChaseType == pawn){
+                            if(inSideBoard[toChasePos] * toChasePiece < 0){
+                                return !getRelation(p,toChasePos,beProtected);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
     //走法的合法性检查，仅用于截断启发
     static bool legalMove(position& p,step& s){
         const int trueFromPiece = p.board.getPieceByPos(s.fromPos);
@@ -195,7 +267,6 @@ private:
         }
         return false;
     }
-
     static bool getKingRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         const int fromPiece = p.board.getPieceByPos(fromPos);
         if(relationType == beThreatened && swapBasicBoard::pieceToAbsType(fromPiece) == king){
@@ -222,7 +293,6 @@ private:
 
         return false;
     }
-
 private:
     static void genPawnMove(position& p,vector<step>& moveList,int genType = all){
         const int *pawnPieceList = (p.side == red) ? redPawnPieceList : blackPawnPieceList;

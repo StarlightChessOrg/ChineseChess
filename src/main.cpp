@@ -2,6 +2,6 @@
 #include "experiment.hpp"
 
 int main(){
-    test::testEvaluate();
+    test::testChasedBy();
     return 0;
 }

@@ -517,9 +517,9 @@ private:
     //物质分
     int material(int side){
         if(side == red){
-            return this->vlRed - this->vlBlack;
+            return vlRed - vlBlack + vlFirstGo;
         }
-        return this->vlBlack - this->vlRed;
+        return vlBlack - vlRed + vlFirstGo;
     }
     //车的机动性
     int rookMobility(int side){
@@ -591,8 +591,8 @@ private:
                     const int toPos = pos + step;
                     const int legPos = getKnightLeg(pos,toPos);
                     if(!inKnightEdge[toPos] &&
-                       !position::board.getPieceByPos(legPos) &&
-                       inBoard[toPos]){
+                        !position::board.getPieceByPos(legPos) &&
+                        inBoard[toPos]){
                         blackPenalty -= 5;
                         if(!blackPenalty){
                             break;
