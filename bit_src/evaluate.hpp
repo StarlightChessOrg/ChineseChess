@@ -1,5 +1,5 @@
 #pragma once
-#include "position.hpp"
+#include "genMove.hpp"
 
 // 常数表"inKnightEdgeSquares"给定了不利于马的位置，处于棋盘边缘和两个花心位置的马都是坏马
 static const int inKnightEdge[256] = {
@@ -19,6 +19,43 @@ static const int inKnightEdge[256] = {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+// 中间子和被牵制子的距离越近，牵制的价值就越大
+static const int stringValueTab[512] = {
+        0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 28,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 32,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 36,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0,  0,  0,
+        12, 16, 20, 24, 28, 32, 36,  0, 36, 32, 28, 24, 20, 16, 12,  0,
+        0,  0,  0,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 36,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 32,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 28,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0
 };
 
 class evaluate : public position{
@@ -224,6 +261,91 @@ protected:
             return vlRedKnightTrap - vlBlackKnightTrap;
         }
         return vlBlackKnightTrap - vlRedKnightTrap;
+    }
+    //士形
+    int advisorShape(int side){
+
+    }
+    //牵制
+    int stringHold(int side){
+        int vlRedStringHold = 0;
+        int vlBlackStringHold = 0;
+        const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
+        //车
+        for(int piece : redRookPieceList){
+            const int pos = position::swapBoard.getPosByPiece(piece);
+            if(pos){
+                for(int target : targetPool){
+                    vlRedStringHold += singleStringHold(pos,target);
+                }
+            }
+        }
+        for(int piece : blackRookPieceList){
+            const int pos = position::swapBoard.getPosByPiece(piece);
+            if(pos){
+                for(int target : targetPool){
+                    vlBlackStringHold += singleStringHold(pos,target);
+                }
+            }
+        }
+        //将帅
+        int pos = position::swapBoard.getPosByPiece(redKingPiece);
+        if(pos){
+            for(int target : targetPool){
+                vlRedStringHold += singleStringHold(pos,target);
+            }
+        }
+        pos = position::swapBoard.getPosByPiece(blackKingPiece);
+        if(pos){
+            for(int target : targetPool){
+                vlBlackStringHold += singleStringHold(pos,target);
+            }
+        }
+        if(side == red){
+            return vlRedStringHold - vlBlackStringHold;
+        }
+        return vlBlackStringHold - vlRedStringHold;
+    }
+    int singleStringHold(int pos,int target){
+        int vlSingleStringHold = 0;
+        const int toPos = position::bitBoard.getRayTargetPos(pos,target,0);
+        const int toInvPos = position::bitBoard.getRayTargetPos(pos,target,1);
+        if(toPos > -1){
+            const int toPiece = position::board.getPieceByPos(toPos);
+            const int toType = swapBasicBoard::pieceToAbsType(toPiece);
+            if(toType == cannon){
+                if(toInvPos > -1){
+                    const int toInvPiece = position::board.getPieceByPos(toInvPos);
+                    const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
+                    if(toInvType == rook){
+                        if(!genMove::getRelation(*this,toPos,beProtected,pos)){
+                            vlSingleStringHold -= stringValueTab[256 + toPos - pos];
+                        }
+                    }
+                }
+            }else if(toType == knight){
+                if(toInvPos > -1){
+                    //受到车的牵制
+                    const int toInvPiece = position::board.getPieceByPos(toInvPos);
+                    const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
+                    if(toInvType == rook){
+                        if(!genMove::getRelation(*this,toPos,beProtected,pos)){
+                            vlSingleStringHold -= stringValueTab[256 + toPos - pos];
+                        }
+                    }
+                    //受到炮的牵制
+                    const int toInvInvPos = position::bitBoard.getRayTargetPos(pos,target,2);
+                    const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
+                    const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
+                    if(toInvInvType == cannon){
+                        if(!genMove::getRelation(*this,toPos,beProtected,pos)){
+                            vlSingleStringHold -= stringValueTab[256 + toPos - pos];
+                        }
+                    }
+                }
+            }
+        }
+        return vlSingleStringHold;
     }
 private:
     static int vlIndex(int type){

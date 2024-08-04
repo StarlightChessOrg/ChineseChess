@@ -88,100 +88,107 @@ protected:
         return true;
     }
     //检查该棋子是否和其他子有联系(被攻击/被保护)
-    static bool getRelation(position& p,int fromPos,int relationType){
-        if(getRookRelation(p,fromPos,relationType)){
+    static bool getRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
+        if(getRookRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
-        if(getKnightRelation(p,fromPos,relationType)){
+        if(getKnightRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
-        if(getCannonRelation(p,fromPos,relationType)){
+        if(getCannonRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
-        if(getAdvisorRelation(p,fromPos,relationType)){
+        if(getAdvisorRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
-        if(getBishopRelation(p,fromPos,relationType)){
+        if(getBishopRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
-        if(getPawnRelation(p,fromPos,relationType)){
+        if(getPawnRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
-        if(getKingRelation(p,fromPos,relationType)){
+        if(getKingRelation(p,fromPos,relationType,exceptPos)){
             return true;
         }
         return false;
     }
 private:
-    static bool getRookRelation(position& p,int fromPos,int relationType){
+    static bool getRookRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,0);
             const int toPiece = p.board.getPieceByPos(targetPos);
             if(swapBasicBoard::pieceToAbsType(toPiece) == rook &&
-                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
+                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                targetPos != exceptPos){
                 return true;
             }
         }
         return false;
     }
-    static bool getKnightRelation(position& p,int fromPos,int relationType){
+    static bool getKnightRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         for(int step : knightCheckDelta){
             const int toPos = fromPos + step;
             const int reverseLegPos = getKnightLeg(toPos,fromPos);
             const int toPiece = p.board.getPieceByPos(toPos);
             if(swapBasicBoard::pieceToAbsType(toPiece) == knight &&
                 toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
-                !p.board.getPieceByPos(reverseLegPos)){
+                !p.board.getPieceByPos(reverseLegPos) &&
+                toPos != exceptPos){
                 return true;
             }
         }
         return false;
     }
-    static bool getCannonRelation(position& p,int fromPos,int relationType){
+    static bool getCannonRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,1);
             const int toPiece = p.board.getPieceByPos(targetPos);
             if(swapBasicBoard::pieceToAbsType(toPiece) == cannon &&
-                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
+                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                targetPos != exceptPos){
                 return true;
             }
         }
         return false;
     }
-    static bool getPawnRelation(position& p,int fromPos,int relationType){
+    static bool getPawnRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         const int stepList[3] = {1,-1,16 * p.side * relationType};
         if(inRiver[fromPos]){
             const int step = 16 * p.side * relationType;
-            const int toPiece = p.board.getPieceByPos(fromPos + step);
+            const int toPos = fromPos + step;
+            const int toPiece = p.board.getPieceByPos(toPos);
             if(swapBasicBoard::pieceToAbsType(toPiece) == pawn &&
-                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
+                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                toPos != exceptPos){
                 return true;
             }
         }
         return false;
     }
-    static bool getAdvisorRelation(position& p,int fromPos,int relationType){
+    static bool getAdvisorRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         if(inAdvisorLine[fromPos]){
             for(int step : advisorDelta){
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == advisor &&
-                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
+                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                    toPos != exceptPos){
                     return true;
                 }
             }
         }
         return false;
     }
-    static bool getBishopRelation(position& p,int fromPos,int relationType){
+    static bool getBishopRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         if(inBishopLine[fromPos]){
             for(int step : bishopDelta){
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == bishop &&
-                   toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
+                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                    toPos != exceptPos){
                     return true;
                 }
             }
@@ -189,13 +196,14 @@ private:
         return false;
     }
 
-    static bool getKingRelation(position& p,int fromPos,int relationType){
+    static bool getKingRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
         const int fromPiece = p.board.getPieceByPos(fromPos);
         if(relationType == beThreatened && swapBasicBoard::pieceToAbsType(fromPiece) == king){
             const int toPos = p.swapBoard.getPosByPiece(-fromPiece);
             assert(toPos);
             if(getX(fromPos) == getX(toPos) &&
-               !p.bitBoard.checkLineExistBarrier(fromPos,toPos)){
+                !p.bitBoard.checkLineExistBarrier(fromPos,toPos) &&
+                toPos != exceptPos){
                 return true;
             }
         }
@@ -205,7 +213,8 @@ private:
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == king &&
-                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0){
+                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                    toPos != exceptPos){
                     return true;
                 }
             }
@@ -365,4 +374,5 @@ private:
     }
 private:
     friend class test;
+    friend class evaluate;
 };

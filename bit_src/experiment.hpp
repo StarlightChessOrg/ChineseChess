@@ -115,6 +115,11 @@ public:
         cout<<vl<<endl;
         vl = e.knightTrap(red);
         cout<<vl<<endl;
+        cout<<"-----------------------"<<endl;
+        vl = e.stringHold(red);
+        cout<<vl<<endl;
+        vl = e.stringHold(black);
+        cout<<vl<<endl;
     }
 };
 
