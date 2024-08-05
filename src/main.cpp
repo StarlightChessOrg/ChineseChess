@@ -1,6 +1,6 @@
 #include "experiment.hpp"
 
 int main(){
-    test::testCheckChaseMakeMove();
+    test::testSearch();
     return 0;
 }

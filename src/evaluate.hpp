@@ -341,10 +341,17 @@ public:
         memset(vlRedBoard,0,sizeof(int) * 7 * 256);
         memset(vlBlackBoard,0,sizeof(int) * 7 * 256);
     }
-    void makeMove(int fromPos,int toPos) override{
+    bool makeMove(int fromPos,int toPos) {
         const int fromPiece = position::board.getPieceByPos(fromPos);
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
         const int toPiece = position::board.getPieceByPos(toPos);
+        //检查将军
+        position::makeMove(fromPos,toPos);
+        const bool originSideCheck = genMove::CheckedBy(*this,-position::side);
+        if(originSideCheck){
+            position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
+            return false;
+        }
         //步进
         if(fromPiece > 0){
             this->vlRed += vlRedBoard[fromIndex][toPos] - vlRedBoard[fromIndex][fromPos];
@@ -359,7 +366,6 @@ public:
                 this->vlBlack -= vlBlackBoard[toIndex][toPos];
             }
         }
-        position::makeMove(fromPos,toPos);
         //优先记录走法
         moveRoad.emplace_back(fromPos,toPos,fromPiece,toPiece);
         //判断对方是否被我方将军
@@ -376,6 +382,7 @@ public:
         //记录剩余棋规状态
         checkMoveStatus.push_back(check);
         chaseMoveStatus.push_back(chase);
+        return true;
     }
     void unMakeMove() {
         const int fromPos = moveRoad.back().fromPos;
@@ -441,6 +448,9 @@ public:
         return vl + this->knightTrap(side);
     }
 protected:
+    int getNowDistance(){
+        return (int)moveRoad.size();
+    }
     //更新估值矩阵
     void resetEvaBoard(){
         int midgameValue = 0;
@@ -1028,4 +1038,5 @@ private:
     int vlHollowThreat[16]{};               //空头炮的威胁向量
     int vlCentralThreat[16]{};              //窝心马的威胁向量
     friend class test;
+    friend class searchGroup;
 };

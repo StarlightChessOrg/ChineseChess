@@ -370,7 +370,7 @@ public:
         this->bitBoard.readFromBoard(anotherBoard);
     }
 
-    virtual void makeMove(int fromPos,int toPos){
+    void makeMove(int fromPos, int toPos){
         changeSide();
         const int fromPiece = this->board.board[fromPos];
         const int toPiece = this->board.makeMove(fromPos,toPos);

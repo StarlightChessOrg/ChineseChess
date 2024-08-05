@@ -158,5 +158,12 @@ public:
         e.makeMove(196,165);
         e.board.printBasicBoard();
     }
+
+    static void testSearch(){
+        evaluate e = evaluate(initGameBoard,red);
+        searchGroup s = searchGroup();
+        s.searchMain(e,6,3000);
+
+    }
 };
 

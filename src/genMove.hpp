@@ -27,6 +27,18 @@ public:
         }
         cout<<"total size of move list is "<<moveList.size()<<endl;
     }
+    bool operator!=(const step& otherMove) const{
+        return !((fromPos == otherMove.fromPos) &&
+                (toPos == otherMove.toPos) &&
+                (fromPiece == otherMove.fromPiece) &&
+                (toPiece == otherMove.toPiece));
+    }
+    bool operator==(const step& otherMove) const{
+        return  (fromPos == otherMove.fromPos) &&
+                (toPos == otherMove.toPos) &&
+                (fromPiece == otherMove.fromPiece) &&
+                (toPiece == otherMove.toPiece);
+    }
 public:
     int fromPos;
     int toPos;
