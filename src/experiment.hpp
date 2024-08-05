@@ -162,7 +162,7 @@ public:
     static void testSearch(){
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
-        s.searchMain(e,6,3000);
+        s.searchMain(e,8,3000);
 
     }
 };

@@ -17,4 +17,5 @@ add_executable(bit_src
         experiment.hpp
         evaluate.hpp
         search.hpp
+        cache.hpp
 )

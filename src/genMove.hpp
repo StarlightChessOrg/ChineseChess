@@ -9,6 +9,7 @@ public:
         fromPiece = 0;
         toPiece = 0;
         vl = 0;
+        sortType = 0;
     }
     step(int fromPos,int toPos,int fromPiece,int toPiece,int vl = 0){
         this->fromPos = fromPos;
@@ -16,6 +17,7 @@ public:
         this->fromPiece = fromPiece;
         this->toPiece = toPiece;
         this->vl = vl;
+        sortType = 0;
     }
     void printMove() const{
         cout<<setw(3)<<fromPiece<<" from "<<fromPos<<" to "<<toPos <<" and eat "<<toPiece<<" with vl = "<<vl<<endl;
@@ -45,6 +47,7 @@ public:
     int fromPiece;
     int toPiece;
     int vl;
+    int sortType;
 };
 
 //全部走法 or 吃子走法
@@ -456,4 +459,5 @@ private:
 private:
     friend class test;
     friend class evaluate;
+    friend class moveSort;
 };

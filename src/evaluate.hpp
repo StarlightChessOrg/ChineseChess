@@ -1,6 +1,8 @@
 #pragma once
 #include "genMove.hpp"
 
+static const int DRAW_MOVE_NUM = 100;
+
 // 开中局、有进攻机会的帅(将)和兵(卒)，参照“象眼”
 const int kingPawnMidgameAttacking[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -329,6 +331,13 @@ static const int stringValueTab[512] = {
         0,  0,  0,  0,  0,  0,  0
 };
 
+enum repStatus{
+    none_rep = 0,
+    draw_rep = 1,
+    kill_rep = 2,
+    killed_rep = 3
+};
+
 class evaluate : public position{
 public:
     explicit evaluate(const int anotherBoard[256] = initGameBoard, int initSide = red) : position(anotherBoard,initSide){
@@ -448,6 +457,46 @@ public:
         return vl + this->knightTrap(side);
     }
 protected:
+    //判断是否自然和棋
+    bool isDraw(){
+        return !drawMoveStatus.empty() && drawMoveStatus.back() >= DRAW_MOVE_NUM;
+    }
+    //判断走法线路的重复类型
+    bool isRep(){
+        if(getNowDistance() >= 4){
+            const bool mineFirstCheck = checkMoveStatus[checkMoveStatus.size() - 3];
+            const bool mineSecondCheck = checkMoveStatus[checkMoveStatus.size() - 1];
+            const bool otherFirstCheck = checkMoveStatus[checkMoveStatus.size() - 4];
+            const bool otherSecondCheck = checkMoveStatus[checkMoveStatus.size() - 2];
+
+            const bool mineFirstChase = chaseMoveStatus[chaseMoveStatus.size() - 3];
+            const bool mineSecondChase = chaseMoveStatus[chaseMoveStatus.size() - 1];
+            const bool otherFirstChase = chaseMoveStatus[chaseMoveStatus.size() - 4];
+            const bool otherSecondChase = chaseMoveStatus[chaseMoveStatus.size() - 2];
+
+            const int mineCheck = (mineFirstCheck && mineSecondCheck);
+            const int mineChase = (mineFirstChase && mineSecondChase);
+            const int otherCheck = (otherFirstCheck && otherSecondCheck);
+            const int otherChase = (otherFirstChase && otherSecondChase);
+
+            const int mineRepLevel = mineChase + mineCheck * 2;
+            const int otherRepLevel = otherChase + otherCheck * 2;
+
+            if(mineRepLevel && otherRepLevel){
+                if(mineRepLevel == otherRepLevel){
+                    return draw_rep;
+                }else if(mineRepLevel > otherRepLevel){
+                    return killed_rep;
+                }else{
+                    return kill_rep;
+                }
+            }else{
+                return none_rep;
+            }
+        }
+        return none_rep;
+    }
+    //获取路线长度
     int getNowDistance(){
         return (int)moveRoad.size();
     }
