@@ -354,6 +354,9 @@ public:
         const int fromPiece = position::board.getPieceByPos(fromPos);
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
         const int toPiece = position::board.getPieceByPos(toPos);
+//        if(abs(toPiece) == 1){
+//            cout<<endl;
+//        }
         //检查将军
         position::makeMove(fromPos,toPos);
         const bool originSideCheck = genMove::CheckedBy(*this,-position::side);
@@ -1088,4 +1091,5 @@ private:
     int vlCentralThreat[16]{};              //窝心马的威胁向量
     friend class test;
     friend class searchGroup;
+    friend class killerCache;
 };

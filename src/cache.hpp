@@ -26,15 +26,27 @@ static const int MAX_KILLER_MOVE_NUM = 64;
 
 class killerCache{
 public:
-    killerCache(){
-
+    killerCache()= default;
+    void getCache(evaluate& e,vector<step>& moveList){
+        for(step& move : killerMoveList[e.getNowDistance()]){
+            if(genMove::legalMove(e,move)){
+                moveList.push_back(move);
+            }
+        }
+    }
+    void recoardCache(evaluate& e,step& move){
+        const int nowPosDistance = e.getNowDistance();
+        killerMoveList[nowPosDistance][1] = killerMoveList[nowPosDistance][0];
+        killerMoveList[nowPosDistance][0] = move;
     }
 protected:
     void clearCache(){
-        for(vector<step>& moveList : killerMoveList){
-            vector<step>().swap(moveList);
+        for(auto& killer : killerMoveList){
+            killer[0] = step(0,0,0,0);
+            killer[1] = step(0,0,0,0);
         }
     }
 private:
-    vector<step> killerMoveList[MAX_KILLER_MOVE_NUM];
+    step killerMoveList[MAX_KILLER_MOVE_NUM][2];
+    friend class searchGroup;
 };

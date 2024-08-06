@@ -1,5 +1,7 @@
 #pragma once
 #include "search.hpp"
+#include "ctime"
+#include "windows.h"
 
 class test{
 public:
@@ -73,11 +75,17 @@ public:
     }
 
     static void testGenMoveList(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
+        evaluate e = evaluate(initGameBoard,side);
         vector<step> moveList;
-        genMove::genMoveList(p,moveList,genType);
-        step::printMoveList(moveList);
+        genMove::genMoveList(e,moveList,genType);
+        //step::printMoveList(moveList);
+
+        for(step& move : moveList){
+            if(e.makeMove(move.fromPos,move.toPos)){
+                move.printMove();
+                e.unMakeMove();
+            }
+        }
     }
 
     static void testLegalMove(int side){
@@ -136,7 +144,8 @@ public:
         evaluate e = evaluate(initGameBoard);
         e.board.printBasicBoard();
         e.resetEvaBoard();
-        cout<<genMove::CheckedBy(e,red);
+        cout<<genMove::CheckedBy(e,red)<<endl;
+        cout<<genMove::CheckedBy(e,black)<<endl;
     }
 
     static void testChasedBy(){
@@ -162,8 +171,10 @@ public:
     static void testSearch(){
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
+        time_t start = clock();
         s.searchMain(e,8,3000);
-
+        time_t end = clock();
+        cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
     }
 };
 

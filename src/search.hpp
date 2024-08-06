@@ -13,8 +13,8 @@ static const int MAX_QUIESC_DISTANCE = 64;
 
 enum moveType{
     hashMove = 4,
-    killerMove = 3,
-    justEatMove = 2,
+    justEatMove = 3,
+    killerMove = 2,
     historyMove = 1
 };
 
@@ -57,15 +57,21 @@ public:
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
 private:
+    static bool inOtherStepList(step& move,vector<step>& moveList){
+        for(int i = 0;i < moveList.size();i++){
+            if(move == moveList[i]){
+                return i + 1;
+            }
+        }
+        return 0;
+    }
     static int getMvvLva(evaluate& e,step& move){
         const int mvv = vlMvvLva[abs(move.fromPiece) - 1];
-        const int lva = vlMvvLva[abs(move.toPiece) - 1];
+        const int lva = genMove::getRelation(e,move.fromPos,beProtected) ? vlMvvLva[abs(move.toPiece) - 1] : 0;
         if(mvv >= lva){
-            if(genMove::getRelation(e,move.fromPos,beProtected)){
-                return mvv - lva + 1;
-            }else if(lva >= 4 || (inRiver[move.toPos] && lva == 1)){
-                return 1;
-            }
+            return mvv - lva + 1;
+        }else if(lva >= 4 || (inRiver[move.toPos] && lva == 1)){
+            return 1;
         }
         return 0;
     }
@@ -114,6 +120,9 @@ public:
             moveSort::sortQuesicMoveSequance(e,moveList);
         }
         for(step& move : moveList){
+            if(!bCheck && !move.vl){
+                break;
+            }
             if(e.makeMove(move.fromPos,move.toPos)){
                 vl = -searchQuesic(e,-vlBeta,-vlAlpha);
                 e.unMakeMove();
@@ -127,7 +136,10 @@ public:
                 }
             }
         }
-        return (vlBest == MIN_VALUE) ? MIN_VALUE + e.getNowDistance() : vlBest;
+        if(vlBest == MIN_VALUE){
+            return MIN_VALUE + e.getNowDistance();
+        }
+        return vlBest;
     }
     int searchPV(evaluate& e,int depth,int vlAlpha,int vlBeta){
         if(depth <= 0){
@@ -135,46 +147,89 @@ public:
         }
 
         int vl = harmlessPruning(e,vlBeta);
-        if(vl > MIN_VALUE){
-            return vl;
-        }
-
         int vlBest = MIN_VALUE;
         vector<step> moveList;
         step* pBestMove = nullptr;
-        genMove::genMoveList(e,moveList,all);
-        moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
         const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
-        for(step & move : moveList){
-            const int newDepth = bCheck ? depth : depth - 1;
-            if(e.makeMove(move.fromPos,move.toPos)){
-                if(vlBest == MIN_VALUE){
-                    vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
-                }else{
-                    vl = -searchNonPV(e,newDepth,-vlBest,MAX_VALUE);
-                    if(vl > vlAlpha && vl < vlBeta){
-                        vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
-                    }
-                }
-                e.unMakeMove();
+        if(vl > MIN_VALUE){
+            return vl;
+        }
+        bool quit = false;
 
-                if(vl > vlBest){
-                    vlBest = vl;
-                    if(vl >= vlBeta){
-                        historyMap.recoardCache(move,depth);
-                        return vlBest;
+        //截断启发
+        vector<step> killerMoveList;
+        if(!quit){
+            killerMap.getCache(e,killerMoveList);
+            for(step & move : killerMoveList){
+                const int newDepth = bCheck ? depth : depth - 1;
+                if(e.makeMove(move.fromPos,move.toPos)){
+                    if(vlBest == MIN_VALUE){
+                        vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
+                    }else{
+                        vl = -searchNonPV(e,newDepth,-vlAlpha);
+                        if(vl > vlAlpha && vl < vlBeta){
+                            vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
+                        }
                     }
-                    if(vl > vlAlpha){
-                        pBestMove = &move;
-                        vlAlpha = vl;
+                    e.unMakeMove();
+
+                    if(vl > vlBest){
+                        vlBest = vl;
+                        if(vl >= vlBeta){
+                            pBestMove = &move;
+                            quit = true;
+                            break;
+                        }
+                        if(vl > vlAlpha){
+                            vlAlpha = vl;
+                        }
                     }
                 }
             }
         }
+
+        //常规搜索
+        if(!quit){
+            genMove::genMoveList(e,moveList,all);
+            moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+            for(step & move : moveList){
+                if(!moveSort::inOtherStepList(move,killerMoveList)){
+                    const int newDepth = bCheck ? depth : depth - 1;
+                    if(e.makeMove(move.fromPos,move.toPos)){
+                        if(vlBest == MIN_VALUE){
+                            vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
+                        }else{
+                            vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            if(vl > vlAlpha && vl < vlBeta){
+                                vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
+                            }
+                        }
+                        e.unMakeMove();
+
+                        if(vl > vlBest){
+                            vlBest = vl;
+                            if(vl >= vlBeta){
+                                pBestMove = &move;
+                                break;
+                            }
+                            if(vl > vlAlpha){
+                                pBestMove = &move;
+                                vlAlpha = vl;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
+            killerMap.recoardCache(e,*pBestMove);
         }
-        return (vlBest == MIN_VALUE) ? MIN_VALUE + e.getNowDistance() : vlBest;
+        if(vlBest == MIN_VALUE){
+            return MIN_VALUE + e.getNowDistance();
+        }
+        return vlBest;
     }
     int searchNonPV(evaluate& e,int depth,int vlBeta,bool noNull = false){
         if(depth <= 0){
@@ -182,16 +237,17 @@ public:
         }
 
         int vl = harmlessPruning(e,vlBeta);
+        int vlBest = MIN_VALUE;
+        step* pBestMove = nullptr;
+        const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
         if(vl > MIN_VALUE){
             return vl;
         }
 
-        int vlBest = MIN_VALUE;
-        vector<step> moveList;
-        genMove::genMoveList(e,moveList,all);
-        moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
-        const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
-        for(step & move : moveList){
+
+        vector<step> killerMoveList;
+        killerMap.getCache(e,killerMoveList);
+        for(step & move : killerMoveList){
             const int newDepth = bCheck ? depth : depth - 1;
             if(e.makeMove(move.fromPos,move.toPos)){
                 vl = -searchNonPV(e,newDepth,-vlBeta + 1);
@@ -200,13 +256,41 @@ public:
                 if(vl > vlBest){
                     vlBest = vl;
                     if(vl >= vlBeta){
-                        historyMap.recoardCache(move,depth);
                         return vlBest;
                     }
                 }
             }
         }
-        return (vlBest == MIN_VALUE) ? MIN_VALUE + e.getNowDistance() : vlBest;
+
+        vector<step> moveList;
+        genMove::genMoveList(e,moveList,all);
+        moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+
+        for(step & move : moveList){
+            if(!moveSort::inOtherStepList(move,killerMoveList)){
+                const int newDepth = bCheck ? depth : depth - 1;
+                if(e.makeMove(move.fromPos,move.toPos)){
+                    vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                    e.unMakeMove();
+
+                    if(vl > vlBest){
+                        vlBest = vl;
+                        if(vl >= vlBeta){
+                            pBestMove = &move;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if(pBestMove){
+            historyMap.recoardCache(*pBestMove,depth);
+            killerMap.recoardCache(e,*pBestMove);
+        }
+        if(vlBest == MIN_VALUE){
+            return MIN_VALUE + e.getNowDistance();
+        }
+        return vlBest;
     }
     int searchRoot(evaluate& e,int maxDepth){
         int vl;
@@ -218,7 +302,7 @@ public:
                 if(vlBest == MIN_VALUE){
                     vl = -searchPV(e, newDepth,MIN_VALUE,MAX_VALUE);
                 }else{
-                    vl = -searchNonPV(e,newDepth,-vlBest,MAX_VALUE);
+                    vl = -searchNonPV(e,newDepth,-vlBest);
                     if(vl > vlBest){
                         vl = -searchPV(e,newDepth,MIN_VALUE,-vlBest);
                     }
@@ -236,11 +320,7 @@ public:
     }
     int searchMain(evaluate& e,int maxDepth,int maxTime){
         //init
-        e.resetEvaBoard();
-        historyMap.clearCache();
-        vector<step>().swap(rootMoveList);
-        genMove::genMoveList(e,rootMoveList,all);
-        moveSort::initSortRootMoveSeuqance(e,historyMap,rootMoveList);
+        initSearch(e);
         //init para
         int vlBest = MIN_VALUE;
         //search
@@ -253,6 +333,15 @@ public:
             }
         }
         return vlBest;
+    }
+protected:
+    void initSearch(evaluate& e){
+        e.resetEvaBoard();
+        historyMap.clearCache();
+        killerMap.clearCache();
+        vector<step>().swap(rootMoveList);
+        genMove::genMoveList(e,rootMoveList,all);
+        moveSort::initSortRootMoveSeuqance(e,historyMap,rootMoveList);
     }
 private:
     static int harmlessPruning(evaluate& e,int vlBeta){
@@ -282,6 +371,7 @@ private:
     }
 private:
     historyCache historyMap;        //历史启发表
+    killerCache killerMap;          //历史启发表
     vector<int> pvLine;             //主要遍历路线
     vector<step> rootMoveList;      //根节点走法表
 };

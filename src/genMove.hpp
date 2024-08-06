@@ -241,14 +241,20 @@ private:
         return false;
     }
     static bool getPawnRelation(position& p,int fromPos,int relationType,int exceptPos = 0){
-        if(inRiver[fromPos]){
-            const int step = 16 * p.side * relationType;
-            const int toPos = fromPos + step;
-            const int toPiece = p.board.getPieceByPos(toPos);
-            if(swapBasicBoard::pieceToAbsType(toPiece) == pawn &&
-                toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
-                toPos != exceptPos){
-                return true;
+        if(relationType == beThreatened){
+            const int stepList[3] = {1,-1,16 * (-p.side) * relationType};
+            for(int step : stepList){
+                const int toPos = fromPos + step;
+                const int toPiece = p.board.getPieceByPos(toPos);
+                if(swapBasicBoard::pieceToAbsType(toPiece) == pawn &&
+                   toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                   toPos != exceptPos) {
+                    if(abs(step) != 1){
+                        return true;
+                    }else if(inSideBoard[toPos] * toPiece < 0){
+                        return true;
+                    }
+                }
             }
         }
         return false;
@@ -285,6 +291,9 @@ private:
         const int fromPiece = p.board.getPieceByPos(fromPos);
         if(relationType == beThreatened && swapBasicBoard::pieceToAbsType(fromPiece) == king){
             const int toPos = p.swapBoard.getPosByPiece(-fromPiece);
+            if(!toPos){
+                p.board.printBasicBoard();
+            }
             assert(toPos);
             if(getX(fromPos) == getX(toPos) &&
                 !p.bitBoard.checkLineExistBarrier(fromPos,toPos) &&
@@ -460,4 +469,5 @@ private:
     friend class test;
     friend class evaluate;
     friend class moveSort;
+    friend class killerCache;
 };
