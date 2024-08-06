@@ -350,13 +350,22 @@ public:
         memset(vlRedBoard,0,sizeof(int) * 7 * 256);
         memset(vlBlackBoard,0,sizeof(int) * 7 * 256);
     }
+    void makeNullMove(){
+        changeSide();
+        moveRoad.emplace_back(0,0,0,0);
+        drawMoveStatus.push_back(drawMoveStatus.back() + 1);
+    }
+
+    void unMakeNullMove(){
+        changeSide();
+        moveRoad.pop_back();
+        drawMoveStatus.pop_back();
+    }
+
     bool makeMove(int fromPos,int toPos) {
         const int fromPiece = position::board.getPieceByPos(fromPos);
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
         const int toPiece = position::board.getPieceByPos(toPos);
-//        if(abs(toPiece) == 1){
-//            cout<<endl;
-//        }
         //检查将军
         position::makeMove(fromPos,toPos);
         const bool originSideCheck = genMove::CheckedBy(*this,-position::side);
@@ -423,6 +432,7 @@ public:
         chaseMoveStatus.pop_back();
         moveRoad.pop_back();
     }
+
     int getEvaluate(int side,int vlAlpha,int vlBeta){
         // 四级偷懒评价(彻底偷懒评价)，只包括子力平衡；
         int vl = this->material(side);
