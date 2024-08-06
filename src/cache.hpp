@@ -26,7 +26,9 @@ static const int MAX_KILLER_MOVE_NUM = 64;
 
 class killerCache{
 public:
-    killerCache()= default;
+    killerCache(){
+        clearCache();
+    }
     void getCache(evaluate& e,vector<step>& moveList){
         for(step& move : killerMoveList[e.getNowDistance()]){
             if(genMove::legalMove(e,move)){

@@ -244,30 +244,12 @@ public:
             return vl;
         }
 
+        bool quit = false;
 
         vector<step> killerMoveList;
-        killerMap.getCache(e,killerMoveList);
-        for(step & move : killerMoveList){
-            const int newDepth = bCheck ? depth : depth - 1;
-            if(e.makeMove(move.fromPos,move.toPos)){
-                vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-                e.unMakeMove();
-
-                if(vl > vlBest){
-                    vlBest = vl;
-                    if(vl >= vlBeta){
-                        return vlBest;
-                    }
-                }
-            }
-        }
-
-        vector<step> moveList;
-        genMove::genMoveList(e,moveList,all);
-        moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
-
-        for(step & move : moveList){
-            if(!moveSort::inOtherStepList(move,killerMoveList)){
+        if(!quit){
+            killerMap.getCache(e,killerMoveList);
+            for(step & move : killerMoveList){
                 const int newDepth = bCheck ? depth : depth - 1;
                 if(e.makeMove(move.fromPos,move.toPos)){
                     vl = -searchNonPV(e,newDepth,-vlBeta + 1);
@@ -277,12 +259,38 @@ public:
                         vlBest = vl;
                         if(vl >= vlBeta){
                             pBestMove = &move;
+                            quit = true;
                             break;
                         }
                     }
                 }
             }
         }
+
+        vector<step> moveList;
+        if(!quit){
+            genMove::genMoveList(e,moveList,all);
+            moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+
+            for(step & move : moveList){
+                if(!moveSort::inOtherStepList(move,killerMoveList)){
+                    const int newDepth = bCheck ? depth : depth - 1;
+                    if(e.makeMove(move.fromPos,move.toPos)){
+                        vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        e.unMakeMove();
+
+                        if(vl > vlBest){
+                            vlBest = vl;
+                            if(vl >= vlBeta){
+                                pBestMove = &move;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
