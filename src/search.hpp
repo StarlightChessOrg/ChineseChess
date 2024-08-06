@@ -10,6 +10,7 @@ static const int MAX_BAN_VALUE = MAX_VALUE - MAX_MOVE_NUM;
 static const int SORT_MAX_VALUE = 65536;
 static const int DRAW_VALUE = 20;
 static const int MAX_QUIESC_DISTANCE = 64;
+static const int NULL_DEPTH = 2;
 
 enum moveType{
     hashMove = 4,
@@ -242,6 +243,20 @@ public:
         const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
         if(vl > MIN_VALUE){
             return vl;
+        }
+
+        if(!noNull && !bCheck && e.nullOkay()){
+            e.makeNullMove();
+            vl = -searchNonPV(e,depth - NULL_DEPTH - 1,-vlBeta + 1,true);
+            e.unMakeNullMove();
+
+            if(vl >= vlBeta){
+                if(e.nullSafe()){
+                    return vl;
+                }else if(searchNonPV(e,depth - NULL_DEPTH,vlBeta,true) >= vlBeta){
+                    return vl;
+                }
+            }
         }
 
         bool quit = false;

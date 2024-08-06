@@ -338,6 +338,9 @@ enum repStatus{
     killed_rep = 3
 };
 
+static const int NULL_SAFE_MARGIN = 400;
+static const int NULL_OKAY_MARGIN = 200;
+
 class evaluate : public position{
 public:
     explicit evaluate(const int anotherBoard[256] = initGameBoard, int initSide = red) : position(anotherBoard,initSide){
@@ -432,7 +435,6 @@ public:
         chaseMoveStatus.pop_back();
         moveRoad.pop_back();
     }
-
     int getEvaluate(int side,int vlAlpha,int vlBeta){
         // 四级偷懒评价(彻底偷懒评价)，只包括子力平衡；
         int vl = this->material(side);
@@ -470,6 +472,12 @@ public:
         return vl + this->knightTrap(side);
     }
 protected:
+    bool nullSafe(){
+        return (position::side == red ? vlRed : vlBlack) > NULL_SAFE_MARGIN;
+    }
+    bool nullOkay(){
+        return (position::side == red ? vlRed : vlBlack) > NULL_OKAY_MARGIN;
+    }
     //判断是否自然和棋
     bool isDraw(){
         return !drawMoveStatus.empty() && drawMoveStatus.back() >= DRAW_MOVE_NUM;
