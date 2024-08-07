@@ -326,17 +326,24 @@ public:
                 }
             }
         }
-
         vector<step> moveList;
         if(!quit){
             genMove::genMoveList(e,moveList,all);
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
-
+            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList)){
                     const int newDepth = bCheck ? depth : depth - 1;
+
                     if(e.makeMove(move.fromPos,move.toPos)){
-                        vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        if(cnt > 4 && depth > 4 && !bCheck && !move.toPiece){
+                            vl = -searchNonPV(e,newDepth - 1 - (cnt > 8 && depth > 5),-vlBeta + 1);
+                            if(vl > vlBest){
+                                vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                            }
+                        }else{
+                            vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        }
                         e.unMakeMove();
 
                         if(vl > vlBest){
@@ -347,6 +354,7 @@ public:
                             }
                         }
                     }
+                    cnt++;
                 }
             }
         }
