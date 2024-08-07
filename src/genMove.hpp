@@ -147,6 +147,9 @@ protected:
     }
     //走法的合法性检查，仅用于截断启发
     static bool legalMove(position& p,step& s){
+        if(!s.fromPiece || !s.fromPos){
+            return false;
+        }
         const int trueFromPiece = p.board.getPieceByPos(s.fromPos);
         const int trueToPiece = p.board.getPieceByPos(s.toPos);
         if(trueFromPiece != s.fromPiece || trueToPiece != s.toPiece){
@@ -470,4 +473,58 @@ private:
     friend class evaluate;
     friend class moveSort;
     friend class killerCache;
+    friend class searchGroup;
+};
+
+
+class hashKey{
+public:
+    hashKey(){
+        initHashKey();
+    }
+
+protected:
+    void stepKey(uint64& firstkey,uint64& secondKey,uint64 playerKey,step move){
+        int from_convert_type = swapBasicBoard::pieceToAbsType(move.fromPiece) - 1;
+        if(move.fromPiece < 0){
+            from_convert_type += 7;
+        }
+        if(from_convert_type < 0){
+            cout<<from_convert_type<<endl;
+        }
+        assert(from_convert_type >= 0 && from_convert_type <= 13);
+        firstkey ^= keyMatrix[from_convert_type][move.fromPos];
+        secondKey ^= keyMatrix[from_convert_type][move.toPos];
+        if(move.toPiece){
+            int to_convert_type = swapBasicBoard::pieceToAbsType(move.toPiece) - 1;
+            assert(to_convert_type >= 0 && to_convert_type <= 13);
+            if(move.toPiece < 0){
+                to_convert_type += 7;
+            }
+            firstkey ^= keyMatrix[to_convert_type][move.toPos];
+            secondKey ^= keyMatrix[to_convert_type][move.toPos];
+        }
+        playerKey ^= keyPlayer;
+    }
+    void initHashKey(){
+        e.seed(7931);
+        keyPlayer = getKey();
+        for(auto& i : keyMatrix){
+            for(auto& a : i){
+                a = getKey();
+            }
+        }
+    }
+private:
+    uint64 getKey(){
+        e.seed(7931);
+        uniform_int_distribution<uint64> u(0,65535);
+        return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
+    }
+protected:
+    default_random_engine e;
+    uint64 keyMatrix[14][256]{};
+    uint64 keyPlayer{};
+    friend class searchGroup;
+    friend class evaluate;
 };

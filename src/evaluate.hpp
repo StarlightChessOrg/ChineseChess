@@ -345,6 +345,7 @@ class evaluate : public position{
 public:
     explicit evaluate(const int anotherBoard[256] = initGameBoard, int initSide = red) : position(anotherBoard,initSide){
         clearEvaBoard();
+        hashKeyResource.initHashKey();
     }
     void clearEvaBoard(){
         vlRed = 0;
@@ -353,10 +354,16 @@ public:
         memset(vlRedBoard,0,sizeof(int) * 7 * 256);
         memset(vlBlackBoard,0,sizeof(int) * 7 * 256);
     }
-    void makeNullMove(){
+    bool makeNullMove(){
         changeSide();
         moveRoad.emplace_back(0,0,0,0);
         drawMoveStatus.push_back(drawMoveStatus.back() + 1);
+        const bool originSideCheck = genMove::CheckedBy(*this,-position::side);
+        if(originSideCheck){
+            unMakeNullMove();
+            return false;
+        }
+        return true;
     }
 
     void unMakeNullMove(){
@@ -376,7 +383,7 @@ public:
             position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
             return false;
         }
-        //步进
+        //步进基础分
         if(fromPiece > 0){
             this->vlRed += vlRedBoard[fromIndex][toPos] - vlRedBoard[fromIndex][fromPos];
         }else if(fromPiece < 0){
@@ -390,6 +397,8 @@ public:
                 this->vlBlack -= vlBlackBoard[toIndex][toPos];
             }
         }
+        //步进哈希键
+        hashKeyResource.stepKey(firstHashKey,secondHashKey,playerKey,step(fromPos,toPos,fromPiece,toPiece));
         //优先记录走法
         moveRoad.emplace_back(fromPos,toPos,fromPiece,toPiece);
         //判断对方是否被我方将军
@@ -414,6 +423,7 @@ public:
         const int fromPiece = moveRoad.back().fromPiece;
         const int toPiece = moveRoad.back().toPiece;
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
+        //步进基础分
         if(fromPiece > 0){
             this->vlRed -= vlRedBoard[fromIndex][toPos] - vlRedBoard[fromIndex][fromPos];
         }else if(fromPiece < 0){
@@ -427,7 +437,10 @@ public:
                 this->vlBlack += vlBlackBoard[toIndex][toPos];
             }
         }
+        //步进棋盘
         position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
+        //步进哈希键
+        hashKeyResource.stepKey(firstHashKey,secondHashKey,playerKey,step(fromPos,toPos,fromPiece,toPiece));
         //撤销棋规记录
         assert(!moveRoad.empty());
         drawMoveStatus.pop_back();
@@ -481,6 +494,10 @@ protected:
     //判断是否自然和棋
     bool isDraw(){
         return !drawMoveStatus.empty() && drawMoveStatus.back() >= DRAW_MOVE_NUM;
+    }
+    //获取和棋值
+    int getDrawValue(){
+        return (getNowDistance() & 1) == 0 ? -DRAW_VALUE : DRAW_VALUE;
     }
     //判断走法线路的重复类型
     bool isRep(){
@@ -1095,6 +1112,7 @@ protected:
     vector<bool> checkMoveStatus;           //走法路线对应的将军状态
     vector<bool> chaseMoveStatus;           //走法瑞安对应的捉子状态
     vector<step> moveRoad;                  //走法路线
+    hashKey hashKeyResource;                //哈希键公共资源
 private:
     int vlRed{};
     int vlBlack{};
@@ -1110,4 +1128,5 @@ private:
     friend class test;
     friend class searchGroup;
     friend class killerCache;
+    friend class hashCache;
 };

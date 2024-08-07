@@ -4,11 +4,17 @@
 #include <cstring>
 #include <cassert>
 #include <vector>
+#include <random>
 #include <iomanip>
 #include <algorithm>
 #include "base.hpp"
 
 using namespace std;
+
+typedef char int8;
+typedef short int16;
+typedef int int32;
+typedef long long int64;
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;
@@ -354,6 +360,7 @@ private:
     friend class position;
     friend class genMove;
     friend class evaluate;
+    friend class hashKey;
 };
 
 enum gameSide{
@@ -393,8 +400,15 @@ protected:
     basicBoard board;
     swapBasicBoard swapBoard;
     bitBoard bitBoard;
+    uint64 playerKey;
+    uint64 firstHashKey;
+    uint64 secondHashKey;
     friend class genMove;
     friend class test;
 };
 
+enum keyType{
+    getIndex = 0,
+    verify = 1
+};
 
