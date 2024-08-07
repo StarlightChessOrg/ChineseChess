@@ -2,8 +2,6 @@
 #include "evaluate.hpp"
 #include "cache.hpp"
 
-
-
 enum moveType{
     hashMove = 4,
     justEatMove = 3,
@@ -41,7 +39,7 @@ public:
         for(step& move : moveList){
             if(move == betterMove){
                 move.vl = SORT_MAX_VALUE;
-            }else if(move.vl > SORT_MAX_VALUE / 2){
+            }else if(move.vl > (SORT_MAX_VALUE >> 1)){
                 move.vl--;
             }else{
                 move.vl = 0;
@@ -50,7 +48,7 @@ public:
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
 private:
-    static bool inOtherStepList(step& move,vector<step>& moveList){
+    static int inOtherStepList(step& move,vector<step>& moveList){
         for(int i = 0;i < moveList.size();i++){
             if(move == moveList[i]){
                 return i + 1;
@@ -156,7 +154,7 @@ public:
         }
 
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
-        if(!quit){
+        if(!quit && false){
             if(genMove::legalMove(e,convert_move)){
                 const int newDepth = bCheck ? depth : depth - 1;
                 if(e.makeMove(convert_move.fromPos,convert_move.toPos)){
@@ -166,12 +164,9 @@ public:
                     if(vl > vlBest){
                         vlBest = vl;
                         if(vl >= vlBeta){
-                            pBestMove = &convert_move;
-                            nodeType = beta;
                             quit = true;
                         }
                         if(vl > vlAlpha){
-                            nodeType = pv;
                             vlAlpha = vl;
                         }
                     }
@@ -200,13 +195,10 @@ public:
                         if(vl > vlBest){
                             vlBest = vl;
                             if(vl >= vlBeta){
-                                pBestMove = &move;
-                                nodeType = beta;
                                 quit = true;
                                 break;
                             }
                             if(vl > vlAlpha){
-                                nodeType = pv;
                                 vlAlpha = vl;
                             }
                         }
@@ -281,7 +273,7 @@ public:
 
         if(!noNull && !bCheck && e.nullOkay()){
             if(e.makeNullMove()){
-                vl = -searchNonPV(e,depth - NULL_DEPTH - 1,-vlBeta + 1,true);
+                vl = -searchNonPV(e,depth - NULL_DEPTH - (int)(depth / 6) - 1,-vlBeta + 1,true);
                 e.unMakeNullMove();
 
                 if(vl >= vlBeta){
@@ -308,7 +300,6 @@ public:
                     if(vl > vlBest){
                         vlBest = vl;
                         if(vl >= vlBeta){
-                            pBestMove = &convert_move;
                             quit = true;
                         }
                     }
@@ -328,7 +319,6 @@ public:
                     if(vl > vlBest){
                         vlBest = vl;
                         if(vl >= vlBeta){
-                            pBestMove = &move;
                             quit = true;
                             break;
                         }
@@ -403,9 +393,9 @@ public:
         //init para
         int vlBest = MIN_VALUE;
         //search
-        for(int nMaxDepth = 1;nMaxDepth <= maxDepth;nMaxDepth++){
-            int vl = searchRoot(e,nMaxDepth);
-            cout<<nMaxDepth<<endl;
+        for(int depth = 1;depth <= maxDepth;depth++){
+            int vl = searchRoot(e,depth);
+            cout<<depth<<endl;
             if(vl > vlBest){
                 vlBest = vl;
                 //toDo something

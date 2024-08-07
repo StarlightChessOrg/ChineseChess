@@ -103,7 +103,7 @@ protected:
 
 class hashCache{
 public:
-    hashCache(int n = 25){
+    explicit hashCache(int n = 25){
         initCache(n);
     }
     ~hashCache(){
@@ -113,8 +113,8 @@ public:
         //clean entirely
         delCache();
         //reset
-        cache.resize(1 << n);
-        mask = (1 << n) - 1;
+        cache.resize((uint64)1 << n);
+        mask = ((uint64)1 << n) - (uint64)1;
     }
     void delCache(){
         vector<hashItem>().swap(cache);
@@ -126,24 +126,26 @@ public:
     }
 protected:
     bool getCache(evaluate& e,int depth,int vlAlpha,int vlBeta,int& vl,tinyMove& move){
-        hashItem& pH = cache[e.firstHashKey & mask];
-        int vlGet = 0;
-        if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
-            if(pH.alphaDepth >= depth && pH.vlAlpha <= vlAlpha){
-                move = pH.move;
-                if(readAdujstValue(e,pH.vlAlpha,vlGet)){
-                    vl = vlGet;
-                    return true;
+        for(int layer = 0;layer < 2;layer++){
+            hashItem& pH = cache[(e.firstHashKey + layer) & mask];
+            int vlGet = 0;
+            if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
+                if(pH.alphaDepth >= depth && pH.vlAlpha <= vlAlpha){
+                    move = pH.move;
+                    if(readAdujstValue(e,pH.vlAlpha,vlGet)){
+                        vl = vlGet;
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-            if(pH.betaDepth >= depth && pH.vlBeta >= vlBeta){
-                move = pH.move;
-                if(readAdujstValue(e,pH.vlBeta,vlGet)){
-                    vl = vlGet;
-                    return true;
+                if(pH.betaDepth >= depth && pH.vlBeta >= vlBeta){
+                    move = pH.move;
+                    if(readAdujstValue(e,pH.vlBeta,vlGet)){
+                        vl = vlGet;
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
             }
         }
         return false;
@@ -168,34 +170,37 @@ protected:
         return false;
     }
     void recoardCache(evaluate& e,int nodeType,int vl,int depth,step move){
-        static int i,a = 0;
-        hashItem& pH = cache[e.firstHashKey & mask];
-        if(!pH.firstKey || !pH.secondKey){
-            if(recoardAdujstValue(e,vl)){
-                pH.firstKey = e.firstHashKey;
-                pH.secondKey = e.secondHashKey;
-                if(nodeType & alpha){
-                    pH.vlAlpha = (int16)vl;
-                    pH.alphaDepth = (int8)depth;
+        for(int layer = 0;layer < 2;layer++){
+            hashItem& pH = cache[e.firstHashKey & mask];
+            if(!pH.firstKey || !pH.secondKey){
+                if(recoardAdujstValue(e,vl)){
+                    pH.firstKey = e.firstHashKey;
+                    pH.secondKey = e.secondHashKey;
+                    if(nodeType & alpha){
+                        pH.vlAlpha = (int16)vl;
+                        pH.alphaDepth = (int8)depth;
+                    }
+                    if(nodeType & beta){
+                        pH.vlBeta = (int16)vl;
+                        pH.betaDepth = (int8)depth;
+                    }
+                    pH.move = tinyMove(move.fromPos,move.toPos,move.fromPiece,move.toPiece);
+                    break;
                 }
-                if(nodeType & beta){
-                    pH.vlBeta = (int16)vl;
-                    pH.betaDepth = (int8)depth;
+            }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
+                if(recoardAdujstValue(e,vl)){
+                    if((nodeType & alpha) && depth >= pH.alphaDepth && pH.vlAlpha >= vl){
+                        pH.vlAlpha = (int16)vl;
+                        pH.alphaDepth = depth;
+                    }
+                    if((nodeType & beta) && depth >= pH.betaDepth && pH.vlBeta <= vl){
+                        pH.vlBeta = (int16)vl;
+                        pH.betaDepth = depth;
+                    }
+                    pH.move = tinyMove(move.fromPos,move.toPos,move.fromPiece,move.toPiece);
                 }
-                pH.move = tinyMove(move.fromPos,move.toPos,move.fromPiece,move.toPiece);
+                break;
             }
-        }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
-            if(recoardAdujstValue(e,vl)){
-                if((nodeType & alpha) && (depth >= pH.alphaDepth || pH.vlAlpha >= vl)){
-                    pH.vlAlpha = (int16)vl;
-                    pH.alphaDepth = depth;
-                }
-                if((nodeType & beta) && (depth >= pH.betaDepth || pH.vlBeta <= vl)){
-                    pH.vlBeta = (int16)vl;
-                    pH.betaDepth = depth;
-                }
-            }
-            pH.move = tinyMove(move.fromPos,move.toPos,move.fromPiece,move.toPiece);
         }
     }
     static int recoardAdujstValue(evaluate& e,int& vlGet){
@@ -216,7 +221,7 @@ protected:
         return false;
     }
 protected:
-    int mask{};
+    uint64 mask{};
     vector<hashItem> cache;
     friend class searchGroup;
 };
