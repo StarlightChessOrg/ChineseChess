@@ -409,8 +409,3 @@ protected:
     friend class hashKey;
 };
 
-enum keyType{
-    getIndex = 0,
-    verify = 1
-};
-

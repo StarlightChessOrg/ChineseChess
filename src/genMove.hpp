@@ -533,7 +533,6 @@ protected:
     }
 private:
     uint64 getKey(){
-        e.seed(7931);
         uniform_int_distribution<uint64> u(32767,65535);
         return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
     }

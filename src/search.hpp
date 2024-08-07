@@ -254,7 +254,7 @@ public:
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
-            hashMap.recoardCache(e,nodeType,vlBest,vlAlpha,vlBeta,depth,*pBestMove);
+            hashMap.recoardCache(e,nodeType,vlBest,depth,*pBestMove);
         }
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
@@ -286,8 +286,10 @@ public:
 
                 if(vl >= vlBeta){
                     if(e.nullSafe()){
+                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH + 1),step(0,0,0,0));
                         return vl;
                     }else if(searchNonPV(e,depth - NULL_DEPTH,vlBeta,true) >= vlBeta){
+                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH),step(0,0,0,0));
                         return vl;
                     }
                 }
@@ -362,7 +364,7 @@ public:
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
-            hashMap.recoardCache(e,beta,vlBest,vlBeta - 1,vlBeta,depth,*pBestMove);
+            hashMap.recoardCache(e,beta,vlBest,depth,*pBestMove);
         }
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
