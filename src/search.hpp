@@ -153,8 +153,9 @@ public:
             return vl;
         }
 
+        //置换表启发
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
-        if(!quit && false){
+        if(!quit){
             if(genMove::legalMove(e,convert_move)){
                 const int newDepth = bCheck ? depth : depth - 1;
                 if(e.makeMove(convert_move.fromPos,convert_move.toPos)){
@@ -165,9 +166,48 @@ public:
                         vlBest = vl;
                         if(vl >= vlBeta){
                             quit = true;
+                            nodeType = beta;
                         }
                         if(vl > vlAlpha){
                             vlAlpha = vl;
+                            nodeType = pv;
+                        }
+                    }
+                }
+            }
+        }
+
+        //吃子搜索
+        if(!quit){
+            genMove::genMoveList(e,moveList,all);
+            moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+            for(step & move : moveList){
+                if(move != convert_move && move.toPiece){
+                    const int newDepth = bCheck ? depth : depth - 1;
+                    if(e.makeMove(move.fromPos,move.toPos)){
+                        if(vlBest == MIN_VALUE){
+                            vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
+                        }else{
+                            vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            if(vl > vlAlpha && vl < vlBeta){
+                                vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
+                            }
+                        }
+                        e.unMakeMove();
+
+                        if(vl > vlBest){
+                            vlBest = vl;
+                            if(vl >= vlBeta){
+                                pBestMove = &move;
+                                nodeType = beta;
+                                quit = true;
+                                break;
+                            }
+                            if(vl > vlAlpha){
+                                pBestMove = &move;
+                                nodeType = pv;
+                                vlAlpha = vl;
+                            }
                         }
                     }
                 }
@@ -179,7 +219,7 @@ public:
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
-                if(move != convert_move){
+                if(move != convert_move && !move.toPiece){
                     const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
@@ -196,10 +236,12 @@ public:
                             vlBest = vl;
                             if(vl >= vlBeta){
                                 quit = true;
+                                nodeType = beta;
                                 break;
                             }
                             if(vl > vlAlpha){
                                 vlAlpha = vl;
+                                nodeType = pv;
                             }
                         }
                     }
@@ -207,18 +249,23 @@ public:
             }
         }
 
-        //常规搜索
+        //剩余走法
         if(!quit){
-            genMove::genMoveList(e,moveList,all);
-            moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+            int cnt = 0;
             for(step & move : moveList){
-                if(!moveSort::inOtherStepList(move,killerMoveList) && move != convert_move){
+                if(!moveSort::inOtherStepList(move,killerMoveList) &&
+                    move != convert_move &&
+                    !move.toPiece){
                     const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            if(!bCheck && depth > 4 && cnt > 8){
+                                vl = -searchNonPV(e,newDepth - 1 - (depth > 5 && cnt > 12),-vlAlpha);
+                            }else{
+                                vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            }
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -239,6 +286,7 @@ public:
                             }
                         }
                     }
+                    cnt++;
                 }
             }
         }
@@ -288,9 +336,10 @@ public:
             }
         }
 
+        //置换表启发
         bool quit = false;
+        step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if(!quit){
-            step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
             if(genMove::legalMove(e,convert_move)){
                 const int newDepth = bCheck ? depth : depth - 1;
                 if(e.makeMove(convert_move.fromPos,convert_move.toPos)){
@@ -307,37 +356,65 @@ public:
             }
         }
 
-        vector<step> killerMoveList;
+        //吃子启发
+        vector<step> moveList;
         if(!quit){
-            killerMap.getCache(e,killerMoveList);
-            for(step & move : killerMoveList){
-                const int newDepth = bCheck ? depth : depth - 1;
-                if(e.makeMove(move.fromPos,move.toPos)){
-                    vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-                    e.unMakeMove();
+            genMove::genMoveList(e,moveList,all);
+            moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+            for(step & move : moveList){
+                if(move != convert_move && move.toPiece){
+                    const int newDepth = bCheck ? depth : depth - 1;
+                    if(e.makeMove(move.fromPos,move.toPos)){
+                        vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        e.unMakeMove();
 
-                    if(vl > vlBest){
-                        vlBest = vl;
-                        if(vl >= vlBeta){
-                            quit = true;
-                            break;
+                        if(vl > vlBest){
+                            vlBest = vl;
+                            if(vl >= vlBeta){
+                                pBestMove = &move;
+                                quit = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-        vector<step> moveList;
+
+        //截断启发
+        vector<step> killerMoveList;
         if(!quit){
-            genMove::genMoveList(e,moveList,all);
-            moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
+            killerMap.getCache(e,killerMoveList);
+            for(step & move : killerMoveList){
+                const int newDepth = bCheck ? depth : depth - 1;
+                if(move != convert_move && !move.toPiece){
+                    if(e.makeMove(move.fromPos,move.toPos)){
+                        vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        e.unMakeMove();
+
+                        if(vl > vlBest){
+                            vlBest = vl;
+                            if(vl >= vlBeta){
+                                quit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //未吃子走法
+        if(!quit){
             int cnt = 0;
             for(step & move : moveList){
-                if(!moveSort::inOtherStepList(move,killerMoveList)){
+                if(!moveSort::inOtherStepList(move,killerMoveList) &&
+                    move != convert_move &&
+                    !move.toPiece){
                     const int newDepth = bCheck ? depth : depth - 1;
-
                     if(e.makeMove(move.fromPos,move.toPos)){
-                        if(cnt > 4 && depth > 4 && !bCheck && !move.toPiece){
-                            vl = -searchNonPV(e,newDepth - 1 - (cnt > 8 && depth > 5),-vlBeta + 1);
+                        if(cnt > 4 && depth > 4 && !bCheck){
+                            vl = -searchNonPV(e,newDepth - 1 - (depth > 5 && cnt > 8),-vlBeta + 1);
                             if(vl > vlBest){
                                 vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                             }
