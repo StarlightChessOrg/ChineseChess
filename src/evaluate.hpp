@@ -346,6 +346,7 @@ public:
     explicit evaluate(const int anotherBoard[256] = initGameBoard, int initSide = red) : position(anotherBoard,initSide){
         clearEvaBoard();
         hashKeyResource.initHashKey();
+        hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey,this->playerKey);
     }
     void clearEvaBoard(){
         vlRed = 0;

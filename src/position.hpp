@@ -285,6 +285,7 @@ private:
     friend class position;
     friend class genMove;
     friend class evaluate;
+    friend class hashKey;
 };
 
 //将士象马车炮兵
@@ -405,6 +406,7 @@ protected:
     uint64 secondHashKey;
     friend class genMove;
     friend class test;
+    friend class hashKey;
 };
 
 enum keyType{

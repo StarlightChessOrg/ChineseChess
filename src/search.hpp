@@ -152,7 +152,7 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            //return vl;
+            return vl;
         }
 
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
@@ -276,9 +276,8 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
-            //return vl;
+            return vl;
         }
-
 
         if(!noNull && !bCheck && e.nullOkay()){
             if(e.makeNullMove()){
