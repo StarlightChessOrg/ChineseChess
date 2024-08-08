@@ -60,12 +60,12 @@ private:
     }
     static int getMvvLva(evaluate& e,step& move){
         assert(move.toPiece);
-        const int mvv = vlMvvLva[abs(move.fromPiece)];
-        const int lva = genMove::getRelation(e,move.fromPos,beProtected) ? vlMvvLva[abs(move.toPiece)] : 0;
+        const int lva = vlMvvLva[abs(move.fromPiece)];
+        const int mvv = genMove::getRelation(e,move.toPos,beProtected) ? vlMvvLva[abs(move.toPiece)] : 0;
         assert(mvv);
         if(mvv >= lva){
             return mvv - lva + 1;
-        }else if(inRiver[move.toPos] && lva == 1){
+        }else if(inRiver[move.toPos] && mvv == 1){
             return 1;
         }
         return 0;
@@ -108,8 +108,6 @@ public:
             vl = e.getEvaluate(e.side,vlAlpha,vlBeta);
             if(vl >= vlBeta){
                 return vl;
-            }else if(vl < vlAlpha - 100){
-                return vlAlpha;
             }
             vlBest = vl;
             vlAlpha = max(vl,vlAlpha);
@@ -266,11 +264,7 @@ public:
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            if(!bCheck && depth > 4 && cnt > 8){
-                                vl = -searchNonPV(e,newDepth - 1 - (depth > 5 && cnt > 12),-vlAlpha);
-                            }else{
-                                vl = -searchNonPV(e,newDepth,-vlAlpha);
-                            }
+                            vl = -searchNonPV(e,newDepth,-vlAlpha);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -327,7 +321,7 @@ public:
 
         if(!noNull && !bCheck && e.nullOkay()){
             if(e.makeNullMove()){
-                vl = -searchNonPV(e,depth - NULL_DEPTH - (int)(depth / 6) - 1,-vlBeta + 1,true);
+                vl = -searchNonPV(e,depth - NULL_DEPTH - 1,-vlBeta + 1,true);
                 e.unMakeNullMove();
 
                 if(vl >= vlBeta){
@@ -417,14 +411,7 @@ public:
                     !move.toPiece){
                     const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
-                        if(cnt > 4 && depth > 4 && !bCheck){
-                            vl = -searchNonPV(e,newDepth - 1 - (depth > 5 && cnt > 8),-vlBeta + 1);
-                            if(vl > vlBest){
-                                vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-                            }
-                        }else{
-                            vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-                        }
+                        vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
 
                         if(vl > vlBest){
