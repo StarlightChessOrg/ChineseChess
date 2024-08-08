@@ -408,6 +408,7 @@ public:
                 }
             }
         }
+
         //未吃子走法
         if(!quit){
             int cnt = 0;
