@@ -25,13 +25,17 @@ public:
     }
     static void sortQuesicMoveSequance(evaluate& e,vector<step>& moveList){
         for(step& move : moveList){
-            move.vl = getMvvLva(e,move);
+            if(move.toPiece){
+                move.vl = getMvvLva(e,move);
+            }
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
     static void initSortRootMoveSeuqance(evaluate& e,historyCache& h,vector<step>& moveList){
         for(step& move : moveList){
-            move.vl = getMvvLva(e,move);
+            if(move.toPiece){
+                move.vl = getMvvLva(e,move);
+            }
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
@@ -41,8 +45,6 @@ public:
                 move.vl = SORT_MAX_VALUE;
             }else if(move.vl > (SORT_MAX_VALUE >> 1)){
                 move.vl--;
-            }else{
-                move.vl = 0;
             }
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
@@ -57,11 +59,13 @@ private:
         return 0;
     }
     static int getMvvLva(evaluate& e,step& move){
-        const int mvv = vlMvvLva[abs(move.fromPiece) - 1];
-        const int lva = genMove::getRelation(e,move.fromPos,beProtected) ? vlMvvLva[abs(move.toPiece) - 1] : 0;
+        assert(move.toPiece);
+        const int mvv = vlMvvLva[abs(move.fromPiece)];
+        const int lva = genMove::getRelation(e,move.fromPos,beProtected) ? vlMvvLva[abs(move.toPiece)] : 0;
+        assert(mvv);
         if(mvv >= lva){
             return mvv - lva + 1;
-        }else if(lva >= 4 || (inRiver[move.toPos] && lva == 1)){
+        }else if(inRiver[move.toPos] && lva == 1){
             return 1;
         }
         return 0;
@@ -155,23 +159,21 @@ public:
 
         //置换表启发
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
-        if(!quit){
-            if(genMove::legalMove(e,convert_move)){
-                const int newDepth = bCheck ? depth : depth - 1;
-                if(e.makeMove(convert_move.fromPos,convert_move.toPos)){
-                    vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
-                    e.unMakeMove();
+        if (genMove::legalMove(e, convert_move)) {
+            const int newDepth = bCheck ? depth : depth - 1;
+            if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
+                vl = -searchPV(e, newDepth, -vlBeta, -vlAlpha);
+                e.unMakeMove();
 
-                    if(vl > vlBest){
-                        vlBest = vl;
-                        if(vl >= vlBeta){
-                            quit = true;
-                            nodeType = beta;
-                        }
-                        if(vl > vlAlpha){
-                            vlAlpha = vl;
-                            nodeType = pv;
-                        }
+                if (vl > vlBest) {
+                    vlBest = vl;
+                    if (vl >= vlBeta) {
+                        quit = true;
+                        nodeType = beta;
+                    }
+                    if (vl > vlAlpha) {
+                        vlAlpha = vl;
+                        nodeType = pv;
                     }
                 }
             }
@@ -339,18 +341,16 @@ public:
         //置换表启发
         bool quit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
-        if(!quit){
-            if(genMove::legalMove(e,convert_move)){
-                const int newDepth = bCheck ? depth : depth - 1;
-                if(e.makeMove(convert_move.fromPos,convert_move.toPos)){
-                    vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-                    e.unMakeMove();
+        if (genMove::legalMove(e, convert_move)) {
+            const int newDepth = bCheck ? depth : depth - 1;
+            if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
+                vl = -searchNonPV(e, newDepth, -vlBeta + 1);
+                e.unMakeMove();
 
-                    if(vl > vlBest){
-                        vlBest = vl;
-                        if(vl >= vlBeta){
-                            quit = true;
-                        }
+                if (vl > vlBest) {
+                    vlBest = vl;
+                    if (vl >= vlBeta) {
+                        quit = true;
                     }
                 }
             }

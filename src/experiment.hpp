@@ -1,7 +1,7 @@
 #pragma once
 #include "search.hpp"
 #include "ctime"
-#include "windows.h"
+//#include "windows.h"
 
 class test{
 public:
@@ -172,7 +172,7 @@ public:
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
         time_t start = clock();
-        s.searchMain(e,15,3000);
+        s.searchMain(e,9,3000);
         time_t end = clock();
         cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
     }

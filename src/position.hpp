@@ -134,6 +134,7 @@ public:
         if(toPos - fromPos < 0){
             return leftTarget;
         }
+        return -1;
     }
     bool checkLineExistBarrier(int fromPos,int toPos){
         const int xFrom = getX(fromPos);
@@ -400,10 +401,10 @@ protected:
     int side;
     basicBoard board;
     swapBasicBoard swapBoard;
-    bitBoard bitBoard;
-    uint64 playerKey;
-    uint64 firstHashKey;
-    uint64 secondHashKey;
+    class bitBoard bitBoard;
+    uint64 playerKey{};
+    uint64 firstHashKey{};
+    uint64 secondHashKey{};
     friend class genMove;
     friend class test;
     friend class hashKey;

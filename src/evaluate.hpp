@@ -346,6 +346,10 @@ class evaluate : public position{
 public:
     explicit evaluate(const int anotherBoard[256] = initGameBoard, int initSide = red) : position(anotherBoard,initSide){
         clearEvaBoard();
+        drawMoveStatus.reserve(MAX_MOVE_NUM);
+        checkMoveStatus.reserve(MAX_MOVE_NUM);
+        chaseMoveStatus.reserve(MAX_MOVE_NUM);
+        moveRoad.reserve(MAX_MOVE_NUM);
         hashKeyResource.initHashKey();
         hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey,this->playerKey);
     }

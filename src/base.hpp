@@ -20,7 +20,7 @@ const int initGameBoard[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-static const int vlMvvLva[17] = {0,16,2,2,2,2,4,4,8,8,4,4,1,1,1,1,1};
+static const int vlMvvLva[17] = {0,5,2,2,2,2,3,3,4,4,3,3,1,1,1,1,1};
 
 //const int initGameBoard[256] = {
 //        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
