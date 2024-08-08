@@ -157,7 +157,7 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            return vl;
+            //return vl;
         }
 
         //置换表启发
@@ -298,11 +298,10 @@ public:
 
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
-            if(nodeType == beta){
-                killerMap.recoardCache(e,*pBestMove);
-            }
+            killerMap.recoardCache(e,*pBestMove);
+            hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
         }
-        hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
+
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
         }
@@ -323,7 +322,7 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
-            return vl;
+            //return vl;
         }
 
         if(!noNull && !bCheck && e.nullOkay()){
