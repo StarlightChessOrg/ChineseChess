@@ -171,7 +171,7 @@ protected:
         }
         return false;
     }
-    void recoardCache(evaluate& e,int nodeType,int vl,int depth,step move){
+    void recoardCache(evaluate& e,int nodeType,int vl,int depth,step* pMove = nullptr){
         hashItem& pH = cache[e.firstHashKey & mask];
         if(!pH.firstKey || !pH.secondKey){
             if(recoardAdujstValue(e,vl)){
@@ -185,8 +185,8 @@ protected:
                     pH.vlBeta = (int16)vl;
                     pH.betaDepth = (int8)depth;
                 }
-                if(move.fromPos){
-                    pH.move = tinyMove(move.fromPos,move.toPos,move.fromPiece,move.toPiece);
+                if(pMove && pMove->fromPos){
+                    pH.move = tinyMove(pMove->fromPos,pMove->toPos,pMove->fromPiece,pMove->toPiece);
                 }
             }
         }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
@@ -199,8 +199,8 @@ protected:
                     pH.vlBeta = (int16)vl;
                     pH.betaDepth = depth;
                 }
-                if(move.fromPos){
-                    pH.move = tinyMove(move.fromPos,move.toPos,move.fromPiece,move.toPiece);
+                if(pMove && pMove->fromPos){
+                    pH.move = tinyMove(pMove->fromPos,pMove->toPos,pMove->fromPiece,pMove->toPiece);
                 }
             }
         }

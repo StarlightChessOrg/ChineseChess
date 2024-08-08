@@ -64,7 +64,7 @@ enum relationType{
 class genMove{
 public:
     static void genMoveList(position& p,vector<step>& moveList,int genType = all){
-        moveList.reserve(16);
+        moveList.reserve(64);
         genCannonMove(p,moveList,genType);
         genKnightMove(p,moveList,genType);
         genRookMove(p,moveList,genType);

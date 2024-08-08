@@ -100,6 +100,7 @@ public:
 
         int vlBest = MIN_VALUE;
         vector<step> moveList;
+        static int i,a = 0;
         const bool bCheck = e.checkMoveStatus.back();
         if(bCheck){
             genMove::genMoveList(e,moveList,all);
@@ -107,6 +108,8 @@ public:
             vl = e.getEvaluate(e.side,vlAlpha,vlBeta);
             if(vl >= vlBeta){
                 return vl;
+            }else if(vl < vlAlpha - 100){
+                return vlAlpha;
             }
             vlBest = vl;
             vlAlpha = max(vl,vlAlpha);
@@ -115,7 +118,7 @@ public:
             moveSort::sortQuesicMoveSequance(e,moveList);
         }
         for(step& move : moveList){
-            if(!bCheck && !move.vl){
+            if(!bCheck && move.vl <= 0){
                 break;
             }
             if(e.makeMove(move.fromPos,move.toPos)){
@@ -295,9 +298,11 @@ public:
 
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
-            killerMap.recoardCache(e,*pBestMove);
-            hashMap.recoardCache(e,nodeType,vlBest,depth,*pBestMove);
+            if(nodeType == beta){
+                killerMap.recoardCache(e,*pBestMove);
+            }
         }
+        hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
         }
@@ -328,10 +333,10 @@ public:
 
                 if(vl >= vlBeta){
                     if(e.nullSafe()){
-                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH + 1),step(0,0,0,0));
+                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH + 1));
                         return vl;
                     }else if(searchNonPV(e,depth - NULL_DEPTH,vlBeta,true) >= vlBeta){
-                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH),step(0,0,0,0));
+                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH));
                         return vl;
                     }
                 }
@@ -403,7 +408,6 @@ public:
                 }
             }
         }
-
         //未吃子走法
         if(!quit){
             int cnt = 0;
@@ -439,7 +443,7 @@ public:
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
-            hashMap.recoardCache(e,beta,vlBest,depth,*pBestMove);
+            hashMap.recoardCache(e,beta,vlBest,depth,pBestMove);
         }
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
