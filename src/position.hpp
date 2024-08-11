@@ -217,6 +217,28 @@ protected:
         }
         return convertPos;
     }
+    bool operator==(const bitBoard& other){
+        for(int i = 0;i < 16;i++){
+            if(yBits[i] != other.yBits[i]){
+                return false;
+            }
+            if(xBits[i] != other.xBits[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+    bool operator!=(const bitBoard& other){
+        for(int i = 0;i < 16;i++){
+            if(yBits[i] != other.yBits[i]){
+                return true;
+            }
+            if(xBits[i] != other.xBits[i]){
+                return true;
+            }
+        }
+        return false;
+    }
 private:
     int RayBits[1024][10][2][4]{};          //用于检测车炮，即“射线”类棋子的攻击目标 | low : 0 & up : 1
     uint16 mayExistBarrier[16][16]{};       //用于检测棋子之间的障碍物
@@ -280,6 +302,22 @@ public:
 protected:
     int getPieceByPos(int pos) const {
         return board[pos];
+    }
+    bool operator==(const basicBoard& other){
+        for(int i = 0;i < 256;i++){
+            if(board[i] != other.board[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+    bool operator!=(const basicBoard& other){
+        for(int i = 0;i < 256;i++){
+            if(board[i] != other.board[i]){
+                return true;
+            }
+        }
+        return false;
     }
 private:
     int board[256]{};
@@ -357,6 +395,22 @@ protected:
         //转换棋子编号到棋子类型
         return swapVector[abs(piece)];
     }
+    bool operator==(const swapBasicBoard& other){
+        for(int i = 0;i < 32;i++){
+            if(swapBoard[i] != other.swapBoard[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+    bool operator!=(const swapBasicBoard& other){
+        for(int i = 0;i < 32;i++){
+            if(swapBoard[i] != other.swapBoard[i]){
+                return true;
+            }
+        }
+        return false;
+    }
 private:
     int swapBoard[32]{};
     friend class position;
@@ -394,6 +448,38 @@ public:
         this->bitBoard.unMakeMove(fromPos,toPos,toPiece);
     }
 protected:
+    bool operator==(const position& other){
+        if(side != other.side){
+            return false;
+        }
+        if(playerKey != other.playerKey ||
+           firstHashKey != other.firstHashKey ||
+           secondHashKey != other.secondHashKey){
+            return false;
+        }
+        if(board != other.board ||
+           swapBoard != other.swapBoard ||
+           bitBoard != other.bitBoard){
+            return false;
+        }
+        return true;
+    }
+    bool operator!=(const position& other){
+        if(side != other.side){
+            return true;
+        }
+        if(playerKey != other.playerKey ||
+           firstHashKey != other.firstHashKey ||
+           secondHashKey != other.secondHashKey){
+            return true;
+        }
+        if(board != other.board ||
+           swapBoard != other.swapBoard ||
+           bitBoard != other.bitBoard){
+            return true;
+        }
+        return false;
+    }
     void changeSide(){
         this->side = -this->side;
     }

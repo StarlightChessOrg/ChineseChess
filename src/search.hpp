@@ -62,7 +62,6 @@ private:
         assert(move.toPiece);
         const int lva = vlMvvLva[abs(move.fromPiece)];
         const int mvv = genMove::getRelation(e,move.toPos,beProtected) ? vlMvvLva[abs(move.toPiece)] : 0;
-        assert(mvv);
         if(mvv >= lva){
             return mvv - lva + 1;
         }else if(inRiver[move.toPos] && mvv == 1){

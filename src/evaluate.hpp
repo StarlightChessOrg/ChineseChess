@@ -1114,6 +1114,133 @@ private:
         vl = (2 * TOTAL_MIDGAME_VALUE - vl) * vl / TOTAL_MIDGAME_VALUE;
     }
 protected:
+    bool operator==(const evaluate& other){
+        if(position::operator!=(other)){
+            return false;
+        }
+        if(drawMoveStatus.size() != other.drawMoveStatus.size() ||
+            checkMoveStatus.size() != other.checkMoveStatus.size() ||
+            chaseMoveStatus.size() != other.chaseMoveStatus.size() ||
+            moveRoad.size() != other.moveRoad.size()){
+            return false;
+        }
+        for(int i = 0;i < drawMoveStatus.size();i++){
+            if(drawMoveStatus[i] != other.drawMoveStatus[i]){
+                return false;
+            }
+        }
+        for(int i = 0;i < checkMoveStatus.size();i++){
+            if(checkMoveStatus[i] != other.checkMoveStatus[i]){
+                return false;
+            }
+        }
+        for(int i = 0;i < chaseMoveStatus.size();i++){
+            if(chaseMoveStatus[i] != other.chaseMoveStatus[i]){
+                return false;
+            }
+        }
+        for(int i = 0;i < moveRoad.size();i++){
+            if(moveRoad[i] != other.moveRoad[i]){
+                return false;
+            }
+        }
+        if(vlRed != other.vlRed ||
+            vlBlack != other.vlBlack ||
+            vlFirstGo != other.vlFirstGo ||
+            vlRedAdvisorLeakage != other.vlRedAdvisorLeakage ||
+            vlBlackAdvisorLeakage != other.vlBlackAdvisorLeakage){
+            return false;
+        }
+        for(int i = 0;i < 16;i++){
+            if(vlRedBottomThreat[i] != other.vlRedBottomThreat[i]){
+                return false;
+            }
+            if(vlBlackBottomThreat[i] != other.vlBlackBottomThreat[i]){
+                return false;
+            }
+            if(vlHollowThreat[i] != other.vlHollowThreat[i]){
+                return false;
+            }
+            if(vlCentralThreat[i] != other.vlCentralThreat[i]){
+                return false;
+            }
+            for(int i = 0;i < 7;i++){
+                for(int a = 0;a < 256;a++){
+                    if(vlRedBoard[i][a] != other.vlRedBoard[i][a]){
+                        return false;
+                    }
+                    if(vlBlackBoard[i][a] != other.vlBlackBoard[i][a]){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    bool operator!=(const evaluate& other){
+        if(position::operator!=(other)){
+            return true;
+        }
+        if(drawMoveStatus.size() != other.drawMoveStatus.size() ||
+            checkMoveStatus.size() != other.checkMoveStatus.size() ||
+            chaseMoveStatus.size() != other.chaseMoveStatus.size() ||
+            moveRoad.size() != other.moveRoad.size()){
+            return true;
+        }
+        for(int i = 0;i < drawMoveStatus.size();i++){
+            if(drawMoveStatus[i] != other.drawMoveStatus[i]){
+                return true;
+            }
+        }
+        for(int i = 0;i < checkMoveStatus.size();i++){
+            if(checkMoveStatus[i] != other.checkMoveStatus[i]){
+                return true;
+            }
+        }
+        for(int i = 0;i < chaseMoveStatus.size();i++){
+            if(chaseMoveStatus[i] != other.chaseMoveStatus[i]){
+                return true;
+            }
+        }
+        for(int i = 0;i < moveRoad.size();i++){
+            if(moveRoad[i] != other.moveRoad[i]){
+                return true;
+            }
+        }
+        if(vlRed != other.vlRed ||
+            vlBlack != other.vlBlack ||
+            vlFirstGo != other.vlFirstGo ||
+            vlRedAdvisorLeakage != other.vlRedAdvisorLeakage ||
+            vlBlackAdvisorLeakage != other.vlBlackAdvisorLeakage){
+            return true;
+        }
+        for(int i = 0;i < 16;i++){
+            if(vlRedBottomThreat[i] != other.vlRedBottomThreat[i]){
+                return true;
+            }
+            if(vlBlackBottomThreat[i] != other.vlBlackBottomThreat[i]){
+                return true;
+            }
+            if(vlHollowThreat[i] != other.vlHollowThreat[i]){
+                return true;
+            }
+            if(vlCentralThreat[i] != other.vlCentralThreat[i]){
+                return true;
+            }
+            for(int i = 0;i < 7;i++){
+                for(int a = 0;a < 256;a++){
+                    if(vlRedBoard[i][a] != other.vlRedBoard[i][a]){
+                        return true;
+                    }
+                    if(vlBlackBoard[i][a] != other.vlBlackBoard[i][a]){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+protected:
     vector<int> drawMoveStatus;             //走法路线对应的和棋走法数
     vector<bool> checkMoveStatus;           //走法路线对应的将军状态
     vector<bool> chaseMoveStatus;           //走法瑞安对应的捉子状态
