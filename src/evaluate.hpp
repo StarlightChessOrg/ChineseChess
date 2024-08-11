@@ -716,8 +716,8 @@ private:
     int advisorShape(int side){
         int vlRedAdvisorShape = 0;
         int vlBlackAdvisorShape = 0;
-        vector<int> redAdvisorPos;
-        vector<int> blackAdvisorPos;
+        std::vector<int> redAdvisorPos;
+        std::vector<int> blackAdvisorPos;
         for(int piece : redAdvisorPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(pos){
@@ -1083,8 +1083,8 @@ private:
         }else if(vlBlackSimple > vlRedSimple){
             alBlack += abs(vlRedSimple - vlBlackSimple) * 2;
         }
-        alRed = min(alRed,TOTAL_ATTACK_VALUE);
-        alBlack = min(alBlack,TOTAL_ATTACK_VALUE);
+        alRed = std::min(alRed,TOTAL_ATTACK_VALUE);
+        alBlack = std::min(alBlack,TOTAL_ATTACK_VALUE);
     }
     void getMidgameValue(int& vl){
         //车
@@ -1241,10 +1241,10 @@ protected:
         return false;
     }
 protected:
-    vector<int> drawMoveStatus;             //走法路线对应的和棋走法数
-    vector<bool> checkMoveStatus;           //走法路线对应的将军状态
-    vector<bool> chaseMoveStatus;           //走法瑞安对应的捉子状态
-    vector<step> moveRoad;                  //走法路线
+    std::vector<int> drawMoveStatus;             //走法路线对应的和棋走法数
+    std::vector<bool> checkMoveStatus;           //走法路线对应的将军状态
+    std::vector<bool> chaseMoveStatus;           //走法瑞安对应的捉子状态
+    std::vector<step> moveRoad;                  //走法路线
     hashKey hashKeyResource;                //哈希键公共资源
 private:
     int vlRed{};

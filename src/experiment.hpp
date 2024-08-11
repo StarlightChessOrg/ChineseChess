@@ -15,13 +15,13 @@ public:
         p.board.printBasicBoard();
         p.swapBoard.printSwapBoard();
         p.bitBoard.printBitBoard();
-        cout<<endl;
+        std::cout<<std::endl;
     }
 
     static void testGenPawnMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genPawnMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
@@ -29,7 +29,7 @@ public:
     static void testGenAdvisorMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genAdvisorMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
@@ -37,7 +37,7 @@ public:
     static void testGenKingMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genKingMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
@@ -45,7 +45,7 @@ public:
     static void testGenBishopMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genBishopMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
@@ -53,7 +53,7 @@ public:
     static void testGenKnightMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genKnightMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
@@ -61,7 +61,7 @@ public:
     static void testGenRookMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genRookMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
@@ -69,14 +69,14 @@ public:
     static void testGenCannonMove(int side,int genType = all){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genCannonMove(p, moveList,genType);
         step::printMoveList(moveList);
     }
 
     static void testGenMoveList(int side,int genType = all){
         evaluate e = evaluate(initGameBoard,side);
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genMoveList(e,moveList,genType);
         //step::printMoveList(moveList);
 
@@ -91,7 +91,7 @@ public:
     static void testLegalMove(int side){
         position p = position(initGameBoard);
         p.side = side;
-        vector<step> moveList;
+        std::vector<step> moveList;
         genMove::genMoveList(p,moveList);
         for(step& s : moveList){
             s.printMove();
@@ -101,22 +101,22 @@ public:
 
     static void testGetRelation(){
         position p = position(initGameBoard);
-        cout<<genMove::getRelation(p,52,beThreatened)<<endl;
-        cout<<genMove::getRelation(p,52,beProtected)<<endl;
-        cout<<genMove::getRelation(p,54,beThreatened)<<endl;
-        cout<<genMove::getRelation(p,54,beProtected)<<endl;
-        cout<<genMove::getRelation(p,51,beThreatened)<<endl;
-        cout<<genMove::getRelation(p,51,beProtected)<<endl;
+        std::cout<<genMove::getRelation(p,52,beThreatened)<<std::endl;
+        std::cout<<genMove::getRelation(p,52,beProtected)<<std::endl;
+        std::cout<<genMove::getRelation(p,54,beThreatened)<<std::endl;
+        std::cout<<genMove::getRelation(p,54,beProtected)<<std::endl;
+        std::cout<<genMove::getRelation(p,51,beThreatened)<<std::endl;
+        std::cout<<genMove::getRelation(p,51,beProtected)<<std::endl;
     }
 
     static void testEvaluateMakeMove(){
         evaluate e = evaluate(initGameBoard);
         e.resetEvaBoard();
-        cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+        std::cout<<e.vlRed<<" "<<e.vlBlack<<std::endl;
         e.makeMove(84,196);
-        cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+        std::cout<<e.vlRed<<" "<<e.vlBlack<<std::endl;
         e.unMakeMove();
-        cout<<e.vlRed<<" "<<e.vlBlack<<endl;
+        std::cout<<e.vlRed<<" "<<e.vlBlack<<std::endl;
         e.board.printBasicBoard();
     }
 
@@ -125,27 +125,27 @@ public:
         e.board.printBasicBoard();
         e.resetEvaBoard();
         int vl = e.rookMobility(red);
-        cout<<vl<<endl;
+        std::cout<<vl<<std::endl;
         vl = e.knightTrap(red);
-        cout<<vl<<endl;
-        cout<<"-----------------------"<<endl;
+        std::cout<<vl<<std::endl;
+        std::cout<<"-----------------------"<<std::endl;
         vl = e.stringHold(red);
-        cout<<vl<<endl;
+        std::cout<<vl<<std::endl;
         vl = e.stringHold(black);
-        cout<<vl<<endl;
-        cout<<"-----------------------"<<endl;
+        std::cout<<vl<<std::endl;
+        std::cout<<"-----------------------"<<std::endl;
         vl = e.advisorShape(red);
-        cout<<vl<<endl;
+        std::cout<<vl<<std::endl;
         vl = e.advisorShape(black);
-        cout<<vl<<endl;
+        std::cout<<vl<<std::endl;
     }
 
     static void testCheckedBy(){
         evaluate e = evaluate(initGameBoard);
         e.board.printBasicBoard();
         e.resetEvaBoard();
-        cout<<genMove::CheckedBy(e,red)<<endl;
-        cout<<genMove::CheckedBy(e,black)<<endl;
+        std::cout<<genMove::CheckedBy(e,red)<<std::endl;
+        std::cout<<genMove::CheckedBy(e,black)<<std::endl;
     }
 
     static void testChasedBy(){
@@ -153,7 +153,7 @@ public:
         e.board.printBasicBoard();
         e.resetEvaBoard();
         step move = step(51,51 + 32 + 1,-6,0);
-        cout<<genMove::ChasedBy(e,move);
+        std::cout<<genMove::ChasedBy(e,move);
     }
 
     static void testCheckChaseMakeMove(){
@@ -174,7 +174,7 @@ public:
         time_t start = clock();
         s.searchMain(e,10,3000);
         time_t end = clock();
-        cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
+        std::cout<<(double)(end - start) / CLOCKS_PER_SEC<<std::endl;
     }
 };
 

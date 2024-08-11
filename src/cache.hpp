@@ -29,7 +29,7 @@ public:
     killerCache(){
         clearCache();
     }
-    void getCache(evaluate& e,vector<step>& moveList){
+    void getCache(evaluate& e,std::vector<step>& moveList){
         for(step& move : killerMoveList[e.getNowDistance()]){
             if(genMove::legalMove(e,move)){
                 moveList.push_back(move);
@@ -117,7 +117,7 @@ public:
         mask = ((uint64)1 << n) - (uint64)1;
     }
     void delCache(){
-        vector<hashItem>().swap(cache);
+        std::vector<hashItem>().swap(cache);
     }
     void clearCache(){
         for(hashItem& h : cache){
@@ -224,6 +224,6 @@ protected:
     }
 protected:
     uint64 mask{};
-    vector<hashItem> cache;
+    std::vector<hashItem> cache;
     friend class searchGroup;
 };

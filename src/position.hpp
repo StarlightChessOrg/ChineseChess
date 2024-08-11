@@ -9,8 +9,6 @@
 #include <algorithm>
 #include "base.hpp"
 
-using namespace std;
-
 typedef char int8;
 typedef short int16;
 typedef int int32;
@@ -47,7 +45,7 @@ public:
         //初始化判断棋子间障碍的屏蔽位
         for(int i = 3;i < 13;i++){
             for(int a = 3;a < 13;a++){
-                for(int from = min(i,a) + 1;from < max(i,a);from++){
+                for(int from = std::min(i,a) + 1;from < std::max(i,a);from++){
                     mayExistBarrier[i][a] |= ((uint16)1 << from);
                 }
             }
@@ -92,14 +90,14 @@ public:
     }
     void printBitBoard(bool printTranspose = true){
         //打印整个棋盘的bit位
-        cout<<endl;
-        cout<<"xBits:"<<endl;
+        std::cout<<std::endl;
+        std::cout<<"xBits:"<<std::endl;
         for(unsigned short xBit : xBits){
             printBitLine(xBit);
         }
         //打印转置棋盘的bit位
         if(printTranspose){
-            cout<<"yBits:"<<endl;
+            std::cout<<"yBits:"<<std::endl;
             for(unsigned short yBit : yBits){
                 printBitLine(yBit);
             }
@@ -109,15 +107,15 @@ public:
         //打印单行的bit位
         for(int i = 0;i < 16;i++){
             if(Bits & ((uint16)1 << i)){
-                cout <<1;
+                std::cout <<1;
             }else{
-                cout<<".";
+                std::cout<<".";
             }
             if(i != 15){
-                cout<<" ";
+                std::cout<<" ";
             }
         }
-        cout<<endl;
+        std::cout<<std::endl;
     }
 public:
     //只能用于射线类棋子
@@ -197,7 +195,7 @@ protected:
                 rayTarget = RayBits[xBits[x] >> 3][y - 3][upIndex][num];
                 break;
             default:
-                cout<<"error occurred in the func named getRayTarget()"<<endl;
+                std::cout<<"error occurred in the func named getRayTarget()"<<std::endl;
                 break;
         }
         assert(rayTarget != -2);
@@ -279,12 +277,12 @@ public:
                 const int pos = getPos(y,x);
                 const int piece = this->board[pos];
                 if(piece){
-                    cout<<setw(4)<<piece;
+                    std::cout<<std::setw(4)<<piece;
                 }else{
-                    cout<<setw(4)<<".";
+                    std::cout<<std::setw(4)<<".";
                 }
             }
-            cout<<endl;
+            std::cout<<std::endl;
         }
     }
 
@@ -356,9 +354,9 @@ public:
     }
     void printSwapBoard(){
         for(int i : this->swapBoard){
-            cout<<i<<" ";
+            std::cout<<i<<" ";
         }
-        cout<<endl;
+        std::cout<<std::endl;
     }
 
     void makeMove(int fromPiece,int toPiece,int toPos){
