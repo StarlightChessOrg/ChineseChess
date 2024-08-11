@@ -1164,14 +1164,14 @@ protected:
             if(vlCentralThreat[i] != other.vlCentralThreat[i]){
                 return false;
             }
-            for(int i = 0;i < 7;i++){
-                for(int a = 0;a < 256;a++){
-                    if(vlRedBoard[i][a] != other.vlRedBoard[i][a]){
-                        return false;
-                    }
-                    if(vlBlackBoard[i][a] != other.vlBlackBoard[i][a]){
-                        return false;
-                    }
+        }
+        for(int i = 0;i < 7;i++){
+            for(int a = 0;a < 256;a++){
+                if(vlRedBoard[i][a] != other.vlRedBoard[i][a]){
+                    return false;
+                }
+                if(vlBlackBoard[i][a] != other.vlBlackBoard[i][a]){
+                    return false;
                 }
             }
         }
@@ -1227,14 +1227,14 @@ protected:
             if(vlCentralThreat[i] != other.vlCentralThreat[i]){
                 return true;
             }
-            for(int i = 0;i < 7;i++){
-                for(int a = 0;a < 256;a++){
-                    if(vlRedBoard[i][a] != other.vlRedBoard[i][a]){
-                        return true;
-                    }
-                    if(vlBlackBoard[i][a] != other.vlBlackBoard[i][a]){
-                        return true;
-                    }
+        }
+        for(int i = 0;i < 7;i++){
+            for(int a = 0;a < 256;a++){
+                if(vlRedBoard[i][a] != other.vlRedBoard[i][a]){
+                    return true;
+                }
+                if(vlBlackBoard[i][a] != other.vlBlackBoard[i][a]){
+                    return true;
                 }
             }
         }
