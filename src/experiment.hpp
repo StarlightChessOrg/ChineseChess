@@ -1,171 +1,119 @@
 #pragma once
 #include "search.hpp"
 #include "ctime"
-//#include "windows.h"
+#include <random>
+#include <cstdlib>
+#include <ctime>
+#include <fstream>
+#include <io.h>
 
 class test{
 public:
-    static void testPosition(){
-        position p = position(initGameBoard);
-        p.makeMove(84,196);
-        p.board.printBasicBoard();
-        p.swapBoard.printSwapBoard();
-        p.bitBoard.printBitBoard();
-        p.unMakeMove(84,196,-10,6);
-        p.board.printBasicBoard();
-        p.swapBoard.printSwapBoard();
-        p.bitBoard.printBitBoard();
-        std::cout<<std::endl;
-    }
-
-    static void testGenPawnMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genPawnMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenAdvisorMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genAdvisorMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenKingMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genKingMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenBishopMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genBishopMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenKnightMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genKnightMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenRookMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genRookMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenCannonMove(int side,int genType = all){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genCannonMove(p, moveList,genType);
-        step::printMoveList(moveList);
-    }
-
-    static void testGenMoveList(int side,int genType = all){
-        evaluate e = evaluate(initGameBoard,side);
-        std::vector<step> moveList;
-        genMove::genMoveList(e,moveList,genType);
-        //step::printMoveList(moveList);
-
-        for(step& move : moveList){
-            if(e.makeMove(move.fromPos,move.toPos)){
-                move.printMove();
+    static void testRandomMove(){
+        default_random_engine r;
+        r.seed(7931);
+        evaluate e = evaluate(initGameBoard);
+        evaluate origin_e = evaluate(initGameBoard);
+        assert(e == origin_e);
+        for(int t = 0;t < 20000;t++){
+            cout<<t<<endl;
+            for(int s = 0;s < 80;s++){
+                vector<step> moveList;
+                genMove::genMoveList(e,moveList,all);
+                if(!moveList.empty()){
+                    uniform_int_distribution<int>u(0,(int)moveList.size() - 1);
+                    step& move = moveList[u(r)];
+                    assert(genMove::legalMove(e,move));
+                    e.makeMove(move.fromPos,move.toPos);
+                }else{
+                    break;
+                }
+            }
+            while(!e.moveRoad.empty()){
                 e.unMakeMove();
+            }
+            if(e != origin_e){
+                e.board.printBasicBoard();
+            }
+            assert(e == origin_e);
+        }
+    }
+    static void testRecoardMove(){
+        string rootPath = "E:\\Projects_chess\\dump_2";
+        vector<string> filePaths;
+        getFiles(rootPath,filePaths);
+        cout<<filePaths.size()<<endl;
+        for(const string& path : filePaths){
+            evaluate e = evaluate(initGameBoard,red);
+            ifstream in(path);
+            string moveStr;
+            vector<string> moveStrVec;
+            while(getline(in,moveStr)) {
+                moveStrVec.push_back(moveStr);
+                //cout << moveStr << endl;
+                const int combinatePos = atoi(moveStr.c_str());
+                const int fromPos = combinatePos & ((1 << 8) - 1);
+                const int toPos = combinatePos >> 8;
+                //cout<<fromPos<<"\t"<<toPos<<endl;
+                vector<step> moveList;
+                genMove::genMoveList(e,moveList,all);
+                bool findIt = false;
+                for(step& move : moveList){
+                    if(move.fromPos == fromPos && move.toPos == toPos){
+                        findIt = true;
+                        break;
+                    }
+                }
+                if(!findIt){
+                    cout<<"! -> "<<path<<endl;
+//                    evaluate new_e = evaluate(initGameBoard,red);
+//                    for(int i = 0;i < e.moveRoad.size();i++){
+//                        new_e.makeMove(e.moveRoad[i].fromPos,e.moveRoad[i].toPos);
+//                        new_e.board.printBasicBoard();
+//                    }
+                    break;
+                }
+                //assert(findIt);
+                if(!e.makeMove(fromPos,toPos)){
+                    e.board.printBasicBoard();
+                    //e.makeMove(fromPos,toPos);
+                    cout<<path<<endl;
+//                    evaluate new_e = evaluate(initGameBoard,red);
+//                    for(int i = 0;i < e.moveRoad.size();i++){
+//                        new_e.makeMove(e.moveRoad[i].fromPos,e.moveRoad[i].toPos);
+//                        new_e.board.printBasicBoard();
+//                        cout<<endl;
+//                    }
+                    break;
+                }
+                //assert(e.makeMove(fromPos,toPos));
             }
         }
     }
-
-    static void testLegalMove(int side){
-        position p = position(initGameBoard);
-        p.side = side;
-        std::vector<step> moveList;
-        genMove::genMoveList(p,moveList);
-        for(step& s : moveList){
-            s.printMove();
-            assert(genMove::legalMove(p,s));
+    static void testInitEvaluateShouldMirror(){
+        evaluate e = evaluate(initGameBoard,red);
+        e.resetEvaBoard();
+        for(int i = 0;i < 7;i++){
+            bool allZero = true;
+            for(int a = 0;a < 256;a++){
+                if(e.vlRedBoard[i][a]){
+                    allZero = false;
+                }
+                assert(e.vlRedBoard[i][a] == e.vlBlackBoard[i][getPos(yMirrorPos(getY(a)),getX(a))]);
+                assert(e.vlRedBoard[i][a] == e.vlBlackBoard[i][xyMirrorPos(a)]);
+            }
+            assert(!allZero);
         }
     }
 
-    static void testGetRelation(){
-        position p = position(initGameBoard);
-        std::cout<<genMove::getRelation(p,52,beThreatened)<<std::endl;
-        std::cout<<genMove::getRelation(p,52,beProtected)<<std::endl;
-        std::cout<<genMove::getRelation(p,54,beThreatened)<<std::endl;
-        std::cout<<genMove::getRelation(p,54,beProtected)<<std::endl;
-        std::cout<<genMove::getRelation(p,51,beThreatened)<<std::endl;
-        std::cout<<genMove::getRelation(p,51,beProtected)<<std::endl;
-    }
-
-    static void testEvaluateMakeMove(){
-        evaluate e = evaluate(initGameBoard);
-        e.resetEvaBoard();
-        std::cout<<e.vlRed<<" "<<e.vlBlack<<std::endl;
-        e.makeMove(84,196);
-        std::cout<<e.vlRed<<" "<<e.vlBlack<<std::endl;
-        e.unMakeMove();
-        std::cout<<e.vlRed<<" "<<e.vlBlack<<std::endl;
-        e.board.printBasicBoard();
-    }
-
-    static void testEvaluate(){
-        evaluate e = evaluate(initGameBoard);
-        e.board.printBasicBoard();
-        e.resetEvaBoard();
-        int vl = e.rookMobility(red);
-        std::cout<<vl<<std::endl;
-        vl = e.knightTrap(red);
-        std::cout<<vl<<std::endl;
-        std::cout<<"-----------------------"<<std::endl;
-        vl = e.stringHold(red);
-        std::cout<<vl<<std::endl;
-        vl = e.stringHold(black);
-        std::cout<<vl<<std::endl;
-        std::cout<<"-----------------------"<<std::endl;
-        vl = e.advisorShape(red);
-        std::cout<<vl<<std::endl;
-        vl = e.advisorShape(black);
-        std::cout<<vl<<std::endl;
-    }
-
-    static void testCheckedBy(){
-        evaluate e = evaluate(initGameBoard);
-        e.board.printBasicBoard();
-        e.resetEvaBoard();
-        std::cout<<genMove::CheckedBy(e,red)<<std::endl;
-        std::cout<<genMove::CheckedBy(e,black)<<std::endl;
-    }
-
-    static void testChasedBy(){
-        evaluate e = evaluate(initGameBoard);
-        e.board.printBasicBoard();
-        e.resetEvaBoard();
-        step move = step(51,51 + 32 + 1,-6,0);
-        std::cout<<genMove::ChasedBy(e,move);
-    }
-
-    static void testCheckChaseMakeMove(){
-        evaluate e = evaluate(initGameBoard);
-        e.resetEvaBoard();
-        e.board.printBasicBoard();
-        e.makeMove(164,167);
-        e.makeMove(84,87);
-        e.makeMove(167,103);
-        e.makeMove(54,71);
-        e.makeMove(196,165);
-        e.board.printBasicBoard();
+    static void testGenNewRookMove(){
+        evaluate e = evaluate(initGameBoard,black);
+        vector<step> moveList;
+        genMove::genMoveList(e,moveList,all);
+        step::printMoveList(moveList);
+        moveList.clear();
+        genMove::genMoveList(e,moveList,justEat);
+        step::printMoveList(moveList);
     }
 
     static void testSearch(){
@@ -174,7 +122,30 @@ public:
         time_t start = clock();
         s.searchMain(e,10,3000);
         time_t end = clock();
-        std::cout<<(double)(end - start) / CLOCKS_PER_SEC<<std::endl;
+        cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
+    }
+protected:
+    static void getFiles(string path, vector<string>& files)
+    {
+        intptr_t hFile = 0;
+        struct _finddata_t fileinfo{};
+        string p;
+        if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
+        {
+            do
+            {
+                if ((fileinfo.attrib &  _A_SUBDIR))
+                {
+                    if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+                        getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
+                }
+                else
+                {
+                    files.push_back(p.assign(path).append("\\").append(fileinfo.name));
+                }
+            } while (_findnext(hFile, &fileinfo) == 0);
+            _findclose(hFile);
+        }
     }
 };
 

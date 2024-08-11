@@ -1,7 +1,8 @@
 #include "experiment.hpp"
 
 int main(){
-    //test::testGenMoveList(red,all);
-    test::testSearch();
+    //test::testInitEvaluateShouldMirror();
+    //test::testRecoardMove();
+    test::testGenNewRookMove();
     return 0;
 }

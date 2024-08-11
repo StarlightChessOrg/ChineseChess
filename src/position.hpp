@@ -9,6 +9,8 @@
 #include <algorithm>
 #include "base.hpp"
 
+using namespace std;
+
 typedef char int8;
 typedef short int16;
 typedef int int32;
@@ -323,6 +325,7 @@ private:
     friend class genMove;
     friend class evaluate;
     friend class hashKey;
+    friend class test;
 };
 
 //将士象马车炮兵
@@ -370,6 +373,7 @@ public:
 
     void unmakeMove(int fromPiece,int toPiece,int fromPos,int toPos){
         const int fromPieceIndex = pieceToSwapBoardIndex(fromPiece);
+        assert(fromPieceIndex >= 0 && fromPieceIndex <= 31);
         this->swapBoard[fromPieceIndex] = fromPos;
         if(toPiece){
             const int toPieceIndex = pieceToSwapBoardIndex(toPiece);

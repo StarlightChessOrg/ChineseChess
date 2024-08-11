@@ -11,7 +11,7 @@ enum moveType{
 
 class moveSort{
 public:
-    static void sortNormalMoveSeuqance(evaluate& e,historyCache& h,std::vector<step>& moveList){
+    static void sortNormalMoveSeuqance(evaluate& e,historyCache& h,vector<step>& moveList){
         for(step& move : moveList){
             if(move.toPiece){
                 move.sortType = justEatMove;
@@ -23,7 +23,7 @@ public:
         }
         sort(moveList.begin(),moveList.end(), vlAndTypeCompare);
     }
-    static void sortQuesicMoveSequance(evaluate& e,std::vector<step>& moveList){
+    static void sortQuesicMoveSequance(evaluate& e,vector<step>& moveList){
         for(step& move : moveList){
             if(move.toPiece){
                 move.vl = getMvvLva(e,move);
@@ -31,7 +31,7 @@ public:
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
-    static void initSortRootMoveSeuqance(evaluate& e,historyCache& h,std::vector<step>& moveList){
+    static void initSortRootMoveSeuqance(evaluate& e,historyCache& h,vector<step>& moveList){
         for(step& move : moveList){
             if(move.toPiece){
                 move.vl = getMvvLva(e,move);
@@ -39,7 +39,7 @@ public:
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
-    static void sortRootMoveSequance(std::vector<step>& moveList,step& betterMove){
+    static void sortRootMoveSequance(vector<step>& moveList,step& betterMove){
         for(step& move : moveList){
             if(move == betterMove){
                 move.vl = SORT_MAX_VALUE;
@@ -50,7 +50,7 @@ public:
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
 private:
-    static int inOtherStepList(step& move,std::vector<step>& moveList){
+    static int inOtherStepList(step& move,vector<step>& moveList){
         for(int i = 0;i < moveList.size();i++){
             if(move == moveList[i]){
                 return i + 1;
@@ -84,7 +84,7 @@ private:
 class searchGroup{
 public:
     searchGroup(){
-        pvLine = std::vector<int>(0,MAX_MOVE_NUM);
+        pvLine = vector<int>(0,MAX_MOVE_NUM);
     }
 public:
     static int searchQuesic(evaluate& e,int vlAlpha,int vlBeta) {
@@ -98,7 +98,7 @@ public:
         }
 
         int vlBest = MIN_VALUE;
-        std::vector<step> moveList;
+        vector<step> moveList;
         static int i,a = 0;
         const bool bCheck = e.checkMoveStatus.back();
         if(bCheck){
@@ -109,7 +109,7 @@ public:
                 return vl;
             }
             vlBest = vl;
-            vlAlpha = std::max(vl,vlAlpha);
+            vlAlpha = max(vl,vlAlpha);
 
             genMove::genMoveList(e, moveList,justEat);
             moveSort::sortQuesicMoveSequance(e,moveList);
@@ -127,7 +127,7 @@ public:
                         return vl;
                     }
                     vlBest = vl;
-                    vlAlpha = std::max(vl,vlAlpha);
+                    vlAlpha = max(vl,vlAlpha);
                 }
             }
         }
@@ -144,7 +144,7 @@ public:
         int vl = harmlessPruning(e,vlBeta);
         int vlBest = MIN_VALUE;
         int nodeType = alpha;
-        std::vector<step> moveList;
+        vector<step> moveList;
         step* pBestMove = nullptr;
         const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
         if(vl > MIN_VALUE){
@@ -217,7 +217,7 @@ public:
         }
 
         //截断启发
-        std::vector<step> killerMoveList;
+        vector<step> killerMoveList;
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
@@ -325,10 +325,10 @@ public:
 
                 if(vl >= vlBeta){
                     if(e.nullSafe()){
-                        hashMap.recoardCache(e,beta,vl,std::max(depth,NULL_DEPTH + 1));
+                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH + 1));
                         return vl;
                     }else if(searchNonPV(e,depth - NULL_DEPTH,vlBeta,true) >= vlBeta){
-                        hashMap.recoardCache(e,beta,vl,std::max(depth,NULL_DEPTH));
+                        hashMap.recoardCache(e,beta,vl,max(depth,NULL_DEPTH));
                         return vl;
                     }
                 }
@@ -354,7 +354,7 @@ public:
         }
 
         //吃子启发
-        std::vector<step> moveList;
+        vector<step> moveList;
         if(!quit){
             genMove::genMoveList(e,moveList,all);
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
@@ -379,7 +379,7 @@ public:
         }
 
         //截断启发
-        std::vector<step> killerMoveList;
+        vector<step> killerMoveList;
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
@@ -470,7 +470,7 @@ public:
         //search
         for(int depth = 1;depth <= maxDepth;depth++){
             int vl = searchRoot(e,depth);
-            std::cout<<depth<<std::endl;
+            cout<<depth<<endl;
             if(vl > vlBest){
                 vlBest = vl;
                 //toDo something
@@ -484,7 +484,7 @@ protected:
         historyMap.clearCache();
         killerMap.clearCache();
         hashMap.clearCache();
-        std::vector<step>().swap(rootMoveList);
+        vector<step>().swap(rootMoveList);
         genMove::genMoveList(e,rootMoveList,all);
         moveSort::initSortRootMoveSeuqance(e,historyMap,rootMoveList);
     }
@@ -518,6 +518,6 @@ private:
     historyCache historyMap;        //历史启发表
     killerCache killerMap;          //截断启发表
     hashCache hashMap;              //哈希启发表
-    std::vector<int> pvLine;             //主要遍历路线
-    std::vector<step> rootMoveList;      //根节点走法表
+    vector<int> pvLine;             //主要遍历路线
+    vector<step> rootMoveList;      //根节点走法表
 };

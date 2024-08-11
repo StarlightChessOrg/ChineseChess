@@ -20,14 +20,14 @@ public:
         sortType = 0;
     }
     void printMove() const{
-        std::cout<<std::setw(3)<<fromPiece<<" from "<<fromPos<<" to "<<toPos <<" and eat "<<toPiece<<" with vl = "<<vl<<std::endl;
+        cout<<setw(3)<<fromPiece<<" from "<<fromPos<<" to "<<toPos <<" and eat "<<toPiece<<" with vl = "<<vl<<endl;
      }
-    static void printMoveList(std::vector<step>& moveList){
-        std::cout<<"--------------------------------------"<<std::endl;
+    static void printMoveList(vector<step>& moveList){
+        cout<<"--------------------------------------"<<endl;
         for(step& s : moveList){
             s.printMove();
         }
-        std::cout<<"total size of move list is "<<moveList.size()<<std::endl;
+        cout<<"total size of move list is "<<moveList.size()<<endl;
     }
     bool operator!=(const step& otherMove) const{
         return !((fromPos == otherMove.fromPos) &&
@@ -63,7 +63,7 @@ enum relationType{
 
 class genMove{
 public:
-    static void genMoveList(position& p,std::vector<step>& moveList,int genType = all){
+    static void genMoveList(position& p,vector<step>& moveList,int genType = all){
         moveList.reserve(64);
         genCannonMove(p,moveList,genType);
         genKnightMove(p,moveList,genType);
@@ -156,7 +156,6 @@ protected:
         if(trueFromPiece != s.fromPiece || trueToPiece != s.toPiece){
             return false;
         }
-
         const int pieceType = swapBasicBoard::pieceToAbsType(s.fromPiece);
         if(pieceType == rook){
             return !p.bitBoard.checkLineExistBarrier(s.fromPos,s.toPos);
@@ -321,7 +320,7 @@ private:
         return false;
     }
 private:
-    static void genPawnMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genPawnMove(position& p,vector<step>& moveList,int genType = all){
         const int *pawnPieceList = (p.side == red) ? redPawnPieceList : blackPawnPieceList;
         for(int i = 0;i < 5;i++){
             const int pawnPiece = pawnPieceList[i];
@@ -347,7 +346,7 @@ private:
             }
         }
     }
-    static void genAdvisorMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genAdvisorMove(position& p,vector<step>& moveList,int genType = all){
         const int *advisorPieceList  = (p.side == red) ? redAdvisorPieceList : blackAdvisorPieceList;
         for(int i = 0;i < 2;i++){
             const int advisorPiece = advisorPieceList[i];
@@ -371,7 +370,7 @@ private:
             }
         }
     }
-    static void genKingMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genKingMove(position& p,vector<step>& moveList,int genType = all){
         const int kingPiece = (p.side == red) ? redKingPiece : blackKingPiece;
         const int kingPos = p.swapBoard.getPosByPiece(kingPiece);
         assert(kingPos);
@@ -383,7 +382,7 @@ private:
             }
         }
     }
-    static void genBishopMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genBishopMove(position& p,vector<step>& moveList,int genType = all){
         const int *bishopPieceList = (p.side == red) ? redBishopPieceList : blackBishopPieceList;
         for(int i = 0;i < 2;i++){
             const int bishopPiece = bishopPieceList[i];
@@ -402,7 +401,7 @@ private:
             }
         }
     }
-    static void genKnightMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genKnightMove(position& p,vector<step>& moveList,int genType = all){
         const int *knightPieceList = (p.side == red) ? redKnightPieceList : blackKnightPieceList;
         for(int i = 0;i < 2;i++){
             const int knightPiece = knightPieceList[i];
@@ -421,29 +420,42 @@ private:
             }
         }
     }
-    static void genRookMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genRookMove(position& p,vector<step>& moveList,int genType = all){
         const int *rookPieceList = (p.side == red) ? redRookPieceList : blackRookPieceList;
         for(int i = 0;i < 2;i++){
             const int rookPiece = rookPieceList[i];
             const int rookPos = p.swapBoard.getPosByPiece(rookPiece);
             if(rookPos){
-                for(int step : rayDelta){
-                    for(int toPos = rookPos + step;inBoard[toPos];toPos += step){
-                        const int toPiece = p.board.getPieceByPos(toPos);
-                        if(!toPiece && genType != justEat){
-                            moveList.emplace_back(rookPos,toPos,rookPiece,toPiece);
-                        }else if(rookPiece * toPiece < 0){
-                            moveList.emplace_back(rookPos,toPos,rookPiece,toPiece);
-                            break;
-                        }else if(rookPiece * toPiece > 0){
-                            break;
+                if(genType != justEat){
+                    for(int step : rayDelta){
+                        for(int toPos = rookPos + step;inBoard[toPos];toPos += step){
+                            const int toPiece = p.board.getPieceByPos(toPos);
+                            if(!toPiece){
+                                moveList.emplace_back(rookPos,toPos,rookPiece,toPiece);
+                            }else if(rookPiece * toPiece < 0){
+                                moveList.emplace_back(rookPos,toPos,rookPiece,toPiece);
+                                break;
+                            }else if(rookPiece * toPiece > 0){
+                                break;
+                            }
+                        }
+                    }
+                }else{
+                    const int targetList[4] = {leftTarget,rightTarget,upTarget,downTarget};
+                    for(int target : targetList){
+                        const int mayEatToPos = p.bitBoard.getRayTargetPos(rookPos,target,0);
+                        if(mayEatToPos != -1){
+                            const int toPiece = p.board.getPieceByPos(mayEatToPos);
+                            if(rookPiece * toPiece < 0){
+                                moveList.emplace_back(rookPos,mayEatToPos,rookPiece,toPiece);
+                            }
                         }
                     }
                 }
             }
         }
     }
-    static void genCannonMove(position& p,std::vector<step>& moveList,int genType = all){
+    static void genCannonMove(position& p,vector<step>& moveList,int genType = all){
         const int *cannonPieceList = (p.side == red) ? redCannonPieceList : blackCannonPieceList;
         for(int i = 0;i < 2;i++){
             const int cannonPiece = cannonPieceList[i];
@@ -503,7 +515,7 @@ protected:
             from_convert_type += 7;
         }
         if(from_convert_type < 0){
-            std::cout<<from_convert_type<<std::endl;
+            cout<<from_convert_type<<endl;
         }
         assert(from_convert_type >= 0 && from_convert_type <= 13);
         firstkey ^= keyMatrix[0][from_convert_type][move.fromPos];
@@ -534,11 +546,11 @@ protected:
     }
 private:
     uint64 getKey(){
-        std::uniform_int_distribution<uint64> u(32767,65535);
+        uniform_int_distribution<uint64> u(32767,65535);
         return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
     }
 protected:
-    std::default_random_engine e;
+    default_random_engine e;
     uint64 keyMatrix[2][14][256]{};
     uint64 keyPlayer{};
     friend class searchGroup;
