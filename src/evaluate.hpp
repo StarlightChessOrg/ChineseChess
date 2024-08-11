@@ -562,7 +562,6 @@ protected:
             if(inBoard[pos]){
                 //将兵
                 const int vlKingOrPawn = (kingPawnMidgameAttacking[pos] * midgameValue + kingPawnEndgameAttacking[pos] * (TOTAL_MIDGAME_VALUE - midgameValue)) / TOTAL_MIDGAME_VALUE;
-                vlRedBoard[vlIndex(king)][pos] = vlBlackBoard[vlIndex(king)][xyMirrorPos(pos)] = vlKingOrPawn;
                 pawnPieceAttacking[pos] = vlKingOrPawn;
                 pawnPieceAttackless[pos] = (kingPawnMidgameAttackless[pos] * midgameValue + kingPawnEndgameAttackless[pos] * (TOTAL_MIDGAME_VALUE - midgameValue)) / TOTAL_MIDGAME_VALUE;
                 //马
@@ -593,9 +592,11 @@ protected:
                 vlRedBoard[vlIndex(bishop)][pos] = vlBlackBoard[vlIndex(bishop)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
                 //兵
                 const int vlRedPawn = (pawnPieceAttacking[pos] * redAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - redAttackValue)) / TOTAL_ATTACK_VALUE;
-                const int vlBlackPawn = (pawnPieceAttacking[xyMirrorPos(pos)] * blackAttackValue + pawnPieceAttackless[xyMirrorPos(pos)] * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
+                const int vlBlackPawn = (pawnPieceAttacking[pos] * blackAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
                 vlRedBoard[vlIndex(pawn)][pos] = vlRedPawn;
-                vlBlackBoard[vlIndex(pawn)][pos] = vlBlackPawn;
+                vlBlackBoard[vlIndex(pawn)][xyMirrorPos(pos)] = vlBlackPawn;
+                vlRedBoard[vlIndex(king)][pos] = vlRedPawn;
+                vlBlackBoard[vlIndex(king)][xyMirrorPos(pos)] = vlBlackPawn;
             }
         }
         //计算沉底炮的威胁向量
@@ -622,9 +623,9 @@ private:
     //物质分
     int material(int side) const{
         if(side == red){
-            return vlRed - vlBlack + vlFirstGo;
+            return vlRed - (vlBlack + vlFirstGo);
         }
-        return vlBlack - vlRed + vlFirstGo;
+        return vlBlack - (vlRed + vlFirstGo);
     }
     //车的机动性
     int rookMobility(int side){
@@ -660,10 +661,12 @@ private:
                 }
             }
         }
+        vlRedMobility >>= 1;
+        vlBlackMobility >>= 1;
         if(side == red){
-            return (vlRedMobility - vlBlackMobility) / 2;
+            return vlRedMobility - vlBlackMobility;
         }
-        return (vlBlackMobility - vlRedMobility) / 2;
+        return vlBlackMobility - vlRedMobility;
     }
     //劣马
     int knightTrap(int side){
@@ -675,13 +678,17 @@ private:
             if(pos){
                 for(int step : knightDelta){
                     const int toPos = pos + step;
+                    const int toPiece = position::board.getPieceByPos(toPos);
                     const int legPos = getKnightLeg(pos,toPos);
                     if(!inKnightEdge[toPos] &&
                         !position::board.getPieceByPos(legPos) &&
-                        inBoard[toPos]){
-                        redPenalty -= 5;
-                        if(!redPenalty){
-                            break;
+                        inBoard[toPos] &&
+                        piece * toPiece <= 0){
+                        if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
+                            redPenalty -= 5;
+                            if(!redPenalty){
+                                break;
+                            }
                         }
                     }
                 }
@@ -694,13 +701,17 @@ private:
             if(pos){
                 for(int step : knightDelta){
                     const int toPos = pos + step;
+                    const int toPiece = position::board.getPieceByPos(toPos);
                     const int legPos = getKnightLeg(pos,toPos);
                     if(!inKnightEdge[toPos] &&
                         !position::board.getPieceByPos(legPos) &&
-                        inBoard[toPos]){
-                        blackPenalty -= 5;
-                        if(!blackPenalty){
-                            break;
+                        inBoard[toPos] &&
+                        piece * toPiece <= 0){
+                        if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
+                            blackPenalty -= 5;
+                            if(!blackPenalty){
+                                break;
+                            }
                         }
                     }
                 }
@@ -841,12 +852,12 @@ private:
                             vlRedAdvisorShape -= (vlHollowThreat[getY(toInvInvPos)] >> 2);
                             //检查将门是否被封锁
                             const int kingDoorPos = !position::board.getPieceByPos(redKingPos - 1) ? redKingPos - 1 : redKingPos + 1;
-                            if(!position::board.getPieceByPos(redKingPos - 1)){
-                                position::makeMove(redKingPos,kingDoorPos);
-                                if(genMove::getRelation(*this,redKingPos - 1,beThreatened)){
+                            const int kingDoorTarget = (kingDoorPos == redKingPos - 1) ? leftTarget : rightTarget;
+                            if(!position::board.getPieceByPos(kingDoorPos)){
+                                if(genMove::getRelation(*this,kingDoorPos,redKingPiece,beThreatened)){
                                     vlRedAdvisorShape -= 20;
                                     //检查车是否在底线防守将门
-                                    const int bottomToPos = position::bitBoard.getRayTargetPos(redKingPos - 1,leftTarget,0);
+                                    const int bottomToPos = position::bitBoard.getRayTargetPos(kingDoorPos,kingDoorTarget,0);
                                     if(bottomToPos > -1){
                                         const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
                                         const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
@@ -855,22 +866,6 @@ private:
                                         }
                                     }
                                 }
-                                position::unMakeMove(redKingPos,kingDoorPos,redKingPiece,empty);
-                            }else if(!position::board.getPieceByPos(redKingPos + 1)){
-                                position::makeMove(redKingPos,kingDoorPos);
-                                if(genMove::getRelation(*this,redKingPos + 1,beThreatened)){
-                                    vlRedAdvisorShape -= 20;
-                                    //检查车是否在底线防守将门
-                                    const int bottomToPos = position::bitBoard.getRayTargetPos(redKingPos + 1,rightTarget,0);
-                                    if(bottomToPos > -1){
-                                        const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
-                                        const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
-                                        if(bottomToType == rook && bottomToPiece > 0){
-                                            vlRedAdvisorShape -= 80;
-                                        }
-                                    }
-                                }
-                                position::unMakeMove(redKingPos,kingDoorPos,redKingPiece,empty);
                             }
                         }
                     }
@@ -901,12 +896,12 @@ private:
                             vlBlackAdvisorShape -= (vlHollowThreat[yMirrorPos(getY(toInvInvPos))] >> 2);
                             //检查将门是否被封锁
                             const int kingDoorPos = !position::board.getPieceByPos(blackKingPos - 1) ? blackKingPos - 1 : blackKingPos + 1;
-                            if(!position::board.getPieceByPos(blackKingPos - 1)){
-                                position::makeMove(blackKingPos,kingDoorPos);
-                                if(genMove::getRelation(*this,blackKingPos - 1,beThreatened)){
+                            const int kingDoorTarget = (kingDoorPos == blackKingPos - 1) ? leftTarget : rightTarget;
+                            if(!position::board.getPieceByPos(kingDoorPos)){
+                                if(genMove::getRelation(*this,kingDoorPos,blackKingPiece,beThreatened)){
                                     vlBlackAdvisorShape -= 20;
                                     //检查车是否在底线防守将门
-                                    const int bottomToPos = position::bitBoard.getRayTargetPos(blackKingPos - 1,leftTarget,0);
+                                    const int bottomToPos = position::bitBoard.getRayTargetPos(kingDoorPos,kingDoorTarget,0);
                                     if(bottomToPos > -1){
                                         const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
                                         const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
@@ -915,22 +910,6 @@ private:
                                         }
                                     }
                                 }
-                                position::unMakeMove(blackKingPos,kingDoorPos,redKingPiece,empty);
-                            }else if(!position::board.getPieceByPos(blackKingPos + 1)){
-                                position::makeMove(blackKingPos,kingDoorPos);
-                                if(genMove::getRelation(*this,blackKingPos + 1,beThreatened)){
-                                    vlBlackAdvisorShape -= 20;
-                                    //检查车是否在底线防守将门
-                                    const int bottomToPos = position::bitBoard.getRayTargetPos(blackKingPos + 1,rightTarget,0);
-                                    if(bottomToPos > -1){
-                                        const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
-                                        const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
-                                        if(bottomToType == rook && bottomToPiece < 0){
-                                            vlBlackAdvisorShape -= 80;
-                                        }
-                                    }
-                                }
-                                position::unMakeMove(blackKingPos,kingDoorPos,redKingPiece,empty);
                             }
                         }
                     }
@@ -994,7 +973,7 @@ private:
                     const int toInvPiece = position::board.getPieceByPos(toInvPos);
                     const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
                     if(toInvType == rook){
-                        if(!genMove::getRelation(*this,toPos,beProtected,pos)){
+                        if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
                             vlSingleStringHold -= stringValueTab[256 + toPos - pos];
                         }
                     }
@@ -1005,7 +984,7 @@ private:
                     const int toInvPiece = position::board.getPieceByPos(toInvPos);
                     const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
                     if(toInvType == rook){
-                        if(!genMove::getRelation(*this,toPos,beProtected,pos)){
+                        if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
                             vlSingleStringHold -= stringValueTab[256 + toPos - pos];
                         }
                     }
@@ -1014,7 +993,7 @@ private:
                     const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                     const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                     if(toInvInvType == cannon){
-                        if(!genMove::getRelation(*this,toPos,beProtected,pos)){
+                        if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
                             vlSingleStringHold -= stringValueTab[256 + toPos - pos];
                         }
                     }

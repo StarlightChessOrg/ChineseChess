@@ -60,8 +60,8 @@ private:
     }
     static int getMvvLva(evaluate& e,step& move){
         assert(move.toPiece);
-        const int lva = vlMvvLva[abs(move.fromPiece)];
-        const int mvv = genMove::getRelation(e,move.toPos,beProtected) ? vlMvvLva[abs(move.toPiece)] : 0;
+        const int lva = vlMvvLva[abs(move.fromPiece) - 1];
+        const int mvv = genMove::getRelation(e,move.toPos,move.toPiece,beProtected) ? vlMvvLva[abs(move.toPiece) - 1] : 0;
         if(mvv >= lva){
             return mvv - lva + 1;
         }else if(inRiver[move.toPos] && mvv == 1){
@@ -253,7 +253,6 @@ public:
 
         //剩余走法
         if(!quit){
-            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
@@ -284,15 +283,16 @@ public:
                             }
                         }
                     }
-                    cnt++;
                 }
             }
         }
 
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
-            killerMap.recoardCache(e,*pBestMove);
             hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
+            if(nodeType == beta){
+                killerMap.recoardCache(e,*pBestMove);
+            }
         }
 
         if(vlBest == MIN_VALUE){
@@ -403,7 +403,6 @@ public:
 
         //未吃子走法
         if(!quit){
-            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
@@ -421,7 +420,6 @@ public:
                             }
                         }
                     }
-                    cnt++;
                 }
             }
         }

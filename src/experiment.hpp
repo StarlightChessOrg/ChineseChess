@@ -108,6 +108,7 @@ public:
 
     static void testGenNewRookMove(){
         evaluate e = evaluate(initGameBoard,red);
+        e.resetEvaBoard();
         vector<step> moveList;
         genMove::genMoveList(e,moveList,all);
         step::printMoveList(moveList);
@@ -120,7 +121,7 @@ public:
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
         time_t start = clock();
-        s.searchMain(e,10,3000);
+        s.searchMain(e,9,3000);
         time_t end = clock();
         cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
     }
