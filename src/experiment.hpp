@@ -107,7 +107,7 @@ public:
     }
 
     static void testGenNewRookMove(){
-        evaluate e = evaluate(initGameBoard,black);
+        evaluate e = evaluate(initGameBoard,red);
         vector<step> moveList;
         genMove::genMoveList(e,moveList,all);
         step::printMoveList(moveList);

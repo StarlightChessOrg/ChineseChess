@@ -426,29 +426,19 @@ private:
             const int rookPiece = rookPieceList[i];
             const int rookPos = p.swapBoard.getPosByPiece(rookPiece);
             if(rookPos){
-                if(genType != justEat){
-                    for(int step : rayDelta){
-                        for(int toPos = rookPos + step;inBoard[toPos];toPos += step){
-                            const int toPiece = p.board.getPieceByPos(toPos);
-                            if(!toPiece){
-                                moveList.emplace_back(rookPos,toPos,rookPiece,toPiece);
-                            }else if(rookPiece * toPiece < 0){
-                                moveList.emplace_back(rookPos,toPos,rookPiece,toPiece);
-                                break;
-                            }else if(rookPiece * toPiece > 0){
-                                break;
-                            }
+                const int stepList[4] = {-1,1,-16,16};
+                const int targetList[4] = {leftTarget,rightTarget,upTarget,downTarget};
+                for(int a = 0; a < 4; a++){
+                    const int mayEatToPos = p.bitBoard.getRayTargetPos(rookPos, targetList[a], 0);
+                    if(mayEatToPos != -1){
+                        const int toPiece = p.board.getPieceByPos(mayEatToPos);
+                        if(rookPiece * toPiece < 0){
+                            moveList.emplace_back(rookPos,mayEatToPos,rookPiece,toPiece);
                         }
                     }
-                }else{
-                    const int targetList[4] = {leftTarget,rightTarget,upTarget,downTarget};
-                    for(int target : targetList){
-                        const int mayEatToPos = p.bitBoard.getRayTargetPos(rookPos,target,0);
-                        if(mayEatToPos != -1){
-                            const int toPiece = p.board.getPieceByPos(mayEatToPos);
-                            if(rookPiece * toPiece < 0){
-                                moveList.emplace_back(rookPos,mayEatToPos,rookPiece,toPiece);
-                            }
+                    if(genType != justEat){
+                        for(int toPos = rookPos + stepList[a]; inBoard[toPos] && toPos != mayEatToPos; toPos += stepList[a]){
+                            moveList.emplace_back(rookPos,toPos,rookPiece,empty);
                         }
                     }
                 }
@@ -461,20 +451,20 @@ private:
             const int cannonPiece = cannonPieceList[i];
             const int cannonPos = p.swapBoard.getPosByPiece(cannonPiece);
             if(cannonPos){
-                if(genType != justEat){
-                    for(int step : rayDelta){
-                        for(int toPos = cannonPos + step;inBoard[toPos] && !p.board.getPieceByPos(toPos);toPos += step){
-                            moveList.emplace_back(cannonPos,toPos,cannonPiece,empty);
-                        }
-                    }
-                }
+                const int stepList[4] = {-1,1,-16,16};
                 const int targetList[4] = {leftTarget,rightTarget,upTarget,downTarget};
-                for(int target : targetList){
-                    const int mayEatToPos = p.bitBoard.getRayTargetPos(cannonPos,target,1);
+                for(int a = 0;a < 4;a++){
+                    const int mayEatToPos = p.bitBoard.getRayTargetPos(cannonPos,targetList[a],1);
                     if(mayEatToPos != -1){
                         const int toPiece = p.board.getPieceByPos(mayEatToPos);
                         if(cannonPiece * toPiece < 0){
                             moveList.emplace_back(cannonPos,mayEatToPos,cannonPiece,toPiece);
+                        }
+                    }
+                    if(genType != justEat){
+                        const int mayGoToPos = p.bitBoard.getRayTargetPos(cannonPos,targetList[a],0);
+                        for(int toPos = cannonPos + stepList[a];inBoard[toPos] && toPos != mayGoToPos;toPos += stepList[a]){
+                            moveList.emplace_back(cannonPos,toPos,cannonPiece,empty);
                         }
                     }
                 }
