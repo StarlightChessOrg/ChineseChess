@@ -1,612 +1,612 @@
-    /*
-    evaluate.cpp - Source Code for ElephantEye, Part XI
+/*
+evaluate.cpp - Source Code for ElephantEye, Part XI
 
-    ElephantEye - a Chinese Chess Program (UCCI Engine)
-    Designed by Morning Yellow, Version: 3.3, Last Modified: Mar. 2012
-    Copyright (C) 2004-2012 www.xqbase.com
+ElephantEye - a Chinese Chess Program (UCCI Engine)
+Designed by Morning Yellow, Version: 3.3, Last Modified: Mar. 2012
+Copyright (C) 2004-2012 www.xqbase.com
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-    */
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
-    #include "base.h"
-    #include "pregen.h"
-    #include "position.h"
-    #include "preeval.h"
+#include "base.h"
+#include "pregen.h"
+#include "position.h"
+#include "preeval.h"
 
-    /* ElephantEyeæºç¨‹åºä½¿ç”¨çš„åŒˆç‰™åˆ©è®°å·çº¦å®šï¼š
-     *
-     * sq: æ ¼å­åºå·(æ•´æ•°ï¼Œä»0åˆ°255ï¼Œå‚é˜…"pregen.cpp")
-     * pc: æ£‹å­åºå·(æ•´æ•°ï¼Œä»0åˆ°47ï¼Œå‚é˜…"position.cpp")
-     * pt: æ£‹å­ç±»å‹åºå·(æ•´æ•°ï¼Œä»0åˆ°6ï¼Œå‚é˜…"position.cpp")
-     * mv: ç€æ³•(æ•´æ•°ï¼Œä»0åˆ°65535ï¼Œå‚é˜…"position.cpp")
-     * sd: èµ°å­æ–¹(æ•´æ•°ï¼Œ0ä»£è¡¨çº¢æ–¹ï¼Œ1ä»£è¡¨é»‘æ–¹)
-     * vl: å±€é¢ä»·å€¼(æ•´æ•°ï¼Œä»"-MATE_VALUE"åˆ°"MATE_VALUE"ï¼Œå‚é˜…"position.cpp")
-     * (æ³¨ï¼šä»¥ä¸Šäº”ä¸ªè®°å·å¯ä¸ucã€dwç­‰ä»£è¡¨æ•´æ•°çš„è®°å·é…åˆä½¿ç”¨)
-     * pos: å±€é¢(PositionStructç±»å‹ï¼Œå‚é˜…"position.h")
-     * sms: ä½è¡Œå’Œä½åˆ—çš„ç€æ³•ç”Ÿæˆé¢„ç½®ç»“æ„(å‚é˜…"pregen.h")
-     * smv: ä½è¡Œå’Œä½åˆ—çš„ç€æ³•åˆ¤æ–­é¢„ç½®ç»“æ„(å‚é˜…"pregen.h")
-     */
+/* ElephantEyeÔ´³ÌĞòÊ¹ÓÃµÄĞÙÑÀÀû¼ÇºÅÔ¼¶¨£º
+ *
+ * sq: ¸ñ×ÓĞòºÅ(ÕûÊı£¬´Ó0µ½255£¬²ÎÔÄ"pregen.cpp")
+ * pc: Æå×ÓĞòºÅ(ÕûÊı£¬´Ó0µ½47£¬²ÎÔÄ"position.cpp")
+ * pt: Æå×ÓÀàĞÍĞòºÅ(ÕûÊı£¬´Ó0µ½6£¬²ÎÔÄ"position.cpp")
+ * mv: ×Å·¨(ÕûÊı£¬´Ó0µ½65535£¬²ÎÔÄ"position.cpp")
+ * sd: ×ß×Ó·½(ÕûÊı£¬0´ú±íºì·½£¬1´ú±íºÚ·½)
+ * vl: ¾ÖÃæ¼ÛÖµ(ÕûÊı£¬´Ó"-MATE_VALUE"µ½"MATE_VALUE"£¬²ÎÔÄ"position.cpp")
+ * (×¢£ºÒÔÉÏÎå¸ö¼ÇºÅ¿ÉÓëuc¡¢dwµÈ´ú±íÕûÊıµÄ¼ÇºÅÅäºÏÊ¹ÓÃ)
+ * pos: ¾ÖÃæ(PositionStructÀàĞÍ£¬²ÎÔÄ"position.h")
+ * sms: Î»ĞĞºÍÎ»ÁĞµÄ×Å·¨Éú³ÉÔ¤ÖÃ½á¹¹(²ÎÔÄ"pregen.h")
+ * smv: Î»ĞĞºÍÎ»ÁĞµÄ×Å·¨ÅĞ¶ÏÔ¤ÖÃ½á¹¹(²ÎÔÄ"pregen.h")
+ */
 
-    // å·æ‡’è¯„ä»·çš„è¾¹ç•Œ
-    const int EVAL_MARGIN1 = 160;
-    const int EVAL_MARGIN2 = 80;
-    const int EVAL_MARGIN3 = 40;
-    const int EVAL_MARGIN4 = 20;
+// ÍµÀÁÆÀ¼ÛµÄ±ß½ç
+const int EVAL_MARGIN1 = 160;
+const int EVAL_MARGIN2 = 80;
+const int EVAL_MARGIN3 = 40;
+const int EVAL_MARGIN4 = 20;
 
-    // æœ¬æ¨¡å—åªæ¶‰åŠåˆ°"PositionStruct"ä¸­çš„"sdPlayer"ã€"ucpcSquares"ã€"ucsqPieces"å’Œ"wBitPiece"å››ä¸ªæˆå‘˜ï¼Œæ•…çœç•¥å‰é¢çš„"this->"
+// ±¾Ä£¿éÖ»Éæ¼°µ½"PositionStruct"ÖĞµÄ"sdPlayer"¡¢"ucpcSquares"¡¢"ucsqPieces"ºÍ"wBitPiece"ËÄ¸ö³ÉÔ±£¬¹ÊÊ¡ÂÔÇ°ÃæµÄ"this->"
 
-    /* ElephantEyeçš„å±€é¢è¯„ä»·å†…å®¹å…±4æœ‰4éƒ¨åˆ†
-     * 1. è·Ÿä»•(å£«)æœ‰å…³çš„ç‰¹æ®Šæ£‹å‹çš„è¯„ä»·ï¼Œè§"AdvisorShape()"ï¼›
-     * 2. è½¦æˆ–ç‚®ç‰µåˆ¶å¸…(å°†)æˆ–è½¦çš„æ£‹å‹çš„è¯„ä»·ï¼Œè§"StringHold()"ï¼›
-     * 3. è½¦çš„çµæ´»æ€§çš„è¯„ä»·ï¼Œè§"RookMobility()"ï¼›
-     * 4. é©¬å—åˆ°é˜»ç¢çš„è¯„ä»·ï¼Œè§"KnightTrap()"ã€‚
-     */
+/* ElephantEyeµÄ¾ÖÃæÆÀ¼ÛÄÚÈİ¹²4ÓĞ4²¿·Ö
+ * 1. ¸úÊË(Ê¿)ÓĞ¹ØµÄÌØÊâÆåĞÍµÄÆÀ¼Û£¬¼û"AdvisorShape()"£»
+ * 2. ³µ»òÅÚÇ£ÖÆË§(½«)»ò³µµÄÆåĞÍµÄÆÀ¼Û£¬¼û"StringHold()"£»
+ * 3. ³µµÄÁé»îĞÔµÄÆÀ¼Û£¬¼û"RookMobility()"£»
+ * 4. ÂíÊÜµ½×è°­µÄÆÀ¼Û£¬¼û"KnightTrap()"¡£
+ */
 
-    // ä»¥ä¸‹æ˜¯ç¬¬ä¸€éƒ¨åˆ†ï¼Œç‰¹æ®Šæ£‹å‹çš„è¯„ä»·
+// ÒÔÏÂÊÇµÚÒ»²¿·Ö£¬ÌØÊâÆåĞÍµÄÆÀ¼Û
 
-    /* ä»•(å£«)çš„å½¢çŠ¶å¯¹äºå±€é¢è¯„ä»·ï¼Œç‰¹åˆ«æ˜¯åˆ¤æ–­ç©ºå¤´ç‚®ã€æ²‰åº•ç‚®ç­‰æ£‹å‹æœ‰é‡å¤§ä½œç”¨ï¼Œä¸ºæ­¤ElephantEyeç»™å‡ºå››ç§å½¢çŠ¶ï¼š
-     * 1. å¸…(å°†)åœ¨åŸä½ï¼ŒåŒä»•(å£«)éƒ½åœ¨åº•çº¿ï¼Œç¼–ä¸º1å·ï¼Œè¿™ç§æƒ…å†µè¦åˆ¤æ–­ç©ºå¤´ç‚®å’Œç‚®é•‡çªå¿ƒé©¬ï¼›
-     * 2. å¸…(å°†)åœ¨åŸä½ï¼ŒåŒä»•(å£«)ä»å·¦è¾¹åŒ…å›´å¸…(å°†)ï¼Œç¼–ä¸º2å·ï¼Œè¿™ç§æƒ…å†µè¦åˆ¤æ–­å³è¾¹çš„æ²‰åº•ç‚®å’Œè½¦å°å³è¾¹çš„å¸…(å°†)é—¨ï¼›
-     * 3. å¸…(å°†)åœ¨åŸä½ï¼ŒåŒä»•(å£«)ä»å³è¾¹åŒ…å›´å¸…(å°†)ï¼Œç¼–ä¸º3å·ï¼Œè¿™ç§æƒ…å†µè¦åˆ¤æ–­å·¦è¾¹çš„æ²‰åº•ç‚®å’Œè½¦å°å·¦è¾¹çš„å¸…(å°†)é—¨ï¼›
-     * 4. å…¶ä»–æƒ…å†µï¼ŒåŒ…æ‹¬å¸…(å°†)ä¸åœ¨åŸä½æˆ–ç¼ºä»•(å£«)ï¼Œéƒ½ç¼–å·0ã€‚
-     * æ³¨ï¼šä»¥â€œçº¢ä¸‹é»‘ä¸Šâ€è¿™ä¸ªå›ºå®šçš„æ£‹ç›˜æ–¹ä½æ¥è§„å®šå·¦å³ã€‚
-     */
-    const int WHITE_KING_BITFILE = 1 << (RANK_BOTTOM - RANK_TOP);
-    const int BLACK_KING_BITFILE = 1 << (RANK_TOP - RANK_TOP);
-    const int KING_BITRANK = 1 << (FILE_CENTER - FILE_LEFT);
+/* ÊË(Ê¿)µÄĞÎ×´¶ÔÓÚ¾ÖÃæÆÀ¼Û£¬ÌØ±ğÊÇÅĞ¶Ï¿ÕÍ·ÅÚ¡¢³Áµ×ÅÚµÈÆåĞÍÓĞÖØ´ó×÷ÓÃ£¬Îª´ËElephantEye¸ø³öËÄÖÖĞÎ×´£º
+ * 1. Ë§(½«)ÔÚÔ­Î»£¬Ë«ÊË(Ê¿)¶¼ÔÚµ×Ïß£¬±àÎª1ºÅ£¬ÕâÖÖÇé¿öÒªÅĞ¶Ï¿ÕÍ·ÅÚºÍÅÚÕòÎÑĞÄÂí£»
+ * 2. Ë§(½«)ÔÚÔ­Î»£¬Ë«ÊË(Ê¿)´Ó×ó±ß°üÎ§Ë§(½«)£¬±àÎª2ºÅ£¬ÕâÖÖÇé¿öÒªÅĞ¶ÏÓÒ±ßµÄ³Áµ×ÅÚºÍ³µ·âÓÒ±ßµÄË§(½«)ÃÅ£»
+ * 3. Ë§(½«)ÔÚÔ­Î»£¬Ë«ÊË(Ê¿)´ÓÓÒ±ß°üÎ§Ë§(½«)£¬±àÎª3ºÅ£¬ÕâÖÖÇé¿öÒªÅĞ¶Ï×ó±ßµÄ³Áµ×ÅÚºÍ³µ·â×ó±ßµÄË§(½«)ÃÅ£»
+ * 4. ÆäËûÇé¿ö£¬°üÀ¨Ë§(½«)²»ÔÚÔ­Î»»òÈ±ÊË(Ê¿)£¬¶¼±àºÅ0¡£
+ * ×¢£ºÒÔ¡°ºìÏÂºÚÉÏ¡±Õâ¸ö¹Ì¶¨µÄÆåÅÌ·½Î»À´¹æ¶¨×óÓÒ¡£
+ */
+const int WHITE_KING_BITFILE = 1 << (RANK_BOTTOM - RANK_TOP);
+const int BLACK_KING_BITFILE = 1 << (RANK_TOP - RANK_TOP);
+const int KING_BITRANK = 1 << (FILE_CENTER - FILE_LEFT);
 
-    const int SHAPE_NONE = 0;
-    const int SHAPE_CENTER = 1;
-    const int SHAPE_LEFT = 2;
-    const int SHAPE_RIGHT = 3;
+const int SHAPE_NONE = 0;
+const int SHAPE_CENTER = 1;
+const int SHAPE_LEFT = 2;
+const int SHAPE_RIGHT = 3;
 
-    int PositionStruct::AdvisorShape(void) const {
-      int pcCannon, pcRook, sq, sqAdv1, sqAdv2, x, y, nShape;
-      int vlWhitePenalty, vlBlackPenalty;
-      SlideMaskStruct *lpsms;
-      vlWhitePenalty = vlBlackPenalty = 0;
-      if ((this->wBitPiece[0] & ADVISOR_BITPIECE) == ADVISOR_BITPIECE) {
-        if (this->ucsqPieces[SIDE_TAG(0) + KING_FROM] == 0xc7) {
-          sqAdv1 = this->ucsqPieces[SIDE_TAG(0) + ADVISOR_FROM];
-          sqAdv2 = this->ucsqPieces[SIDE_TAG(0) + ADVISOR_TO];
-          if (false) {
-          } else if (sqAdv1 == 0xc6) { // çº¢æ–¹ä¸€ä¸ªä»•åœ¨å·¦ä¾§åº•çº¿
-            nShape = (sqAdv2 == 0xc8 ? SHAPE_CENTER : sqAdv2 == 0xb7 ? SHAPE_LEFT : SHAPE_NONE);
-          } else if (sqAdv1 == 0xc8) { // çº¢æ–¹ä¸€ä¸ªä»•åœ¨å³ä¾§åº•çº¿
-            nShape = (sqAdv2 == 0xc6 ? SHAPE_CENTER : sqAdv2 == 0xb7 ? SHAPE_RIGHT : SHAPE_NONE);
-          } else if (sqAdv1 == 0xb7) { // çº¢æ–¹ä¸€ä¸ªä»•åœ¨èŠ±å¿ƒ
-            nShape = (sqAdv2 == 0xc6 ? SHAPE_LEFT : sqAdv2 == 0xc8 ? SHAPE_RIGHT : SHAPE_NONE);
-          } else {
-            nShape = SHAPE_NONE;
-          }
-          switch (nShape) {
-          case SHAPE_NONE:
-            break;
-          case SHAPE_CENTER:
-            for (pcCannon = SIDE_TAG(1) + CANNON_FROM; pcCannon <= SIDE_TAG(1) + CANNON_TO; pcCannon ++) {
-              sq = this->ucsqPieces[pcCannon];
-              if (sq != 0) {
-                x = FILE_X(sq);
-                if (x == FILE_CENTER) {
-                  y = RANK_Y(sq);
-                  lpsms = this->FileMaskPtr(x, y);
-                  if ((lpsms->wRookCap & WHITE_KING_BITFILE) != 0) {
-                    // è®¡ç®—ç©ºå¤´ç‚®çš„å¨èƒ
-                    vlWhitePenalty += PreEvalEx.vlHollowThreat[RANK_FLIP(y)];
-                  } else if ((lpsms->wSuperCap & WHITE_KING_BITFILE) != 0 &&
-                      (this->ucpcSquares[0xb7] == 21 || this->ucpcSquares[0xb7] == 22)) {
-                    // è®¡ç®—ç‚®é•‡çªå¿ƒé©¬çš„å¨èƒ
-                    vlWhitePenalty += PreEvalEx.vlCentralThreat[RANK_FLIP(y)];
-                  }
-                }
-              }
-            }
-            break;
-          case SHAPE_LEFT:
-          case SHAPE_RIGHT:
-            for (pcCannon = SIDE_TAG(1) + CANNON_FROM; pcCannon <= SIDE_TAG(1) + CANNON_TO; pcCannon ++) {
-              sq = this->ucsqPieces[pcCannon];
-              if (sq != 0) {
-                x = FILE_X(sq);
-                y = RANK_Y(sq);
-                if (x == FILE_CENTER) {
-                  if ((this->FileMaskPtr(x, y)->wSuperCap & WHITE_KING_BITFILE) != 0) {
-                    // è®¡ç®—ä¸€èˆ¬ä¸­ç‚®çš„å¨èƒï¼Œå¸…(å°†)é—¨è¢«å¯¹æ–¹æ§åˆ¶çš„è¿˜æœ‰é¢å¤–ç½šåˆ†
-                    vlWhitePenalty += (PreEvalEx.vlCentralThreat[RANK_FLIP(y)] >> 2) +
-                        (this->Protected(1, nShape == SHAPE_LEFT ? 0xc8 : 0xc6) ? 20 : 0);
-                    // å¦‚æœè½¦åœ¨åº•çº¿ä¿æŠ¤å¸…(å°†)ï¼Œåˆ™ç»™äºˆæ›´å¤§çš„ç½šåˆ†ï¼
-                    for (pcRook = SIDE_TAG(0) + ROOK_FROM; pcRook <= SIDE_TAG(0) + ROOK_TO; pcRook ++) {
-                      sq = this->ucsqPieces[pcRook];
-                      if (sq != 0) {
-                        y = RANK_Y(sq);
-                        if (y == RANK_BOTTOM) {
-                          x = FILE_X(sq);
-                          if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
-                            vlWhitePenalty += 80;
-                          }
-                        }
-                      }
-                    }
-                  }
-                } else if (y == RANK_BOTTOM) {
-                  if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
-                    // è®¡ç®—æ²‰åº•ç‚®çš„å¨èƒ
-                    vlWhitePenalty += PreEvalEx.vlWhiteBottomThreat[x];
-                  }
-                }
-              }
-            }
-            break;
-          default:
-            break;
-          }
-        } else if (this->ucsqPieces[SIDE_TAG(0) + KING_FROM] == 0xb7) {
-          // æœ‰åŒä»•(å£«)ä½†èŠ±å¿ƒè¢«å¸…(å°†)å é¢†ï¼Œè¦ç½šåˆ†
-          vlWhitePenalty += 20;
-        }
+int PositionStruct::AdvisorShape(void) const {
+  int pcCannon, pcRook, sq, sqAdv1, sqAdv2, x, y, nShape;
+  int vlWhitePenalty, vlBlackPenalty;
+  SlideMaskStruct *lpsms;
+  vlWhitePenalty = vlBlackPenalty = 0;
+  if ((this->wBitPiece[0] & ADVISOR_BITPIECE) == ADVISOR_BITPIECE) {
+    if (this->ucsqPieces[SIDE_TAG(0) + KING_FROM] == 0xc7) {
+      sqAdv1 = this->ucsqPieces[SIDE_TAG(0) + ADVISOR_FROM];
+      sqAdv2 = this->ucsqPieces[SIDE_TAG(0) + ADVISOR_TO];
+      if (false) {
+      } else if (sqAdv1 == 0xc6) { // ºì·½Ò»¸öÊËÔÚ×ó²àµ×Ïß
+        nShape = (sqAdv2 == 0xc8 ? SHAPE_CENTER : sqAdv2 == 0xb7 ? SHAPE_LEFT : SHAPE_NONE);
+      } else if (sqAdv1 == 0xc8) { // ºì·½Ò»¸öÊËÔÚÓÒ²àµ×Ïß
+        nShape = (sqAdv2 == 0xc6 ? SHAPE_CENTER : sqAdv2 == 0xb7 ? SHAPE_RIGHT : SHAPE_NONE);
+      } else if (sqAdv1 == 0xb7) { // ºì·½Ò»¸öÊËÔÚ»¨ĞÄ
+        nShape = (sqAdv2 == 0xc6 ? SHAPE_LEFT : sqAdv2 == 0xc8 ? SHAPE_RIGHT : SHAPE_NONE);
       } else {
-        if ((this->wBitPiece[1] & ROOK_BITPIECE) == ROOK_BITPIECE) {
-          // ç¼ºä»•(å£«)æ€•åŒè½¦ï¼Œæœ‰ç½šåˆ†
-          vlWhitePenalty += PreEvalEx.vlWhiteAdvisorLeakage;
-        }
+        nShape = SHAPE_NONE;
       }
-      if ((this->wBitPiece[1] & ADVISOR_BITPIECE) == ADVISOR_BITPIECE) {
-        if (this->ucsqPieces[SIDE_TAG(1) + KING_FROM] == 0x37) {
-          sqAdv1 = this->ucsqPieces[SIDE_TAG(1) + ADVISOR_FROM];
-          sqAdv2 = this->ucsqPieces[SIDE_TAG(1) + ADVISOR_TO];
-          if (false) {
-          } else if (sqAdv1 == 0x36) { // é»‘æ–¹ä¸€ä¸ªå£«åœ¨å·¦ä¾§åº•çº¿
-            nShape = (sqAdv2 == 0x38 ? SHAPE_CENTER : sqAdv2 == 0x47 ? SHAPE_LEFT : SHAPE_NONE);
-          } else if (sqAdv1 == 0x38) { // é»‘æ–¹ä¸€ä¸ªå£«åœ¨å³ä¾§åº•çº¿
-            nShape = (sqAdv2 == 0x36 ? SHAPE_CENTER : sqAdv2 == 0x47 ? SHAPE_RIGHT : SHAPE_NONE);
-          } else if (sqAdv1 == 0x47) { // é»‘æ–¹ä¸€ä¸ªå£«åœ¨èŠ±å¿ƒ
-            nShape = (sqAdv2 == 0x36 ? SHAPE_LEFT : sqAdv2 == 0x38 ? SHAPE_RIGHT : SHAPE_NONE);
-          } else {
-            nShape = SHAPE_NONE;
-          }
-          switch (nShape) {
-          case SHAPE_NONE:
-            break;
-          case SHAPE_CENTER:
-            for (pcCannon = SIDE_TAG(0) + CANNON_FROM; pcCannon <= SIDE_TAG(0) + CANNON_TO; pcCannon ++) {
-              sq = this->ucsqPieces[pcCannon];
-              if (sq != 0) {
-                x = FILE_X(sq);
-                if (x == FILE_CENTER) {
-                  y = RANK_Y(sq);
-                  lpsms = this->FileMaskPtr(x, y);
-                  if ((lpsms->wRookCap & BLACK_KING_BITFILE) != 0) {
-                    // è®¡ç®—ç©ºå¤´ç‚®çš„å¨èƒ
-                    vlBlackPenalty += PreEvalEx.vlHollowThreat[y];
-                  } else if ((lpsms->wSuperCap & BLACK_KING_BITFILE) != 0 &&
-                      (this->ucpcSquares[0x47] == 37 || this->ucpcSquares[0x47] == 38)) {
-                    // è®¡ç®—ç‚®é•‡çªå¿ƒé©¬çš„å¨èƒ
-                    vlBlackPenalty += PreEvalEx.vlCentralThreat[y];
-                  }
-                }
+      switch (nShape) {
+      case SHAPE_NONE:
+        break;
+      case SHAPE_CENTER:
+        for (pcCannon = SIDE_TAG(1) + CANNON_FROM; pcCannon <= SIDE_TAG(1) + CANNON_TO; pcCannon ++) {
+          sq = this->ucsqPieces[pcCannon];
+          if (sq != 0) {
+            x = FILE_X(sq);
+            if (x == FILE_CENTER) {
+              y = RANK_Y(sq);
+              lpsms = this->FileMaskPtr(x, y);
+              if ((lpsms->wRookCap & WHITE_KING_BITFILE) != 0) {
+                // ¼ÆËã¿ÕÍ·ÅÚµÄÍşĞ²
+                vlWhitePenalty += PreEvalEx.vlHollowThreat[RANK_FLIP(y)];
+              } else if ((lpsms->wSuperCap & WHITE_KING_BITFILE) != 0 &&
+                  (this->ucpcSquares[0xb7] == 21 || this->ucpcSquares[0xb7] == 22)) {
+                // ¼ÆËãÅÚÕòÎÑĞÄÂíµÄÍşĞ²
+                vlWhitePenalty += PreEvalEx.vlCentralThreat[RANK_FLIP(y)];
               }
             }
-            break;
-          case SHAPE_LEFT:
-          case SHAPE_RIGHT:
-            for (pcCannon = SIDE_TAG(0) + CANNON_FROM; pcCannon <= SIDE_TAG(0) + CANNON_TO; pcCannon ++) {
-              sq = this->ucsqPieces[pcCannon];
-              if (sq != 0) {
-                x = FILE_X(sq);
-                y = RANK_Y(sq);
-                if (x == FILE_CENTER) {
-                  if ((this->FileMaskPtr(x, y)->wSuperCap & BLACK_KING_BITFILE) != 0) {
-                    // è®¡ç®—ä¸€èˆ¬ä¸­ç‚®çš„å¨èƒï¼Œå¸…(å°†)é—¨è¢«å¯¹æ–¹æ§åˆ¶çš„è¿˜æœ‰é¢å¤–ç½šåˆ†
-                    vlBlackPenalty += (PreEvalEx.vlCentralThreat[y] >> 2) +
-                        (this->Protected(0, nShape == SHAPE_LEFT ? 0x38 : 0x36) ? 20 : 0);
-                    // å¦‚æœè½¦åœ¨åº•çº¿ä¿æŠ¤å¸…(å°†)ï¼Œåˆ™ç»™äºˆæ›´å¤§çš„ç½šåˆ†ï¼
-                    for (pcRook = SIDE_TAG(1) + ROOK_FROM; pcRook <= SIDE_TAG(1) + ROOK_TO; pcRook ++) {
-                      sq = this->ucsqPieces[pcRook];
-                      if (sq != 0) {
-                        y = RANK_Y(sq);
-                        if (y == RANK_TOP) {
-                          x = FILE_X(sq);
-                          if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
-                            vlBlackPenalty += 80;
-                          }
-                        }
+          }
+        }
+        break;
+      case SHAPE_LEFT:
+      case SHAPE_RIGHT:
+        for (pcCannon = SIDE_TAG(1) + CANNON_FROM; pcCannon <= SIDE_TAG(1) + CANNON_TO; pcCannon ++) {
+          sq = this->ucsqPieces[pcCannon];
+          if (sq != 0) {
+            x = FILE_X(sq);
+            y = RANK_Y(sq);
+            if (x == FILE_CENTER) {
+              if ((this->FileMaskPtr(x, y)->wSuperCap & WHITE_KING_BITFILE) != 0) {
+                // ¼ÆËãÒ»°ãÖĞÅÚµÄÍşĞ²£¬Ë§(½«)ÃÅ±»¶Ô·½¿ØÖÆµÄ»¹ÓĞ¶îÍâ·£·Ö
+                vlWhitePenalty += (PreEvalEx.vlCentralThreat[RANK_FLIP(y)] >> 2) +
+                    (this->Protected(1, nShape == SHAPE_LEFT ? 0xc8 : 0xc6) ? 20 : 0);
+                // Èç¹û³µÔÚµ×Ïß±£»¤Ë§(½«)£¬Ôò¸øÓè¸ü´óµÄ·£·Ö£¡
+                for (pcRook = SIDE_TAG(0) + ROOK_FROM; pcRook <= SIDE_TAG(0) + ROOK_TO; pcRook ++) {
+                  sq = this->ucsqPieces[pcRook];
+                  if (sq != 0) {
+                    y = RANK_Y(sq);
+                    if (y == RANK_BOTTOM) {
+                      x = FILE_X(sq);
+                      if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
+                        vlWhitePenalty += 80;
                       }
                     }
                   }
-                } else if (y == RANK_TOP) {
-                  if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
-                    // è®¡ç®—æ²‰åº•ç‚®çš„å¨èƒ
-                    vlBlackPenalty += PreEvalEx.vlBlackBottomThreat[x];
-                  }
                 }
               }
+            } else if (y == RANK_BOTTOM) {
+              if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
+                // ¼ÆËã³Áµ×ÅÚµÄÍşĞ²
+                vlWhitePenalty += PreEvalEx.vlWhiteBottomThreat[x];
+              }
             }
-            break;
-          default:
-            break;
           }
-        } else if (this->ucsqPieces[SIDE_TAG(1) + KING_FROM] == 0x47) {
-          // æœ‰åŒä»•(å£«)ä½†èŠ±å¿ƒè¢«å¸…(å°†)å é¢†ï¼Œè¦ç½šåˆ†
-          vlBlackPenalty += 20;
         }
+        break;
+      default:
+        break;
+      }
+    } else if (this->ucsqPieces[SIDE_TAG(0) + KING_FROM] == 0xb7) {
+      // ÓĞË«ÊË(Ê¿)µ«»¨ĞÄ±»Ë§(½«)Õ¼Áì£¬Òª·£·Ö
+      vlWhitePenalty += 20;
+    }
+  } else {
+    if ((this->wBitPiece[1] & ROOK_BITPIECE) == ROOK_BITPIECE) {
+      // È±ÊË(Ê¿)ÅÂË«³µ£¬ÓĞ·£·Ö
+      vlWhitePenalty += PreEvalEx.vlWhiteAdvisorLeakage;
+    }
+  }
+  if ((this->wBitPiece[1] & ADVISOR_BITPIECE) == ADVISOR_BITPIECE) {
+    if (this->ucsqPieces[SIDE_TAG(1) + KING_FROM] == 0x37) {
+      sqAdv1 = this->ucsqPieces[SIDE_TAG(1) + ADVISOR_FROM];
+      sqAdv2 = this->ucsqPieces[SIDE_TAG(1) + ADVISOR_TO];
+      if (false) {
+      } else if (sqAdv1 == 0x36) { // ºÚ·½Ò»¸öÊ¿ÔÚ×ó²àµ×Ïß
+        nShape = (sqAdv2 == 0x38 ? SHAPE_CENTER : sqAdv2 == 0x47 ? SHAPE_LEFT : SHAPE_NONE);
+      } else if (sqAdv1 == 0x38) { // ºÚ·½Ò»¸öÊ¿ÔÚÓÒ²àµ×Ïß
+        nShape = (sqAdv2 == 0x36 ? SHAPE_CENTER : sqAdv2 == 0x47 ? SHAPE_RIGHT : SHAPE_NONE);
+      } else if (sqAdv1 == 0x47) { // ºÚ·½Ò»¸öÊ¿ÔÚ»¨ĞÄ
+        nShape = (sqAdv2 == 0x36 ? SHAPE_LEFT : sqAdv2 == 0x38 ? SHAPE_RIGHT : SHAPE_NONE);
       } else {
-        if ((this->wBitPiece[0] & ROOK_BITPIECE) == ROOK_BITPIECE) {
-          // ç¼ºä»•(å£«)æ€•åŒè½¦ï¼Œæœ‰ç½šåˆ†
-          vlBlackPenalty += PreEvalEx.vlBlackAdvisorLeakage;
-        }
+        nShape = SHAPE_NONE;
       }
-      return SIDE_VALUE(this->sdPlayer, vlBlackPenalty - vlWhitePenalty);
-    }
-
-    // ä»¥ä¸Šæ˜¯ç¬¬ä¸€éƒ¨åˆ†ï¼Œç‰¹æ®Šæ£‹å‹çš„è¯„ä»·
-
-    // ä»¥ä¸‹æ˜¯ç¬¬äºŒéƒ¨åˆ†ï¼Œç‰µåˆ¶çš„è¯„ä»·
-
-    // å¸¸æ•°è¡¨"cnValuableStringPieces"ç”¨åˆ¤æ–­ç‰µåˆ¶æ˜¯å¦æœ‰ä»·å€¼
-    // å¤§äº0çš„é¡¹æ˜¯å¯¹äºè½¦æ¥è¯´çš„ï¼Œç‰µåˆ¶é©¬å’Œç‚®(è¢«ç‰µåˆ¶)éƒ½æœ‰ä»·å€¼ï¼Œå¤§äº1çš„é¡¹æ˜¯å¯¹äºç‚®æ¥è¯´åªæœ‰ç‰µåˆ¶é©¬æ‰æœ‰ä»·å€¼
-    static const int cnValuableStringPieces[48] = {
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 1, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 1, 0, 0, 0, 0, 0
-    };
-
-    // "ccvlStringValueTab"æ˜¯ç±»ä¼¼"KNIGHT_PIN_TAB"çš„å¸¸æ•°è¡¨(å‚é˜…"pregen.h")ï¼Œå†³å®šç‰µåˆ¶ä»·å€¼
-    // ä¸­é—´å­å’Œè¢«ç‰µåˆ¶å­çš„è·ç¦»è¶Šè¿‘ï¼Œç‰µåˆ¶çš„ä»·å€¼å°±è¶Šå¤§
-    static const char ccvlStringValueTab[512] = {
-                                   0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 28,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 32,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 36,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0,  0,  0,
-      12, 16, 20, 24, 28, 32, 36,  0, 36, 32, 28, 24, 20, 16, 12,  0,
-       0,  0,  0,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 36,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 32,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 28,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-       0,  0,  0,  0,  0,  0,  0
-    };
-
-    // è½¦æˆ–ç‚®ç‰µåˆ¶å¸…(å°†)æˆ–è½¦çš„æ£‹å‹çš„è¯„ä»·
-    int PositionStruct::StringHold(void) const {
-      int sd, i, j, nDir, sqSrc, sqDst, sqStr;
-      int x, y, nSideTag, nOppSideTag;
-      int vlString[2];
-      SlideMoveStruct *lpsmv;
-
-      for (sd = 0; sd < 2; sd ++) {
-        vlString[sd] = 0;
-        nSideTag = SIDE_TAG(sd);
-        nOppSideTag = OPP_SIDE_TAG(sd);
-        // è€ƒæŸ¥ç”¨è½¦æ¥ç‰µåˆ¶çš„æƒ…å†µ
-        for (i = ROOK_FROM; i <= ROOK_TO; i ++) {
-          sqSrc = this->ucsqPieces[nSideTag + i];
-          if (sqSrc != 0) {
-            __ASSERT_SQUARE(sqSrc);
-            // è€ƒæŸ¥ç‰µåˆ¶ç›®æ ‡æ˜¯å¸…(å°†)çš„æƒ…å†µ
-            sqDst = this->ucsqPieces[nOppSideTag + KING_FROM];
-            if (sqDst != 0) {
-              __ASSERT_SQUARE(sqDst);
-              x = FILE_X(sqSrc);
-              y = RANK_Y(sqSrc);
-              if (x == FILE_X(sqDst)) {
-                lpsmv = this->FileMovePtr(x, y);
-                nDir = (sqSrc < sqDst ? 0 : 1);
-                // å¦‚æœè½¦ç”¨ç‚®çš„åƒæ³•(ç‚®ç”¨è¶…çº§ç‚®çš„ç€æ³•)èƒ½åƒåˆ°ç›®æ ‡å­"sqDst"ï¼Œç‰µåˆ¶å°±æˆç«‹äº†ï¼Œä¸‹åŒ
-                if (sqDst == lpsmv->ucCannonCap[nDir] + FILE_DISP(x)) {
-                  // è¢«ç‰µåˆ¶å­"sqStr"æ˜¯è½¦(ç‚®)æœ¬èº«èƒ½åƒåˆ°çš„æ£‹å­ï¼Œä¸‹åŒ
-                  sqStr = lpsmv->ucRookCap[nDir] + FILE_DISP(x);
-                  __ASSERT_SQUARE(sqStr);
-                  // è¢«ç‰µåˆ¶å­å¿…é¡»æ˜¯å¯¹æ–¹çš„å­ï¼Œä¸‹åŒ
-                  if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                    // å¦‚æœè¢«ç‰µåˆ¶å­æ˜¯æœ‰ä»·å€¼çš„ï¼Œè€Œä¸”è¢«ç‰µåˆ¶å­æ²¡æœ‰ä¿æŠ¤(è¢«ç›®æ ‡å­ä¿æŠ¤ä¸ç®—)ï¼Œé‚£ä¹ˆç‰µåˆ¶æ˜¯æœ‰ä»·å€¼çš„ï¼Œä¸‹åŒ
-                    if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
-                        !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                      vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                    }
-                  }
-                }
-              } else if (y == RANK_Y(sqDst)) {
-                lpsmv = this->RankMovePtr(x, y);
-                nDir = (sqSrc < sqDst ? 0 : 1);
-                if (sqDst == lpsmv->ucCannonCap[nDir] + RANK_DISP(y)) {
-                  sqStr = lpsmv->ucRookCap[nDir] + RANK_DISP(y);
-                  __ASSERT_SQUARE(sqStr);
-                  if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                    if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
-                        !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                      vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+      switch (nShape) {
+      case SHAPE_NONE:
+        break;
+      case SHAPE_CENTER:
+        for (pcCannon = SIDE_TAG(0) + CANNON_FROM; pcCannon <= SIDE_TAG(0) + CANNON_TO; pcCannon ++) {
+          sq = this->ucsqPieces[pcCannon];
+          if (sq != 0) {
+            x = FILE_X(sq);
+            if (x == FILE_CENTER) {
+              y = RANK_Y(sq);
+              lpsms = this->FileMaskPtr(x, y);
+              if ((lpsms->wRookCap & BLACK_KING_BITFILE) != 0) {
+                // ¼ÆËã¿ÕÍ·ÅÚµÄÍşĞ²
+                vlBlackPenalty += PreEvalEx.vlHollowThreat[y];
+              } else if ((lpsms->wSuperCap & BLACK_KING_BITFILE) != 0 &&
+                  (this->ucpcSquares[0x47] == 37 || this->ucpcSquares[0x47] == 38)) {
+                // ¼ÆËãÅÚÕòÎÑĞÄÂíµÄÍşĞ²
+                vlBlackPenalty += PreEvalEx.vlCentralThreat[y];
+              }
+            }
+          }
+        }
+        break;
+      case SHAPE_LEFT:
+      case SHAPE_RIGHT:
+        for (pcCannon = SIDE_TAG(0) + CANNON_FROM; pcCannon <= SIDE_TAG(0) + CANNON_TO; pcCannon ++) {
+          sq = this->ucsqPieces[pcCannon];
+          if (sq != 0) {
+            x = FILE_X(sq);
+            y = RANK_Y(sq);
+            if (x == FILE_CENTER) {
+              if ((this->FileMaskPtr(x, y)->wSuperCap & BLACK_KING_BITFILE) != 0) {
+                // ¼ÆËãÒ»°ãÖĞÅÚµÄÍşĞ²£¬Ë§(½«)ÃÅ±»¶Ô·½¿ØÖÆµÄ»¹ÓĞ¶îÍâ·£·Ö
+                vlBlackPenalty += (PreEvalEx.vlCentralThreat[y] >> 2) +
+                    (this->Protected(0, nShape == SHAPE_LEFT ? 0x38 : 0x36) ? 20 : 0);
+                // Èç¹û³µÔÚµ×Ïß±£»¤Ë§(½«)£¬Ôò¸øÓè¸ü´óµÄ·£·Ö£¡
+                for (pcRook = SIDE_TAG(1) + ROOK_FROM; pcRook <= SIDE_TAG(1) + ROOK_TO; pcRook ++) {
+                  sq = this->ucsqPieces[pcRook];
+                  if (sq != 0) {
+                    y = RANK_Y(sq);
+                    if (y == RANK_TOP) {
+                      x = FILE_X(sq);
+                      if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
+                        vlBlackPenalty += 80;
+                      }
                     }
                   }
                 }
               }
+            } else if (y == RANK_TOP) {
+              if ((this->RankMaskPtr(x, y)->wRookCap & KING_BITRANK) != 0) {
+                // ¼ÆËã³Áµ×ÅÚµÄÍşĞ²
+                vlBlackPenalty += PreEvalEx.vlBlackBottomThreat[x];
+              }
             }
-            // è€ƒæŸ¥ç‰µåˆ¶ç›®æ ‡æ˜¯è½¦çš„æƒ…å†µ
-            for (j = ROOK_FROM; j <= ROOK_TO; j ++) {
-              sqDst = this->ucsqPieces[nOppSideTag + j];
-              if (sqDst != 0) {
-                __ASSERT_SQUARE(sqDst);
-                x = FILE_X(sqSrc);
-                y = RANK_Y(sqSrc);
-                if (x == FILE_X(sqDst)) {
-                  lpsmv = this->FileMovePtr(x, y);
-                  nDir = (sqSrc < sqDst ? 0 : 1);
-                  if (sqDst == lpsmv->ucCannonCap[nDir] + FILE_DISP(x)) {
-                    sqStr = lpsmv->ucRookCap[nDir] + FILE_DISP(x);
-                    __ASSERT_SQUARE(sqStr);
-                    if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                      // ç›®æ ‡å­æ˜¯è½¦ï¼Œä¸åŒäºå¸…(å°†)ï¼Œè¦æ±‚è½¦ä¹Ÿæ²¡æœ‰ä¿æŠ¤æ—¶æ‰æœ‰ç‰µåˆ¶ä»·å€¼ï¼Œä¸‹åŒ
-                      if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
-                          !this->Protected(OPP_SIDE(sd), sqDst) && !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                        vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                      }
-                    }
-                  }
-                } else if (y == RANK_Y(sqDst)) {
-                  lpsmv = this->RankMovePtr(x, y);
-                  nDir = (sqSrc < sqDst ? 0 : 1);
-                  if (sqDst == lpsmv->ucCannonCap[nDir] + RANK_DISP(y)) {
-                    sqStr = lpsmv->ucRookCap[nDir] + RANK_DISP(y);
-                    __ASSERT_SQUARE(sqStr);
-                    if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                      if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
-                          !this->Protected(OPP_SIDE(sd), sqDst) && !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                        vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                      }
-                    }
-                  }
+          }
+        }
+        break;
+      default:
+        break;
+      }
+    } else if (this->ucsqPieces[SIDE_TAG(1) + KING_FROM] == 0x47) {
+      // ÓĞË«ÊË(Ê¿)µ«»¨ĞÄ±»Ë§(½«)Õ¼Áì£¬Òª·£·Ö
+      vlBlackPenalty += 20;
+    }
+  } else {
+    if ((this->wBitPiece[0] & ROOK_BITPIECE) == ROOK_BITPIECE) {
+      // È±ÊË(Ê¿)ÅÂË«³µ£¬ÓĞ·£·Ö
+      vlBlackPenalty += PreEvalEx.vlBlackAdvisorLeakage;
+    }
+  }
+  return SIDE_VALUE(this->sdPlayer, vlBlackPenalty - vlWhitePenalty);
+}
+
+// ÒÔÉÏÊÇµÚÒ»²¿·Ö£¬ÌØÊâÆåĞÍµÄÆÀ¼Û
+
+// ÒÔÏÂÊÇµÚ¶ş²¿·Ö£¬Ç£ÖÆµÄÆÀ¼Û
+
+// ³£Êı±í"cnValuableStringPieces"ÓÃÅĞ¶ÏÇ£ÖÆÊÇ·ñÓĞ¼ÛÖµ
+// ´óÓÚ0µÄÏîÊÇ¶ÔÓÚ³µÀ´ËµµÄ£¬Ç£ÖÆÂíºÍÅÚ(±»Ç£ÖÆ)¶¼ÓĞ¼ÛÖµ£¬´óÓÚ1µÄÏîÊÇ¶ÔÓÚÅÚÀ´ËµÖ»ÓĞÇ£ÖÆÂí²ÅÓĞ¼ÛÖµ
+static const int cnValuableStringPieces[48] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 1, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 1, 0, 0, 0, 0, 0
+};
+
+// "ccvlStringValueTab"ÊÇÀàËÆ"KNIGHT_PIN_TAB"µÄ³£Êı±í(²ÎÔÄ"pregen.h")£¬¾ö¶¨Ç£ÖÆ¼ÛÖµ
+// ÖĞ¼ä×ÓºÍ±»Ç£ÖÆ×ÓµÄ¾àÀëÔ½½ü£¬Ç£ÖÆµÄ¼ÛÖµ¾ÍÔ½´ó
+static const char ccvlStringValueTab[512] = {
+                               0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 28,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 32,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 36,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0,  0,  0,
+  12, 16, 20, 24, 28, 32, 36,  0, 36, 32, 28, 24, 20, 16, 12,  0,
+   0,  0,  0,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 36,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 32,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 28,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 24,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 20,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 16,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0, 12,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+   0,  0,  0,  0,  0,  0,  0
+};
+
+// ³µ»òÅÚÇ£ÖÆË§(½«)»ò³µµÄÆåĞÍµÄÆÀ¼Û
+int PositionStruct::StringHold(void) const {
+  int sd, i, j, nDir, sqSrc, sqDst, sqStr;
+  int x, y, nSideTag, nOppSideTag;
+  int vlString[2];
+  SlideMoveStruct *lpsmv;
+
+  for (sd = 0; sd < 2; sd ++) {
+    vlString[sd] = 0;
+    nSideTag = SIDE_TAG(sd);
+    nOppSideTag = OPP_SIDE_TAG(sd);
+    // ¿¼²éÓÃ³µÀ´Ç£ÖÆµÄÇé¿ö
+    for (i = ROOK_FROM; i <= ROOK_TO; i ++) {
+      sqSrc = this->ucsqPieces[nSideTag + i];
+      if (sqSrc != 0) {
+        __ASSERT_SQUARE(sqSrc);
+        // ¿¼²éÇ£ÖÆÄ¿±êÊÇË§(½«)µÄÇé¿ö
+        sqDst = this->ucsqPieces[nOppSideTag + KING_FROM];
+        if (sqDst != 0) {
+          __ASSERT_SQUARE(sqDst);
+          x = FILE_X(sqSrc);
+          y = RANK_Y(sqSrc);
+          if (x == FILE_X(sqDst)) {
+            lpsmv = this->FileMovePtr(x, y);
+            nDir = (sqSrc < sqDst ? 0 : 1);
+            // Èç¹û³µÓÃÅÚµÄ³Ô·¨(ÅÚÓÃ³¬¼¶ÅÚµÄ×Å·¨)ÄÜ³Ôµ½Ä¿±ê×Ó"sqDst"£¬Ç£ÖÆ¾Í³ÉÁ¢ÁË£¬ÏÂÍ¬
+            if (sqDst == lpsmv->ucCannonCap[nDir] + FILE_DISP(x)) {
+              // ±»Ç£ÖÆ×Ó"sqStr"ÊÇ³µ(ÅÚ)±¾ÉíÄÜ³Ôµ½µÄÆå×Ó£¬ÏÂÍ¬
+              sqStr = lpsmv->ucRookCap[nDir] + FILE_DISP(x);
+              __ASSERT_SQUARE(sqStr);
+              // ±»Ç£ÖÆ×Ó±ØĞëÊÇ¶Ô·½µÄ×Ó£¬ÏÂÍ¬
+              if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                // Èç¹û±»Ç£ÖÆ×ÓÊÇÓĞ¼ÛÖµµÄ£¬¶øÇÒ±»Ç£ÖÆ×ÓÃ»ÓĞ±£»¤(±»Ä¿±ê×Ó±£»¤²»Ëã)£¬ÄÇÃ´Ç£ÖÆÊÇÓĞ¼ÛÖµµÄ£¬ÏÂÍ¬
+                if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
+                    !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                  vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                }
+              }
+            }
+          } else if (y == RANK_Y(sqDst)) {
+            lpsmv = this->RankMovePtr(x, y);
+            nDir = (sqSrc < sqDst ? 0 : 1);
+            if (sqDst == lpsmv->ucCannonCap[nDir] + RANK_DISP(y)) {
+              sqStr = lpsmv->ucRookCap[nDir] + RANK_DISP(y);
+              __ASSERT_SQUARE(sqStr);
+              if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
+                    !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                  vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
                 }
               }
             }
           }
         }
-
-        // è€ƒæŸ¥ç”¨ç‚®æ¥ç‰µåˆ¶çš„æƒ…å†µ
-        for (i = CANNON_FROM; i <= CANNON_TO; i ++) {
-          sqSrc = this->ucsqPieces[nSideTag + i];
-          if (sqSrc != 0) {
-            __ASSERT_SQUARE(sqSrc);
-            // è€ƒæŸ¥ç‰µåˆ¶ç›®æ ‡æ˜¯å¸…(å°†)çš„æƒ…å†µ
-            sqDst = this->ucsqPieces[nOppSideTag + KING_FROM];
-            if (sqDst != 0) {
-              __ASSERT_SQUARE(sqDst);
-              x = FILE_X(sqSrc);
-              y = RANK_Y(sqSrc);
-              if (x == FILE_X(sqDst)) {
-                lpsmv = this->FileMovePtr(x, y);
-                nDir = (sqSrc < sqDst ? 0 : 1);
-                if (sqDst == lpsmv->ucSuperCap[nDir] + FILE_DISP(x)) {
-                  sqStr = lpsmv->ucCannonCap[nDir] + FILE_DISP(x);
-                  __ASSERT_SQUARE(sqStr);
-                  if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                    if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
-                        !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                      vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                    }
-                  }
-                }
-              } else if (y == RANK_Y(sqDst)) {
-                lpsmv = this->RankMovePtr(x, y);
-                nDir = (sqSrc < sqDst ? 0 : 1);
-                if (sqDst == lpsmv->ucSuperCap[nDir] + RANK_DISP(y)) {
-                  sqStr = lpsmv->ucCannonCap[nDir] + RANK_DISP(y);
-                  __ASSERT_SQUARE(sqStr);
-                  if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                    if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
-                        !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                      vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                    }
-                  }
-                }
-              }
-            }
-            // è€ƒæŸ¥ç‰µåˆ¶ç›®æ ‡æ˜¯è½¦çš„æƒ…å†µ
-            for (j = ROOK_FROM; j <= ROOK_TO; j ++) {
-              sqDst = this->ucsqPieces[nOppSideTag + j];
-              if (sqDst != 0) {
-                __ASSERT_SQUARE(sqDst);
-                x = FILE_X(sqSrc);
-                y = RANK_Y(sqSrc);
-                if (x == FILE_X(sqDst)) {
-                  lpsmv = this->FileMovePtr(x, y);
-                  nDir = (sqSrc < sqDst ? 0 : 1);
-                  if (sqDst == lpsmv->ucSuperCap[nDir] + FILE_DISP(x)) {
-                    sqStr = lpsmv->ucCannonCap[nDir] + FILE_DISP(x);
-                    __ASSERT_SQUARE(sqStr);
-                    if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                      if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
-                          !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                        vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                      }
-                    }
-                  }
-                } else if (y == RANK_Y(sqDst)) {
-                  lpsmv = this->RankMovePtr(x, y);
-                  nDir = (sqSrc < sqDst ? 0 : 1);
-                  if (sqDst == lpsmv->ucSuperCap[nDir] + RANK_DISP(y)) {
-                    sqStr = lpsmv->ucCannonCap[nDir] + RANK_DISP(y);
-                    __ASSERT_SQUARE(sqStr);
-                    if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
-                      if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
-                          !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
-                        vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      return SIDE_VALUE(this->sdPlayer, vlString[0] - vlString[1]);
-    }
-
-    // ä»¥ä¸Šæ˜¯ç¬¬äºŒéƒ¨åˆ†ï¼Œç‰µåˆ¶çš„è¯„ä»·
-
-    // ä»¥ä¸‹æ˜¯ç¬¬ä¸‰éƒ¨åˆ†ï¼Œè½¦çš„çµæ´»æ€§çš„è¯„ä»·
-
-    int PositionStruct::RookMobility(void) const {
-      int sd, i, sqSrc, nSideTag, x, y;
-      int vlRookMobility[2];
-      for (sd = 0; sd < 2; sd ++) {
-        vlRookMobility[sd] = 0;
-        nSideTag = SIDE_TAG(sd);
-        for (i = ROOK_FROM; i <= ROOK_TO; i ++) {
-          sqSrc = this->ucsqPieces[nSideTag + i];
-          if (sqSrc != 0) {
-            __ASSERT_SQUARE(sqSrc);
+        // ¿¼²éÇ£ÖÆÄ¿±êÊÇ³µµÄÇé¿ö
+        for (j = ROOK_FROM; j <= ROOK_TO; j ++) {
+          sqDst = this->ucsqPieces[nOppSideTag + j];
+          if (sqDst != 0) {
+            __ASSERT_SQUARE(sqDst);
             x = FILE_X(sqSrc);
             y = RANK_Y(sqSrc);
-            vlRookMobility[sd] += PreEvalEx.cPopCnt16[this->RankMaskPtr(x, y)->wNonCap] +
-                PreEvalEx.cPopCnt16[this->FileMaskPtr(x, y)->wNonCap];
-          }
-        }
-        __ASSERT(vlRookMobility[sd] <= 34);
-      }
-      return SIDE_VALUE(this->sdPlayer, vlRookMobility[0] - vlRookMobility[1]) >> 1;
-    }
-
-    // ä»¥ä¸Šæ˜¯ç¬¬ä¸‰éƒ¨åˆ†ï¼Œè½¦çš„çµæ´»æ€§çš„è¯„ä»·
-
-    // ä»¥ä¸‹æ˜¯ç¬¬å››éƒ¨åˆ†ï¼Œé©¬å—åˆ°é˜»ç¢çš„è¯„ä»·
-
-    // å¸¸æ•°è¡¨"cbcEdgeSquares"ç»™å®šäº†ä¸åˆ©äºé©¬çš„ä½ç½®ï¼Œå¤„äºæ£‹ç›˜è¾¹ç¼˜å’Œä¸¤ä¸ªèŠ±å¿ƒä½ç½®çš„é©¬éƒ½æ˜¯åé©¬
-    static const bool cbcEdgeSquares[256] = {
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
-      0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    };
-
-    int PositionStruct::KnightTrap(void) const {
-      int sd, i, sqSrc, sqDst, nSideTag, nMovable;
-      uint8_t *lpucsqDst, *lpucsqPin;
-      int vlKnightTraps[2];
-
-      for (sd = 0; sd < 2; sd ++) {
-        vlKnightTraps[sd] = 0;
-        nSideTag = SIDE_TAG(sd);
-        // è€ƒè™‘é©¬å¯ä»¥èµ°çš„ä½ç½®ï¼Œèµ°åˆ°æ£‹ç›˜è¾¹ç¼˜ä¸Šï¼Œæˆ–è€…èµ°åˆ°å¯¹æ–¹çš„æ§åˆ¶æ ¼ï¼Œéƒ½å¿…é¡»æ’é™¤
-        for (i = KNIGHT_FROM; i <= KNIGHT_TO; i ++) {
-          sqSrc = this->ucsqPieces[nSideTag + i];
-          if (sqSrc != 0) {
-            __ASSERT_SQUARE(sqSrc);
-            nMovable = 0;
-            lpucsqDst = PreGen.ucsqKnightMoves[sqSrc];
-            lpucsqPin = PreGen.ucsqKnightPins[sqSrc];
-            sqDst = *lpucsqDst;
-            while (sqDst != 0) {
-              __ASSERT_SQUARE(sqDst);
-              // ä»¥ä¸‹çš„åˆ¤æ–­åŒºåˆ«äº"genmoves.cpp"ä¸­çš„ç€æ³•ç”Ÿæˆå™¨ï¼Œæ’é™¤äº†èµ°åˆ°æ£‹ç›˜è¾¹ç¼˜å’Œèµ°åˆ°å¯¹æ–¹æ§åˆ¶æ ¼çš„ç€æ³•
-              if (!cbcEdgeSquares[sqDst] && this->ucpcSquares[sqDst] == 0 &&
-                  this->ucpcSquares[*lpucsqPin] == 0 && !this->Protected(OPP_SIDE(sd), sqDst)) {
-                nMovable ++;
-                if (nMovable > 1) {
-                  break;
+            if (x == FILE_X(sqDst)) {
+              lpsmv = this->FileMovePtr(x, y);
+              nDir = (sqSrc < sqDst ? 0 : 1);
+              if (sqDst == lpsmv->ucCannonCap[nDir] + FILE_DISP(x)) {
+                sqStr = lpsmv->ucRookCap[nDir] + FILE_DISP(x);
+                __ASSERT_SQUARE(sqStr);
+                if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                  // Ä¿±ê×ÓÊÇ³µ£¬²»Í¬ÓÚË§(½«)£¬ÒªÇó³µÒ²Ã»ÓĞ±£»¤Ê±²ÅÓĞÇ£ÖÆ¼ÛÖµ£¬ÏÂÍ¬
+                  if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
+                      !this->Protected(OPP_SIDE(sd), sqDst) && !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                    vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                  }
                 }
               }
-              lpucsqDst ++;
-              sqDst = *lpucsqDst;
-              lpucsqPin ++;
-            }
-            // æ²¡æœ‰å¥½çš„ç€æ³•çš„é©¬ç»™äºˆ10åˆ†ç½šåˆ†ï¼Œåªæœ‰ä¸€ä¸ªå¥½çš„ç€æ³•çš„é©¬ç»™äºˆ5åˆ†ç½šåˆ†
-            if (nMovable == 0) {
-              vlKnightTraps[sd] += 10;
-            } else if (nMovable == 1) {
-              vlKnightTraps[sd] += 5;
+            } else if (y == RANK_Y(sqDst)) {
+              lpsmv = this->RankMovePtr(x, y);
+              nDir = (sqSrc < sqDst ? 0 : 1);
+              if (sqDst == lpsmv->ucCannonCap[nDir] + RANK_DISP(y)) {
+                sqStr = lpsmv->ucRookCap[nDir] + RANK_DISP(y);
+                __ASSERT_SQUARE(sqStr);
+                if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                  if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 0 &&
+                      !this->Protected(OPP_SIDE(sd), sqDst) && !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                    vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                  }
+                }
+              }
             }
           }
-          __ASSERT(vlKnightTraps[sd] <= 20);
         }
       }
-      return SIDE_VALUE(this->sdPlayer, vlKnightTraps[1] - vlKnightTraps[0]);
     }
 
-    // ä»¥ä¸Šæ˜¯ç¬¬å››éƒ¨åˆ†ï¼Œé©¬å—åˆ°é˜»ç¢çš„è¯„ä»·
-
-    // å±€é¢è¯„ä»·è¿‡ç¨‹
-    int PositionStruct::Evaluate(int vlAlpha, int vlBeta) const {
-      int vl;
-      // å·æ‡’çš„å±€é¢è¯„ä»·å‡½æ•°åˆ†ä»¥ä¸‹å‡ ä¸ªå±‚æ¬¡ï¼š
-
-      // 1. å››çº§å·æ‡’è¯„ä»·(å½»åº•å·æ‡’è¯„ä»·)ï¼ŒåªåŒ…æ‹¬å­åŠ›å¹³è¡¡ï¼›
-      vl = this->Material();
-      if (vl + EVAL_MARGIN1 <= vlAlpha) {
-        return vl + EVAL_MARGIN1;
-      } else if (vl - EVAL_MARGIN1 >= vlBeta) {
-        return vl - EVAL_MARGIN1;
+    // ¿¼²éÓÃÅÚÀ´Ç£ÖÆµÄÇé¿ö
+    for (i = CANNON_FROM; i <= CANNON_TO; i ++) {
+      sqSrc = this->ucsqPieces[nSideTag + i];
+      if (sqSrc != 0) {
+        __ASSERT_SQUARE(sqSrc);
+        // ¿¼²éÇ£ÖÆÄ¿±êÊÇË§(½«)µÄÇé¿ö
+        sqDst = this->ucsqPieces[nOppSideTag + KING_FROM];
+        if (sqDst != 0) {
+          __ASSERT_SQUARE(sqDst);
+          x = FILE_X(sqSrc);
+          y = RANK_Y(sqSrc);
+          if (x == FILE_X(sqDst)) {
+            lpsmv = this->FileMovePtr(x, y);
+            nDir = (sqSrc < sqDst ? 0 : 1);
+            if (sqDst == lpsmv->ucSuperCap[nDir] + FILE_DISP(x)) {
+              sqStr = lpsmv->ucCannonCap[nDir] + FILE_DISP(x);
+              __ASSERT_SQUARE(sqStr);
+              if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
+                    !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                  vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                }
+              }
+            }
+          } else if (y == RANK_Y(sqDst)) {
+            lpsmv = this->RankMovePtr(x, y);
+            nDir = (sqSrc < sqDst ? 0 : 1);
+            if (sqDst == lpsmv->ucSuperCap[nDir] + RANK_DISP(y)) {
+              sqStr = lpsmv->ucCannonCap[nDir] + RANK_DISP(y);
+              __ASSERT_SQUARE(sqStr);
+              if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
+                    !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                  vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                }
+              }
+            }
+          }
+        }
+        // ¿¼²éÇ£ÖÆÄ¿±êÊÇ³µµÄÇé¿ö
+        for (j = ROOK_FROM; j <= ROOK_TO; j ++) {
+          sqDst = this->ucsqPieces[nOppSideTag + j];
+          if (sqDst != 0) {
+            __ASSERT_SQUARE(sqDst);
+            x = FILE_X(sqSrc);
+            y = RANK_Y(sqSrc);
+            if (x == FILE_X(sqDst)) {
+              lpsmv = this->FileMovePtr(x, y);
+              nDir = (sqSrc < sqDst ? 0 : 1);
+              if (sqDst == lpsmv->ucSuperCap[nDir] + FILE_DISP(x)) {
+                sqStr = lpsmv->ucCannonCap[nDir] + FILE_DISP(x);
+                __ASSERT_SQUARE(sqStr);
+                if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                  if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
+                      !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                    vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                  }
+                }
+              }
+            } else if (y == RANK_Y(sqDst)) {
+              lpsmv = this->RankMovePtr(x, y);
+              nDir = (sqSrc < sqDst ? 0 : 1);
+              if (sqDst == lpsmv->ucSuperCap[nDir] + RANK_DISP(y)) {
+                sqStr = lpsmv->ucCannonCap[nDir] + RANK_DISP(y);
+                __ASSERT_SQUARE(sqStr);
+                if ((this->ucpcSquares[sqStr] & nOppSideTag) != 0) {
+                  if (cnValuableStringPieces[this->ucpcSquares[sqStr]] > 1 &&
+                      !this->Protected(OPP_SIDE(sd), sqStr, sqDst)) {
+                    vlString[sd] += ccvlStringValueTab[sqDst - sqStr + 256];
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-
-      // 2. ä¸‰çº§å·æ‡’è¯„ä»·ï¼ŒåŒ…æ‹¬ç‰¹æ®Šæ£‹å‹ï¼›
-      vl += this->AdvisorShape();
-      if (vl + EVAL_MARGIN2 <= vlAlpha) {
-        return vl + EVAL_MARGIN2;
-      } else if (vl - EVAL_MARGIN2 >= vlBeta) {
-        return vl - EVAL_MARGIN2;
-      }
-
-      // 3. äºŒçº§å·æ‡’è¯„ä»·ï¼ŒåŒ…æ‹¬ç‰µåˆ¶ï¼›
-      vl += this->StringHold();
-      if (vl + EVAL_MARGIN3 <= vlAlpha) {
-        return vl + EVAL_MARGIN3;
-      } else if (vl - EVAL_MARGIN3 >= vlBeta) {
-        return vl - EVAL_MARGIN3;
-      }
-
-      // 4. ä¸€çº§å·æ‡’è¯„ä»·ï¼ŒåŒ…æ‹¬è½¦çš„çµæ´»æ€§ï¼›
-      vl += this->RookMobility();
-      if (vl + EVAL_MARGIN4 <= vlAlpha) {
-        return vl + EVAL_MARGIN4;
-      } else if (vl - EVAL_MARGIN4 >= vlBeta) {
-        return vl - EVAL_MARGIN4;
-      }
-
-      // 5. é›¶çº§å·æ‡’è¯„ä»·(å®Œå…¨è¯„ä»·)ï¼ŒåŒ…æ‹¬é©¬çš„é˜»ç¢ã€‚
-      return vl + this->KnightTrap();
     }
+  }
+  return SIDE_VALUE(this->sdPlayer, vlString[0] - vlString[1]);
+}
+
+// ÒÔÉÏÊÇµÚ¶ş²¿·Ö£¬Ç£ÖÆµÄÆÀ¼Û
+
+// ÒÔÏÂÊÇµÚÈı²¿·Ö£¬³µµÄÁé»îĞÔµÄÆÀ¼Û
+
+int PositionStruct::RookMobility(void) const {
+  int sd, i, sqSrc, nSideTag, x, y;
+  int vlRookMobility[2];
+  for (sd = 0; sd < 2; sd ++) {
+    vlRookMobility[sd] = 0;
+    nSideTag = SIDE_TAG(sd);
+    for (i = ROOK_FROM; i <= ROOK_TO; i ++) {
+      sqSrc = this->ucsqPieces[nSideTag + i];
+      if (sqSrc != 0) {
+        __ASSERT_SQUARE(sqSrc);
+        x = FILE_X(sqSrc);
+        y = RANK_Y(sqSrc);
+        vlRookMobility[sd] += PreEvalEx.cPopCnt16[this->RankMaskPtr(x, y)->wNonCap] +
+            PreEvalEx.cPopCnt16[this->FileMaskPtr(x, y)->wNonCap];
+      }
+    }
+    __ASSERT(vlRookMobility[sd] <= 34);
+  }
+  return SIDE_VALUE(this->sdPlayer, vlRookMobility[0] - vlRookMobility[1]) >> 1;
+}
+
+// ÒÔÉÏÊÇµÚÈı²¿·Ö£¬³µµÄÁé»îĞÔµÄÆÀ¼Û
+
+// ÒÔÏÂÊÇµÚËÄ²¿·Ö£¬ÂíÊÜµ½×è°­µÄÆÀ¼Û
+
+// ³£Êı±í"cbcEdgeSquares"¸ø¶¨ÁË²»ÀûÓÚÂíµÄÎ»ÖÃ£¬´¦ÓÚÆåÅÌ±ßÔµºÍÁ½¸ö»¨ĞÄÎ»ÖÃµÄÂí¶¼ÊÇ»µÂí
+static const bool cbcEdgeSquares[256] = {
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
+  0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+int PositionStruct::KnightTrap(void) const {
+  int sd, i, sqSrc, sqDst, nSideTag, nMovable;
+  uint8_t *lpucsqDst, *lpucsqPin;
+  int vlKnightTraps[2];
+
+  for (sd = 0; sd < 2; sd ++) {
+    vlKnightTraps[sd] = 0;
+    nSideTag = SIDE_TAG(sd);
+    // ¿¼ÂÇÂí¿ÉÒÔ×ßµÄÎ»ÖÃ£¬×ßµ½ÆåÅÌ±ßÔµÉÏ£¬»òÕß×ßµ½¶Ô·½µÄ¿ØÖÆ¸ñ£¬¶¼±ØĞëÅÅ³ı
+    for (i = KNIGHT_FROM; i <= KNIGHT_TO; i ++) {
+      sqSrc = this->ucsqPieces[nSideTag + i];
+      if (sqSrc != 0) {
+        __ASSERT_SQUARE(sqSrc);
+        nMovable = 0;
+        lpucsqDst = PreGen.ucsqKnightMoves[sqSrc];
+        lpucsqPin = PreGen.ucsqKnightPins[sqSrc];
+        sqDst = *lpucsqDst;
+        while (sqDst != 0) {
+          __ASSERT_SQUARE(sqDst);
+          // ÒÔÏÂµÄÅĞ¶ÏÇø±ğÓÚ"genmoves.cpp"ÖĞµÄ×Å·¨Éú³ÉÆ÷£¬ÅÅ³ıÁË×ßµ½ÆåÅÌ±ßÔµºÍ×ßµ½¶Ô·½¿ØÖÆ¸ñµÄ×Å·¨
+          if (!cbcEdgeSquares[sqDst] && this->ucpcSquares[sqDst] == 0 &&
+              this->ucpcSquares[*lpucsqPin] == 0 && !this->Protected(OPP_SIDE(sd), sqDst)) {
+            nMovable ++;
+            if (nMovable > 1) {
+              break;
+            }
+          }
+          lpucsqDst ++;
+          sqDst = *lpucsqDst;
+          lpucsqPin ++;
+        }
+        // Ã»ÓĞºÃµÄ×Å·¨µÄÂí¸øÓè10·Ö·£·Ö£¬Ö»ÓĞÒ»¸öºÃµÄ×Å·¨µÄÂí¸øÓè5·Ö·£·Ö
+        if (nMovable == 0) {
+          vlKnightTraps[sd] += 10;
+        } else if (nMovable == 1) {
+          vlKnightTraps[sd] += 5;
+        }
+      }
+      __ASSERT(vlKnightTraps[sd] <= 20);
+    }
+  }
+  return SIDE_VALUE(this->sdPlayer, vlKnightTraps[1] - vlKnightTraps[0]);
+}
+
+// ÒÔÉÏÊÇµÚËÄ²¿·Ö£¬ÂíÊÜµ½×è°­µÄÆÀ¼Û
+
+// ¾ÖÃæÆÀ¼Û¹ı³Ì
+int PositionStruct::Evaluate(int vlAlpha, int vlBeta) const {
+  int vl;
+  // ÍµÀÁµÄ¾ÖÃæÆÀ¼Ûº¯Êı·ÖÒÔÏÂ¼¸¸ö²ã´Î£º
+
+  // 1. ËÄ¼¶ÍµÀÁÆÀ¼Û(³¹µ×ÍµÀÁÆÀ¼Û)£¬Ö»°üÀ¨×ÓÁ¦Æ½ºâ£»
+  vl = this->Material();
+  if (vl + EVAL_MARGIN1 <= vlAlpha) {
+    return vl + EVAL_MARGIN1;
+  } else if (vl - EVAL_MARGIN1 >= vlBeta) {
+    return vl - EVAL_MARGIN1;
+  }
+
+  // 2. Èı¼¶ÍµÀÁÆÀ¼Û£¬°üÀ¨ÌØÊâÆåĞÍ£»
+  vl += this->AdvisorShape();
+  if (vl + EVAL_MARGIN2 <= vlAlpha) {
+    return vl + EVAL_MARGIN2;
+  } else if (vl - EVAL_MARGIN2 >= vlBeta) {
+    return vl - EVAL_MARGIN2;
+  }
+
+  // 3. ¶ş¼¶ÍµÀÁÆÀ¼Û£¬°üÀ¨Ç£ÖÆ£»
+  vl += this->StringHold();
+  if (vl + EVAL_MARGIN3 <= vlAlpha) {
+    return vl + EVAL_MARGIN3;
+  } else if (vl - EVAL_MARGIN3 >= vlBeta) {
+    return vl - EVAL_MARGIN3;
+  }
+
+  // 4. Ò»¼¶ÍµÀÁÆÀ¼Û£¬°üÀ¨³µµÄÁé»îĞÔ£»
+  vl += this->RookMobility();
+  if (vl + EVAL_MARGIN4 <= vlAlpha) {
+    return vl + EVAL_MARGIN4;
+  } else if (vl - EVAL_MARGIN4 >= vlBeta) {
+    return vl - EVAL_MARGIN4;
+  }
+
+  // 5. Áã¼¶ÍµÀÁÆÀ¼Û(ÍêÈ«ÆÀ¼Û)£¬°üÀ¨ÂíµÄ×è°­¡£
+  return vl + this->KnightTrap();
+}

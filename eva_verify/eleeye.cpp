@@ -80,30 +80,28 @@ int main(void) {
         vector<string> dumps;
         while(getline(in,moveStr)) {
             Search.pos.PreEvaluate();
-            //moveStrVec.push_back(moveStr);
-            //cout << moveStr << endl;
-            const int combinatePos = atoi(moveStr.c_str());
-            if(Search.pos.MakeMove(combinatePos)){
-                int vlMaterial = Search.pos.Material();
-                int vlAdvisorShape = Search.pos.AdvisorShape();
-                int vlStringHold = Search.pos.StringHold();
-                int vlKnightTrap = Search.pos.KnightTrap();
-                int vlRookMobility = Search.pos.RookMobility();
+            int vlMaterial = Search.pos.Material();
+            int vlAdvisorShape = Search.pos.AdvisorShape();
+            int vlStringHold = Search.pos.StringHold();
+            int vlKnightTrap = Search.pos.KnightTrap();
+            int vlRookMobility = Search.pos.RookMobility();
 
-                string vlStringMaterial = to_string(vlMaterial);
-                string vlStringAdvisorShape = to_string(vlAdvisorShape);
-                string vlStringStringHold = to_string(vlStringHold);
-                string vlStringKnightTrap = to_string(vlKnightTrap);
-                string vlStringRookMobility = to_string(vlRookMobility);
-                string mv = to_string(combinatePos);
-                string scores = vlStringMaterial + " ";
-                scores += vlStringAdvisorShape + " ";
-                scores += vlStringStringHold + " ";
-                scores += vlStringKnightTrap + " ";
-                scores += vlStringRookMobility;
-                string output = mv + " " + scores;
-                dumps.push_back(output);
-            }else{
+            string vlStringMaterial = to_string(vlMaterial);
+            string vlStringAdvisorShape = to_string(vlAdvisorShape);
+            string vlStringStringHold = to_string(vlStringHold);
+            string vlStringKnightTrap = to_string(vlKnightTrap);
+            string vlStringRookMobility = to_string(vlRookMobility);
+            const int combinatePos = atoi(moveStr.c_str());
+            string mv = to_string(combinatePos);
+            string scores = vlStringMaterial + " ";
+            scores += vlStringAdvisorShape + " ";
+            scores += vlStringStringHold + " ";
+            scores += vlStringKnightTrap + " ";
+            scores += vlStringRookMobility;
+            string output = mv + " " + scores;
+            dumps.push_back(output);
+
+            if(!Search.pos.MakeMove(combinatePos)){
                 break;
             }
         }

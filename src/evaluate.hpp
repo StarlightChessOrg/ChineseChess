@@ -591,12 +591,12 @@ protected:
                 vlRedBoard[vlIndex(advisor)][pos] = vlBlackBoard[vlIndex(advisor)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
                 vlRedBoard[vlIndex(bishop)][pos] = vlBlackBoard[vlIndex(bishop)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
                 //兵
-                const int vlRedPawn = (pawnPieceAttacking[pos] * redAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - redAttackValue)) / TOTAL_ATTACK_VALUE;
-                const int vlBlackPawn = (pawnPieceAttacking[pos] * blackAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
-                vlRedBoard[vlIndex(pawn)][pos] = vlRedPawn;
-                vlBlackBoard[vlIndex(pawn)][xyMirrorPos(pos)] = vlBlackPawn;
-                vlRedBoard[vlIndex(king)][pos] = vlRedPawn;
-                vlBlackBoard[vlIndex(king)][xyMirrorPos(pos)] = vlBlackPawn;
+                const int vlRedKingPawn = (pawnPieceAttacking[pos] * redAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - redAttackValue)) / TOTAL_ATTACK_VALUE;
+                const int vlBlackKingPawn = (pawnPieceAttacking[pos] * blackAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
+                vlRedBoard[vlIndex(pawn)][pos] = vlRedKingPawn;
+                vlBlackBoard[vlIndex(pawn)][xyMirrorPos(pos)] = vlBlackKingPawn;
+                vlRedBoard[vlIndex(king)][pos] = vlRedKingPawn;
+                vlBlackBoard[vlIndex(king)][xyMirrorPos(pos)] = vlBlackKingPawn;
             }
         }
         //计算沉底炮的威胁向量
@@ -623,9 +623,9 @@ private:
     //物质分
     int material(int side) const{
         if(side == red){
-            return vlRed - (vlBlack + vlFirstGo);
+            return vlRed - vlBlack + vlFirstGo;
         }
-        return vlBlack - (vlRed + vlFirstGo);
+        return vlBlack - vlRed + vlFirstGo;
     }
     //车的机动性
     int rookMobility(int side){
@@ -931,7 +931,7 @@ private:
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(pos){
                 for(int target : targetPool){
-                    vlRedStringHold += singleStringHold(pos,target);
+                    vlRedStringHold += singleStringHold(pos,piece,target);
                 }
             }
         }
@@ -939,7 +939,7 @@ private:
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(pos){
                 for(int target : targetPool){
-                    vlBlackStringHold += singleStringHold(pos,target);
+                    vlBlackStringHold += singleStringHold(pos,piece,target);
                 }
             }
         }
@@ -947,13 +947,13 @@ private:
         int pos = position::swapBoard.getPosByPiece(redKingPiece);
         if(pos){
             for(int target : targetPool){
-                vlRedStringHold += singleStringHold(pos,target);
+                vlRedStringHold += singleStringHold(pos,redKingPiece,target);
             }
         }
         pos = position::swapBoard.getPosByPiece(blackKingPiece);
         if(pos){
             for(int target : targetPool){
-                vlBlackStringHold += singleStringHold(pos,target);
+                vlBlackStringHold += singleStringHold(pos,blackKingPiece,target);
             }
         }
         if(side == red){
@@ -961,46 +961,86 @@ private:
         }
         return vlBlackStringHold - vlRedStringHold;
     }
-    int singleStringHold(int pos,int target){
-        int vlSingleStringHold = 0;
+    int singleStringHold(int pos,int piece,int target){
+        bool hold = false;
+        const int fromType = swapBasicBoard::pieceToAbsType(piece);
         const int toPos = position::bitBoard.getRayTargetPos(pos,target,0);
         const int toInvPos = position::bitBoard.getRayTargetPos(pos,target,1);
-        if(toPos > -1){
+        //第二个和第三个子必须存在
+        if(toPos > -1 && toInvPos > -1){
             const int toPiece = position::board.getPieceByPos(toPos);
+            const int toInvPiece = position::board.getPieceByPos(toInvPos);
             const int toType = swapBasicBoard::pieceToAbsType(toPiece);
-            if(toType == cannon){
-                if(toInvPos > -1){
-                    const int toInvPiece = position::board.getPieceByPos(toInvPos);
-                    const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
-                    if(toInvType == rook){
-                        if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
-                            vlSingleStringHold -= stringValueTab[256 + toPos - pos];
+            const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
+            const int toInvInvPos = position::bitBoard.getRayTargetPos(pos,target,3);
+            //第二个子同类，第三个子异类
+            if(piece * toPiece > 0 && piece * toInvPiece < 0){
+                if(fromType == king){
+                    if(toType == rook){
+                        //将车车，不成立
+                        if(toInvInvPos > -1){
+                            const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
+                            const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
+                            if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
+                                //将车炮
+                                hold = true;
+                            }
                         }
-                    }
-                }
-            }else if(toType == knight){
-                if(toInvPos > -1){
-                    //受到车的牵制
-                    const int toInvPiece = position::board.getPieceByPos(toInvPos);
-                    const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
-                    if(toInvType == rook){
-                        if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
-                            vlSingleStringHold -= stringValueTab[256 + toPos - pos];
+                    }else if(toType == knight){
+                        if(toInvType == rook){
+                            //将马车
+                            hold = true;
                         }
+                        if(toInvInvPos > -1 && !hold){
+                            const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
+                            const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
+                            if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
+                                //将马炮
+                                hold = true;
+                            }
+                        }
+                    }else if(toType == cannon){
+                        if(toInvType == rook){
+                            //将炮车
+                            hold = true;
+                        }
+                        //将炮炮，不成立
                     }
-                    //受到炮的牵制
-                    const int toInvInvPos = position::bitBoard.getRayTargetPos(pos,target,2);
-                    const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
-                    const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
-                    if(toInvInvType == cannon){
-                        if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
-                            vlSingleStringHold -= stringValueTab[256 + toPos - pos];
+                }else if(fromType == rook){
+                    //车车类，不成立
+                    if(toType == knight){
+                        if(toInvType == rook){
+                            if(!genMove::getRelation(*this,pos,piece,beProtected) &&
+                               !genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
+                                //车马车
+                                hold = true;
+                            }
+                        }
+                        if(toInvInvPos > -1 && !hold){
+                            const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
+                            const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
+                            if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
+                                //车马炮
+                                hold = true;
+                            }
+                        }
+                    }else if(toType == cannon){
+                        if(toInvType == rook){
+                            if(!genMove::getRelation(*this,pos,piece,beProtected) &&
+                               !genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
+                                //车炮车
+                                hold = true;
+                            }
+                            //车炮炮，不成立
                         }
                     }
                 }
             }
         }
-        return vlSingleStringHold;
+        if(hold){
+            return -stringValueTab[256 + toPos - pos];
+        }
+        return 0;
     }
 private:
     static int vlIndex(int type){
@@ -1015,7 +1055,7 @@ private:
         for(int piece : rookOrKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(piece > 0){
-                if(inSideBoard[pos] * piece < 0){
+                if(blackHalf(pos) < 0){
                     alRed += 2;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == rook){
@@ -1024,7 +1064,7 @@ private:
                     vlRedSimple ++;
                 }
             }else{
-                if(inSideBoard[pos] * piece < 0){
+                if(redHalf(pos) < 0){
                     alBlack += 2;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == rook){
@@ -1041,14 +1081,14 @@ private:
         for(int piece : cannonOrPawnPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(piece > 0){
-                if(inSideBoard[pos] * piece < 0){
+                if(blackHalf(pos) < 0){
                     alRed ++;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == cannon){
                     vlRedSimple ++;
                 }
             }else{
-                if(inSideBoard[pos] * piece < 0){
+                if(redHalf(pos) < 0){
                     alBlack ++;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == cannon){
@@ -1058,9 +1098,9 @@ private:
         }
         // 如果本方轻子数比对方多，那么每多一个轻子(车算2个轻子)威胁值加2。威胁值最多不超过8
         if(vlRedSimple > vlBlackSimple){
-            alRed += abs(vlRedSimple - vlBlackSimple) * 2;
+            alRed += abs(vlRedSimple - vlBlackSimple) << 1;
         }else if(vlBlackSimple > vlRedSimple){
-            alBlack += abs(vlRedSimple - vlBlackSimple) * 2;
+            alBlack += abs(vlRedSimple - vlBlackSimple) << 1;
         }
         alRed = min(alRed,TOTAL_ATTACK_VALUE);
         alBlack = min(alBlack,TOTAL_ATTACK_VALUE);

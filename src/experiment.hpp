@@ -117,6 +117,41 @@ public:
         step::printMoveList(moveList);
     }
 
+    static void testEvaluate(){
+        string rootPath = "E:\\Projects_chess\\dump_3";
+        vector<string> filePaths;
+        getFiles(rootPath,filePaths);
+        cout<<filePaths.size()<<endl;
+
+        int i,a = 0;
+        for(const string& path : filePaths) {
+            evaluate e = evaluate(initGameBoard,red);
+
+            ifstream in(path);
+            string moveStr;
+            while (getline(in, moveStr)) {
+                //cout<<moveStr<<endl;
+
+                e.resetEvaBoard();
+                vector<string> strList;
+                stringSplit(moveStr,' ',strList);
+                int mv = atoi(strList[0].c_str());
+                int vlMaterial = atoi(strList[1].c_str());
+                int vlMaterial_ = e.material(e.side);
+                if(vlMaterial_ != vlMaterial){
+                    i++;
+                }else{
+                    a++;
+                }
+                if(!e.makeMove(mv & 255,mv >> 8)){
+                    break;
+                }
+            }
+            cout<<i<<"\t"<<a<<endl;
+            in.close();
+        }
+    }
+
     static void testSearch(){
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
@@ -126,6 +161,15 @@ public:
         cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
     }
 protected:
+    static void stringSplit(string str,const char split,vector<string>& splitStr)
+    {
+        istringstream iss(str);	// 输入流
+        string token;			// 接收缓冲区
+        while (getline(iss, token, split))	// 以split为分隔符
+        {
+            splitStr.push_back(token);
+        }
+    }
     static void getFiles(string path, vector<string>& files)
     {
         intptr_t hFile = 0;
