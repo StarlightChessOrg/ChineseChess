@@ -789,7 +789,7 @@ private:
                         vlRedAdvisorShape -= hollowThreat[getY(toPos)];
                     }
                     //窝心马
-                    if(toType == knight && toPiece > 0){
+                    if(toType == knight && toPiece > 0 && inFortCenter[toPos]){
                         const int toInvInvPos = position::bitBoard.getRayTargetPos(redKingPos,upTarget,2);
                         if(toInvInvPos > -1){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
@@ -813,7 +813,7 @@ private:
                         vlBlackAdvisorShape -= hollowThreat[yMirrorPos(getY(toPos))];
                     }
                     //炮镇窝心马
-                    if(toType == knight && toPiece < 0){
+                    if(toType == knight && toPiece < 0 && inFortCenter[toPos]){
                         const int toInvInvPos = position::bitBoard.getRayTargetPos(redKingPos,downTarget,2);
                         if(toInvInvPos > -1){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
@@ -1020,8 +1020,10 @@ private:
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                             const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                             if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
-                                //车马炮
-                                hold = true;
+                                if(!genMove::getRelation(*this,toPos,toPiece,beProtected,pos)){
+                                    //车马炮
+                                    hold = true;
+                                }
                             }
                         }
                     }else if(toType == cannon){
