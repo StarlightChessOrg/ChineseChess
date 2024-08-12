@@ -1,6 +1,29 @@
 #pragma once
 #include "position.hpp"
 
+class tinyMove{
+public:
+    tinyMove(){
+        fromPos = toPos = 0;
+        fromPiece = toPiece = 0;
+    }
+    tinyMove(uint8 fromPos,uint8 toPos,int8 fromPiece,int8 toPiece){
+        this->fromPos = fromPos;
+        this->toPos = toPos;
+        this->fromPiece = fromPiece;
+        this->toPiece = toPiece;
+    }
+    uint8 fromPos;
+    uint8 toPos;
+    int8 fromPiece;
+    int8 toPiece;
+    friend class hashItem;
+    friend class position;
+    friend class evaluate;
+    friend class searchGroup;
+};
+
+
 class step{
 public:
     step(){
@@ -12,15 +35,15 @@ public:
         sortType = 0;
     }
     step(int fromPos,int toPos,int fromPiece,int toPiece,int vl = 0){
-        this->fromPos = fromPos;
-        this->toPos = toPos;
-        this->fromPiece = fromPiece;
-        this->toPiece = toPiece;
+        this->fromPos = (uint8)fromPos;
+        this->toPos = (uint8)toPos;
+        this->fromPiece = (int8)fromPiece;
+        this->toPiece = (int8)toPiece;
         this->vl = vl;
         sortType = 0;
     }
     void printMove() const{
-        cout<<setw(3)<<fromPiece<<" from "<<fromPos<<" to "<<toPos <<" and eat "<<toPiece<<" with vl = "<<vl<<endl;
+        cout<<setw(3)<<(int)fromPiece<<" from "<<(int)fromPos<<" to "<<(int)toPos <<" and eat "<<(int)toPiece<<" with vl = "<<vl<<endl;
      }
     static void printMoveList(vector<step>& moveList){
         cout<<"--------------------------------------"<<endl;
@@ -42,10 +65,10 @@ public:
                 (toPiece == otherMove.toPiece);
     }
 public:
-    int fromPos;
-    int toPos;
-    int fromPiece;
-    int toPiece;
+    uint8 fromPos;
+    uint8 toPos;
+    int8 fromPiece;
+    int8 toPiece;
     int vl;
     int sortType;
 };

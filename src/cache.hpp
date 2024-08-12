@@ -59,27 +59,6 @@ enum nodeType{
     pv = 3
 };
 
-class tinyMove{
-public:
-    tinyMove(){
-        fromPos = toPos = 0;
-        fromPiece = toPiece = 0;
-    }
-    tinyMove(uint8 fromPos,uint8 toPos,int8 fromPiece,int8 toPiece){
-        this->fromPos = fromPos;
-        this->toPos = toPos;
-        this->fromPiece = fromPiece;
-        this->toPiece = toPiece;
-    }
-    uint8 fromPos;
-    uint8 toPos;
-    int8 fromPiece;
-    int8 toPiece;
-    friend class hashItem;
-    friend class position;
-    friend class evaluate;
-    friend class searchGroup;
-};
 
 class hashItem{
 public:
@@ -209,7 +188,7 @@ protected:
         if(vlGet == e.getDrawValue()){
             return false;
         }
-        if(abs(vlGet) <= (MAX_VALUE >> 1)){
+        if(abs(vlGet) <= SAFE_MAX_VALUE){
             return true;
         }
         if(vlGet >= MAX_WIN_VALUE){

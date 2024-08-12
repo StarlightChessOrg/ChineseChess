@@ -43,7 +43,7 @@ public:
         for(step& move : moveList){
             if(move == betterMove){
                 move.vl = SORT_MAX_VALUE;
-            }else if(move.vl > (SORT_MAX_VALUE >> 1)){
+            }else if(move.vl != 0){
                 move.vl--;
             }
         }
