@@ -406,4 +406,3 @@ const int SORT_MAX_VALUE = 65536;
 const int DRAW_VALUE = 20;
 const int MAX_QUIESC_DISTANCE = 64;
 const int NULL_DEPTH = 2;
-const int HASH_VERIFY_DEPTH = 3;
