@@ -503,9 +503,9 @@ protected:
         if(move.fromPiece < 0){
             from_convert_type += 7;
         }
-        if(from_convert_type < 0){
-            cout<<from_convert_type<<endl;
-        }
+//        if(from_convert_type < 0){
+//            cout<<from_convert_type<<endl;
+//        }
         assert(from_convert_type >= 0 && from_convert_type <= 13);
         firstkey ^= keyMatrix[0][from_convert_type][move.fromPos];
         firstkey ^= keyMatrix[0][from_convert_type][move.toPos];
@@ -513,9 +513,9 @@ protected:
         secondKey ^= keyMatrix[1][from_convert_type][move.toPos];
         if(move.toPiece){
             int to_convert_type = swapBasicBoard::pieceToAbsType(move.toPiece) - 1;
-            if(to_convert_type < 0|| to_convert_type > 13){
-                cout<<endl;
-            }
+//            if(to_convert_type < 0|| to_convert_type > 13){
+//                cout<<endl;
+//            }
             assert(to_convert_type >= 0 && to_convert_type <= 13);
             if(move.toPiece < 0){
                 to_convert_type += 7;
