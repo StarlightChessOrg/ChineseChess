@@ -154,14 +154,11 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            if(vl <= vlAlpha){
-                if(searchQuesic(e,vlAlpha,vlBeta) <= vlAlpha){
-                    return vl;
-                }
-            }else if(vl >= vlBeta){
-                if(searchQuesic(e,vlAlpha,vlBeta) >= vlBeta){
-                    return vl;
-                }
+            int static_vl = searchQuesic(e,vlAlpha,vlBeta);
+            if(vl <= vlAlpha && static_vl <= vlAlpha){
+                return vl;
+            }else if(vl >= vlBeta && static_vl >= vlBeta){
+                return vl;
             }
         }
 
@@ -415,11 +412,17 @@ public:
 
         //未吃子走法
         if(!quit){
+            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
                     !move.toPiece){
-                    const int newDepth = bCheck ? depth : depth - 1;
+                    //将军延伸
+                    int newDepth = bCheck ? depth : depth - 1;
+                    //末招剪裁
+                    if(!bCheck && depth > 4 && cnt > 4){
+                        newDepth -= 1 + (depth > 5 && cnt > 8);
+                    }
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -431,6 +434,7 @@ public:
                                 break;
                             }
                         }
+                        cnt++;
                     }
                 }
             }
@@ -514,14 +518,15 @@ private:
 
         //重复走法路线裁剪
         const int repType = e.isRep();
-        if(repType == draw_rep){
-            return e.getDrawValue();
-        }else if(repType == kill_rep){
-            return MAX_BAN_VALUE - nDistance;
-        }else if(repType == killed_rep){
-            return MIN_BAN_VALUE + nDistance;
+        if(repType != none_rep){
+            if(repType == draw_rep){
+                return e.getDrawValue();
+            }else if(repType == kill_rep){
+                return MAX_BAN_VALUE - nDistance;
+            }else if(repType == killed_rep){
+                return MIN_BAN_VALUE + nDistance;
+            }
         }
-
         return MIN_VALUE;
     }
 private:

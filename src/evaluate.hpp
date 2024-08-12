@@ -407,7 +407,7 @@ public:
         hashKeyResource.stepKey(firstHashKey,secondHashKey,playerKey,step(fromPos,toPos,fromPiece,toPiece));
         //优先记录走法
         moveRoad.emplace_back(fromPos,toPos,fromPiece,toPiece);
-        //判断对方是否被我方将军
+        //判断对方是否被我方将军和捉子
         const bool chase = genMove::ChasedBy(*this,moveRoad.back());
         const bool check = genMove::CheckedBy(*this,position::side);
         const int lastDrawMoveSum = drawMoveStatus.empty() ? 0 : drawMoveStatus.back();
@@ -508,23 +508,30 @@ protected:
     //判断走法线路的重复类型
     bool isRep(){
         if(getNowDistance() >= 4){
-            const bool mineFirstCheck = checkMoveStatus[checkMoveStatus.size() - 3];
-            const bool mineSecondCheck = checkMoveStatus[checkMoveStatus.size() - 1];
-            const bool otherFirstCheck = checkMoveStatus[checkMoveStatus.size() - 4];
-            const bool otherSecondCheck = checkMoveStatus[checkMoveStatus.size() - 2];
+            const step& new_move = moveRoad.back();
+            if(!new_move.toPiece){
+                return none_rep;
+            }else if(swapBasicBoard::pieceToAbsType(new_move.fromPiece) == pawn &&
+                isKingPawnStep(new_move.fromPos,new_move.toPos)){
+                return none_rep;
+            }
+            const bool mineFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 3];
+            const bool mineSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 1];
+            const bool otherFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 4];
+            const bool otherSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 2];
 
-            const bool mineFirstChase = chaseMoveStatus[chaseMoveStatus.size() - 3];
-            const bool mineSecondChase = chaseMoveStatus[chaseMoveStatus.size() - 1];
-            const bool otherFirstChase = chaseMoveStatus[chaseMoveStatus.size() - 4];
-            const bool otherSecondChase = chaseMoveStatus[chaseMoveStatus.size() - 2];
+            const bool mineFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 3];
+            const bool mineSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 1];
+            const bool otherFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 4];
+            const bool otherSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 2];
 
-            const int mineCheck = (mineFirstCheck && mineSecondCheck);
-            const int mineChase = (mineFirstChase && mineSecondChase);
-            const int otherCheck = (otherFirstCheck && otherSecondCheck);
-            const int otherChase = (otherFirstChase && otherSecondChase);
+            const int mineBeCheck = (mineFirstBeCheck & mineSecondBeCheck);
+            const int mineBeChase = (mineFirstBeChase & mineSecondBeChase);
+            const int otherBeCheck = (otherFirstBeCheck & otherSecondBeCheck);
+            const int otherBeChase = (otherFirstBeChase & otherSecondBeChase);
 
-            const int mineRepLevel = mineChase + mineCheck * 2;
-            const int otherRepLevel = otherChase + otherCheck * 2;
+            const int mineRepLevel = otherBeChase + (otherBeCheck << 1);
+            const int otherRepLevel = mineBeChase + (mineBeCheck << 1);
 
             if(mineRepLevel && otherRepLevel){
                 if(mineRepLevel == otherRepLevel){
@@ -604,6 +611,7 @@ protected:
             vlRedBottomThreat[i] = bottomThreat[i] * blackAttackValue / TOTAL_ATTACK_VALUE;
             vlBlackBottomThreat[i] = bottomThreat[i] * redAttackValue / TOTAL_ATTACK_VALUE;
         }
+
         // 调整不受威胁方少掉的仕(士)相(象)分值
         this->vlRed = ADVISOR_BISHOP_ATTACKLESS_VALUE * (TOTAL_ATTACK_VALUE - blackAttackValue) / TOTAL_ATTACK_VALUE;
         this->vlBlack = ADVISOR_BISHOP_ATTACKLESS_VALUE * (TOTAL_ATTACK_VALUE - redAttackValue) / TOTAL_ATTACK_VALUE;

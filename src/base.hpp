@@ -331,28 +331,28 @@ const int knightCheckDelta[8] = {-33, -18, -31, -14, 14, 31, 18, 33};
 const int bishopDelta[4] = {-34,34,-30,30};
 
 //判断是否为将的步长
-inline bool isKingStep(int src, int dst) {
-    return legalStep[dst - src + 256] == 1;
+inline bool isKingPawnStep(int fromPos, int toPos) {
+    return legalStep[toPos - fromPos + 256] == 1;
 }
 
 //判断是否为士的步长
-inline bool isAdvisorStep(int src, int dst) {
-    return legalStep[dst - src + 256] == 2;
+inline bool isAdvisorStep(int fromPos, int toPos) {
+    return legalStep[toPos - fromPos + 256] == 2;
 }
 
 //判断是否为象的步长
-inline bool isBishopStep(int src, int dst) {
-    return legalStep[dst - src + 256] == 3;
+inline bool isBishopStep(int fromPos, int toPos) {
+    return legalStep[toPos - fromPos + 256] == 3;
 }
 
 //计算象眼的位置
-inline int getBishopEye(int src, int dst) {
-    return (dst + src) >> 1;
+inline int getBishopEye(int fromPos, int toPos) {
+    return (toPos + fromPos) >> 1;
 }
 
 //计算马腿的位置
-inline int getKnightLeg(int src,int dst) {
-    return src + knightLeg[dst - src + 256];
+inline int getKnightLeg(int fromPos,int toPos) {
+    return fromPos + knightLeg[toPos - fromPos + 256];
 }
 
 //转换二维坐标到一维坐标
