@@ -99,7 +99,6 @@ public:
 
         int vlBest = MIN_VALUE;
         vector<step> moveList;
-        static int i,a = 0;
         const bool bCheck = e.checkMoveStatus.back();
         if(bCheck){
             genMove::genMoveList(e,moveList,all);
