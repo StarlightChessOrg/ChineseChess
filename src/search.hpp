@@ -154,7 +154,15 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            //return vl;
+            if(vl <= vlAlpha){
+                if(searchQuesic(e,vlAlpha,vlBeta) <= vlAlpha){
+                    return vl;
+                }
+            }else if(vl >= vlBeta){
+                if(searchQuesic(e,vlAlpha,vlBeta) >= vlBeta){
+                    return vl;
+                }
+            }
         }
 
         //置换表启发
@@ -315,7 +323,11 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
-            //return vl;
+            if(vl >= vlBeta){
+                if(searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
+                    return vl;
+                }
+            }
         }
 
         if(!noNull && !bCheck && e.nullOkay()){
