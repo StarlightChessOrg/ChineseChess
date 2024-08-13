@@ -174,11 +174,11 @@ protected:
                 break;
             }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
                 if(recoardAdujstValue(e,vl)){
-                    if((nodeType & alpha) && depth >= pH.alphaDepth && pH.vlAlpha >= vl){
+                    if((nodeType & alpha) && ((depth > pH.alphaDepth || pH.vlAlpha >= vl))){
                         pH.vlAlpha = (int16)vl;
                         pH.alphaDepth = depth;
                     }
-                    if((nodeType & beta) && depth >= pH.betaDepth && pH.vlBeta <= vl){
+                    if((nodeType & beta) && ((depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta <= vl))){
                         pH.vlBeta = (int16)vl;
                         pH.betaDepth = depth;
                     }
