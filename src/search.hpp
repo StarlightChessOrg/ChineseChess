@@ -12,6 +12,7 @@ enum moveType{
 class moveSort{
 public:
     static void sortNormalMoveSeuqance(evaluate& e,historyCache& h,vector<step>& moveList){
+        static int i,a = 0;
         for(step& move : moveList){
             if(move.toPiece){
                 move.sortType = justEatMove;
@@ -157,10 +158,9 @@ public:
         tinyMove tMove;
         step convert_move;
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            int static_vl = searchQuesic(e,vlAlpha,vlBeta);
-            if(vl <= vlAlpha && static_vl <= vlAlpha){
+            if(vl <= vlAlpha && searchQuesic(e,vlAlpha,vlAlpha + 1) <= vlAlpha){
                 return vl;
-            }else if(vl >= vlBeta && static_vl >= vlBeta){
+            }else if(vl >= vlBeta && searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
                 return vl;
             }
         }
@@ -322,10 +322,11 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
-            if(vl >= vlBeta){
-                if(searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
-                    return vl;
-                }
+            const int static_vl = searchQuesic(e,vlBeta - 1,vlBeta);
+            if(vl >= vlBeta && static_vl >= vlBeta){
+                return vl;
+            }else if(vl < vlBeta && static_vl < vlBeta){
+                return vl;
             }
         }
 
