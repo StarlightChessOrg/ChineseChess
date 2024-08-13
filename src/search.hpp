@@ -62,9 +62,10 @@ private:
         assert(move.toPiece);
         const int lva = vlMvvLva[abs(move.fromPiece) - 1];
         const int mvv = genMove::getRelation(e,move.toPos,move.toPiece,beProtected) ? vlMvvLva[abs(move.toPiece) - 1] : 0;
+        const int toType = swapBasicBoard::pieceToAbsType(move.toPiece);
         if(mvv >= lva){
             return mvv - lva + 1;
-        }else if(inRiver[move.toPos] && mvv == 1){
+        }else if(inRiver[move.toPos] && toType == pawn){
             return 1;
         }
         return 0;
@@ -425,10 +426,6 @@ public:
                     }
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-//                        if(depth > 2){
-//                            int shallow_vl = -searchNonPV(e,newDepth - 1,-vlBeta + 1);
-//                            cout<<shallow_vl<<","<<vl<<endl;
-//                        }
                         e.unMakeMove();
 
                         if(vl > vlBest){
@@ -477,7 +474,7 @@ public:
                 }
             }
         }
-        //rootMoveList.front().printMove();
+        rootMoveList.front().printMove();
         return vlBest;
     }
     int searchMain(evaluate& e,int maxDepth,int maxTime){
@@ -488,7 +485,7 @@ public:
         //search
         for(int depth = 1;depth <= maxDepth;depth++){
             int vl = searchRoot(e,depth);
-            //cout<<depth<<endl;
+            cout<<"deapth = "<<depth<<" and vl = "<<vl<<endl;
             if(vl > vlBest){
                 vlBest = vl;
                 //toDo something

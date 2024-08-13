@@ -419,6 +419,7 @@ private:
     friend class genMove;
     friend class evaluate;
     friend class hashKey;
+    friend class moveSort;
 };
 
 enum gameSide{

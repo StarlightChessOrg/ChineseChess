@@ -1291,4 +1291,5 @@ private:
     friend class searchGroup;
     friend class killerCache;
     friend class hashCache;
+    friend class moveSort;
 };
