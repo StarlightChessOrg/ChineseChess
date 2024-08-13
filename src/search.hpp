@@ -63,8 +63,10 @@ private:
         const int lva = vlMvvLva[abs(move.fromPiece) - 1];
         const int mvv = genMove::getRelation(e,move.toPos,move.toPiece,beProtected) ? vlMvvLva[abs(move.toPiece) - 1] : 0;
         const int toType = swapBasicBoard::pieceToAbsType(move.toPiece);
-        if(mvv >= lva){
+        if(mvv > lva){
             return mvv - lva + 1;
+        }else if(mvv == lva && lva >= 4){
+            return 1;
         }else if(inRiver[move.toPos] && toType == pawn){
             return 1;
         }
