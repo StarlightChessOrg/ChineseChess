@@ -87,7 +87,7 @@ public:
         pvLine = vector<int>(0,MAX_MOVE_NUM);
     }
 public:
-    static int searchQuesic(evaluate& e,int vlAlpha,int vlBeta) {
+    int searchQuesic(evaluate& e,int vlAlpha,int vlBeta) {
         int vl = harmlessPruning(e,vlBeta);
         if(vl > MIN_VALUE){
             return vl;
@@ -152,6 +152,7 @@ public:
         bool quit = false;
 
         tinyMove tMove;
+        step convert_move;
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
             int static_vl = searchQuesic(e,vlAlpha,vlBeta);
             if(vl <= vlAlpha && static_vl <= vlAlpha){
@@ -162,7 +163,6 @@ public:
         }
 
         //置换表启发
-        step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -326,6 +326,7 @@ public:
             }
         }
 
+        //空着启发
         if(!noNull && !bCheck && e.nullOkay()){
             if(e.makeNullMove()){
                 vl = -searchNonPV(e,depth - NULL_DEPTH - 1,-vlBeta + 1,true);
@@ -424,6 +425,10 @@ public:
                     }
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+//                        if(depth > 2){
+//                            int shallow_vl = -searchNonPV(e,newDepth - 1,-vlBeta + 1);
+//                            cout<<shallow_vl<<","<<vl<<endl;
+//                        }
                         e.unMakeMove();
 
                         if(vl > vlBest){
@@ -472,7 +477,7 @@ public:
                 }
             }
         }
-        rootMoveList.front().printMove();
+        //rootMoveList.front().printMove();
         return vlBest;
     }
     int searchMain(evaluate& e,int maxDepth,int maxTime){
@@ -483,7 +488,7 @@ public:
         //search
         for(int depth = 1;depth <= maxDepth;depth++){
             int vl = searchRoot(e,depth);
-            cout<<depth<<endl;
+            //cout<<depth<<endl;
             if(vl > vlBest){
                 vlBest = vl;
                 //toDo something
