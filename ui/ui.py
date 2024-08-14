@@ -1,10 +1,11 @@
 import copy
+import tkinter as tk
 import time
-import pygame
 import sys
+from PIL import Image,ImageTk
 
-screen_width = 600
-screen_height = 700
+screen_width = 520
+screen_height = 600
 
 board = [
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -48,58 +49,40 @@ def to_picture_board(board):
         if p:
             x = (i >> 4) - 3
             y = (i & 15) - 3
-            piece_img = pygame.image.load(f"./resource/{piece_to_picture_name(p)}").convert()
-            piece_img.set_colorkey((255,255,255))
-            piece_img = pygame.transform.scale(piece_img, (55, 55))
-            picture_board[x][y] = [piece_img,12 + y * 66,12 + x * 69]
+            piece_img = Image.open(f"./resource/{piece_to_picture_name(p)}")
+            piece_img = ImageTk.PhotoImage(piece_img)
+            picture_board[x][y] = [piece_img,0 + y * 58,20 + x * 57]
     return picture_board
 
-def print_picture_board(picture_board,screen):
+def print_picture_board(picture_board,canvas):
     for x in range(10):
         for y in range(9):
             instance = picture_board[x][y]
             if instance is not None:
                 [img,img_x,img_y] = picture_board[x][y]
-                screen.blit(img,(img_x,img_y))
+                canvas.create_image(img_x,img_y,image=img,anchor='nw')
 
-def mount_xy():
-    left,middle,right = pygame.mouse.get_pressed()
-    x = None
-    y = None
-    if left:
-        pos = pygame.mouse.get_pos()
-        y_pot,x_pot = pos
-        y = (y_pot - 12) // 66
-        x = (x_pot - 12) // 69
-        x = min(max(0,x),9)
-        y = min(max(0,y),8)
-        print(x,y)
+def mount_xy(event):
+    y = (event.x - 32) // 55
+    x = (event.y - 52) // 52
+    x = min(max(0,x),9)
+    y = min(max(0,y),8)
+    print(event.x, event.y)
+    print(x, y)
     return x,y
-
-def exit():
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
 def main():
-    pygame.init()
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    back_ground_img = pygame.image.load("./resource/BOARD.BMP")
-    back_ground_img = pygame.transform.scale(back_ground_img,(screen_width, screen_height))
+    root = tk.Tk()
+    root.title("ways49")
+    root.geometry(f"{screen_width}x{screen_height}")
+    canvas = tk.Canvas(root,width=screen_width,height=screen_height)
+    canvas.pack()
 
-    running = True
-    while running:
-        time.sleep(0.05)
-        screen.blit(back_ground_img, (0, 0))
-        picture_board = to_picture_board(board)
-        print_picture_board(picture_board,screen)
-        pygame.display.update()
-
-        mount_xy()
-        exit()
-
-    pygame.quit()
+    img_board = Image.open("./resource/BOARD.GIF")
+    img_board = ImageTk.PhotoImage(img_board)
+    canvas.create_image(0,20,image=img_board,anchor='nw')
+    print_picture_board(to_picture_board(board),canvas)
+    root.bind('<Button-1>', mount_xy)
+    root.mainloop()
 
 if __name__ == "__main__":
     main()
