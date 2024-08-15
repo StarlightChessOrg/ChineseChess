@@ -80,7 +80,8 @@ def main():
     img_board = Image.open("./resource/BOARD.GIF")
     img_board = ImageTk.PhotoImage(img_board)
     canvas.create_image(0,20,image=img_board,anchor='nw')
-    print_picture_board(to_picture_board(board),canvas)
+    pic_board = to_picture_board(board)
+    print_picture_board(pic_board,canvas)
     root.bind('<Button-1>', mount_xy)
     root.mainloop()
 
