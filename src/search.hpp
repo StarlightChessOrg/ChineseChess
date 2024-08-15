@@ -184,6 +184,8 @@ public:
                     }
                 }
             }
+        }else if(depth > 4){
+            depth -= 1 + (depth > 8);
         }
 
         //吃子搜索
