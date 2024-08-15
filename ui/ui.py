@@ -4,8 +4,29 @@ import time
 import sys
 from PIL import Image,ImageTk
 
+p_height = 20
+
 screen_width = 520
-screen_height = 600
+screen_height = 600 + p_height
+
+init_board = [
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0, -8, -6, -4, -2, -1, -3, -5, -7, -9,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,-10,  0,  0,  0,  0,  0,-11,  0,  0,  0,  0,  0,
+    0,  0,  0,-12,  0,-13,  0,-14,  0,-15,  0,-16,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0, 12,  0, 13,  0, 14,  0, 15,  0, 16,  0,  0,  0,  0,
+    0,  0,  0,  0, 10,  0,  0,  0,  0,  0, 11,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  8,  6,  4,  2,  1,  3,  5,  7,  9,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+    0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
+]
 
 board = [
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -29,6 +50,61 @@ board = [
 piece_to_type_vec = [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7]
 piece_name = ["K","A","B","N","R","C","P"]
 
+x1 = -1
+y1 = -1
+side = 1
+show_side = 1
+
+from_select = None
+to_select = None
+
+root = tk.Tk()
+root.title("ways49")
+root.geometry(f"{screen_width}x{screen_height}")
+canvas = tk.Canvas(root,width=screen_width,height=screen_height)
+canvas.pack()
+
+select_img = ImageTk.PhotoImage(Image.open(f"./resource/OOS.GIF"))
+img_board = ImageTk.PhotoImage(Image.open("./resource/BOARD.GIF"))
+
+def clear_select_label():
+    canvas.delete(from_select)
+    canvas.delete(to_select)
+
+def I_first_init():
+    init_game(1)
+
+def You_first_init():
+    init_game(-1)
+
+def regret_move():
+    global board,side
+    if len(board_pool):
+        board = copy.deepcopy(board_pool[-1])
+        board_pool.pop()
+        side = -side
+        clear_select_label()
+
+def init_game(set_show_side):
+    global board,board_pool,side,show_side
+    board = copy.deepcopy(init_board)
+    board_pool = []
+    side = 1
+    show_side = set_show_side
+    clear_select_label()
+
+I_first_go = tk.Button(root,text='我先走',width=8,command=I_first_init)
+You_first_go = tk.Button(root,text='它先走',width=8,command=You_first_init)
+I_regret = tk.Button(root,text='我悔棋',width=8,command=regret_move)
+
+I_first_go.pack()
+I_first_go.place(x=0,y=0)
+You_first_go.pack()
+You_first_go.place(x=67,y=0)
+I_regret.place(x=134,y=0)
+
+board_pool = []
+
 def piece_to_type(piece):
     side = 1 if piece > 0 else -1
     return side,piece_to_type_vec[abs(piece) - 1]
@@ -49,9 +125,11 @@ def to_picture_board(board):
         if p:
             x = (i >> 4) - 3
             y = (i & 15) - 3
+            if show_side != 1:
+                x = 9 - x
             piece_img = Image.open(f"./resource/{piece_to_picture_name(p)}")
             piece_img = ImageTk.PhotoImage(piece_img)
-            picture_board[x][y] = [piece_img,0 + y * 58,20 + x * 57]
+            picture_board[x][y] = [piece_img,y * 58,20 + p_height + x * 57]
     return picture_board
 
 def print_picture_board(picture_board,canvas):
@@ -62,28 +140,64 @@ def print_picture_board(picture_board,canvas):
                 [img,img_x,img_y] = picture_board[x][y]
                 canvas.create_image(img_x,img_y,image=img,anchor='nw')
 
+
+def get_pos(x,y):
+    if show_side == 1:
+        return (x + 3) * 16 + y + 3
+    convert_x = 9 - x
+    return (convert_x + 3) * 16 + y + 3
+
+
+def set_from_default():
+    global x1,y1
+    x1 = y1 = -1
+
 def mount_xy(event):
-    y = (event.x - 32) // 55
-    x = (event.y - 52) // 52
+    y = (event.x - 10) / 55.6
+    x = (event.y - 70) / 55.5
     x = min(max(0,x),9)
     y = min(max(0,y),8)
-    print(event.x, event.y)
-    print(x, y)
-    return x,y
+    x = int(x)
+    y = int(y)
+    global side
+    global x1,y1
+    global from_select,to_select
+    print(x1, y1)
+    if x1 == -1:
+        x1 = x
+        y1 = y
+        clear_select_label()
+        if board[get_pos(x1, y1)] * side > 0:
+            from_select = canvas.create_image(y * 58,20 + p_height + x * 57,image=select_img,anchor='nw')
+        else:
+            set_from_default()
+    elif board[get_pos(x1, y1)] * side > 0:
+        if board[get_pos(x, y)] * side <= 0:
+            to_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
+            from_pos = get_pos(x1, y1)
+            to_pos = get_pos(x, y)
+            if board[from_pos] * side > 0 and board[from_pos] * board[to_pos] <= 0:
+                board_pool.append(copy.deepcopy(board))
+                board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
+                board[from_pos] = 0
+                side = -side
+                set_from_default()
+        else:
+            x1,y1 = x,y
+            clear_select_label()
+            from_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
+    else:
+        set_from_default()
+    root.update()
 def main():
-    root = tk.Tk()
-    root.title("ways49")
-    root.geometry(f"{screen_width}x{screen_height}")
-    canvas = tk.Canvas(root,width=screen_width,height=screen_height)
-    canvas.pack()
-
-    img_board = Image.open("./resource/BOARD.GIF")
-    img_board = ImageTk.PhotoImage(img_board)
-    canvas.create_image(0,20,image=img_board,anchor='nw')
-    pic_board = to_picture_board(board)
-    print_picture_board(pic_board,canvas)
+    canvas.create_image(0,20 + p_height,image=img_board,anchor='nw')
     root.bind('<Button-1>', mount_xy)
-    root.mainloop()
+    while True:
+        pic_board = to_picture_board(board)
+        print_picture_board(pic_board, canvas)
+        root.update()
+        time.sleep(0.01)
+
 
 if __name__ == "__main__":
     main()
