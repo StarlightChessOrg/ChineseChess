@@ -85,12 +85,14 @@ def read_data():
     return result
 
 def clear_ai_data():
-    with open(f"./ai.txt", "r+", encoding='utf-8') as f:
+    os.remove("./ai.txt")
+    with open(f"./ai.txt", "w+", encoding='utf-8') as f:
         f.truncate()
         f.close()
 
 def clear_ui_data():
-    with open(f"./ui.txt","w+",encoding='utf-8') as f:
+    os.remove("./ui.txt")
+    with open("./ui.txt","w+",encoding='utf-8') as f:
         f.truncate()
         f.close()
 
@@ -108,13 +110,16 @@ def You_first_init():
 
 
 def regret_move():
-    global board, side
-    if len(board_pool):
-        board = copy.deepcopy(board_pool[-1])
+    global board, side,legal_move_list
+    if len(board_pool) > 1:
+        board = copy.deepcopy(board_pool[-2])
         board_pool.pop()
-        side = -side
+        board_pool.pop()
         clear_select_label()
+        set_from_default()
+        legal_move_list = []
         write_data("regret\n")
+
 
 
 def init_game(set_show_side):
@@ -248,6 +253,7 @@ def parse():
             line = line.strip()
             if len(line):
                 if line != "the move list of the other side as follows:" and not other_side_move:
+                    print(line)
                     splits = line.split(">")
                     from_pos = int(splits[0])
                     to_pos = int(splits[1])
@@ -294,7 +300,7 @@ def main():
         print_picture_board(pic_board, canvas)
         parse()
         root.update()
-        time.sleep(0.01)
+        time.sleep(0.05)
 
 
 if __name__ == "__main__":

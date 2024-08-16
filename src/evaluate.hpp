@@ -374,6 +374,7 @@ public:
         memset(vlRedBoard,0,sizeof(int) * 7 * 256);
         memset(vlBlackBoard,0,sizeof(int) * 7 * 256);
     }
+
     bool makeNullMove(){
         changeSide();
         moveRoad.emplace_back(0,0,0,0);

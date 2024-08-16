@@ -24,7 +24,6 @@ public:
     void feedback(vector<string>& messagePool){
         ofstream file;
         file.open(ai_path,ios::in | ios::out);
-        string message;
         for(const string& message : messagePool){
             file << message << endl;
         }
@@ -42,23 +41,45 @@ public:
                     aSide = black;
                     e.initEvaluate(initGameBoard,red);
                 }else if(message == "regret"){
-                    e.unMakeMove();
+                    if(e.moveRoad.size() > 1){
+                        e.unMakeMove();
+                        e.unMakeMove();
+                        vector<string> _messagePool;
+                        getOtherMoveList(_messagePool,e);
+                        feedback(_messagePool);
+                    }
                 }else if(message == "quit"){
                     exit(0);
                 }else{
                     vector<string> StepStr;
                     stringSplit(message,'>',StepStr);
-                    assert(StepStr.size() == 2);
-                    const int fromPos = atoi(StepStr.front().c_str());
-                    const int toPos = atoi(StepStr.back().c_str());
-                    e.makeMove(fromPos,toPos);
-                    cout<<endl;
-                    e.board.printBasicBoard();
-                    cout<<endl;
+                    if(StepStr.size() == 2){
+                        const int fromPos = atoi(StepStr.front().c_str());
+                        const int toPos = atoi(StepStr.back().c_str());
+                        e.makeMove(fromPos,toPos);
+                        cout<<endl;
+                        e.board.printBasicBoard();
+                        cout<<endl;
+                    }else{
+                        cout<<"error move message,that is "<<message<<endl;
+                    }
                 }
             }
         }
         messagePool.clear();
+    }
+
+    void getOtherMoveList(vector<string>& messagePool,evaluate& e){
+        messagePool.emplace_back("the move list of the other side as follows:");
+        vector<step> moveList;
+        genMove::genMoveList(e,moveList,all);
+        for(step& move : moveList){
+            if(e.makeMove(move.fromPos,move.toPos)){
+                string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
+                messagePool.push_back(uiGoStr);
+                e.unMakeMove();
+            }
+        }
     }
 
     void tryThink(evaluate& e,searchGroup& s){
@@ -72,29 +93,11 @@ public:
                 e.makeMove(aiGo.fromPos,aiGo.toPos);
                 string aiGoStr = to_string(aiGo.fromPos) + ">" + to_string(aiGo.toPos);
                 messagePool.push_back(aiGoStr);
-                messagePool.emplace_back("the move list of the other side as follows:");
-                vector<step> moveList;
-                genMove::genMoveList(e,moveList,all);
-                for(step& move : moveList){
-                    if(e.makeMove(move.fromPos,move.toPos)){
-                        string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
-                        messagePool.push_back(uiGoStr);
-                        e.unMakeMove();
-                    }
-                }
+                getOtherMoveList(messagePool,e);
                 feedback(messagePool);
             }
         }else if(aSide && e.moveRoad.empty()){
-            messagePool.emplace_back("the move list of the other side as follows:");
-            vector<step> moveList;
-            genMove::genMoveList(e,moveList,all);
-            for(step& move : moveList){
-                if(e.makeMove(move.fromPos,move.toPos)){
-                    string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
-                    messagePool.push_back(uiGoStr);
-                    e.unMakeMove();
-                }
-            }
+            getOtherMoveList(messagePool,e);
             feedback(messagePool);
         }
     }
