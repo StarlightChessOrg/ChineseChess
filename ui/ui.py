@@ -1,4 +1,5 @@
 import copy
+import os
 import tkinter as tk
 import subprocess
 import time
@@ -65,6 +66,8 @@ root.geometry(f"{screen_width}x{screen_height}")
 canvas = tk.Canvas(root, width=screen_width, height=screen_height)
 canvas.pack()
 
+init = False
+
 select_img = ImageTk.PhotoImage(Image.open(f"./resource/OOS.GIF"))
 img_board = ImageTk.PhotoImage(Image.open("./resource/BOARD.GIF"))
 
@@ -76,14 +79,17 @@ def write_data(data):
 def read_data():
     with open(f"./ai.txt","r+",encoding='utf-8') as f:
         result = f.readlines()
+        f.seek(0)
         f.truncate()
         f.close()
     return result
 
-def clear_data():
+def clear_ai_data():
     with open(f"./ai.txt", "r+", encoding='utf-8') as f:
         f.truncate()
         f.close()
+
+def clear_ui_data():
     with open(f"./ui.txt","w+",encoding='utf-8') as f:
         f.truncate()
         f.close()
@@ -112,9 +118,10 @@ def regret_move():
 
 
 def init_game(set_show_side):
-    global board, board_pool, side, show_side
+    global board, board_pool, side, show_side,init
     board = copy.deepcopy(init_board)
     board_pool = []
+    init = True
     side = 1
     show_side = set_show_side
     clear_select_label()
@@ -122,7 +129,6 @@ def init_game(set_show_side):
         write_data("init and ai is black\n")
     else:
         write_data("init and ai is red\n")
-
 
 I_first_go = tk.Button(root, text='我先走', width=8, command=I_first_init)
 You_first_go = tk.Button(root, text='它先走', width=8, command=You_first_init)
@@ -135,7 +141,7 @@ You_first_go.place(x=67, y=0)
 I_regret.place(x=134, y=0)
 
 board_pool = []
-
+legal_move_list = []
 
 def piece_to_type(piece):
     side = 1 if piece > 0 else -1
@@ -147,7 +153,6 @@ def piece_to_picture_name(piece):
     side_str = "R" if side == 1 else "B"
     type_str = piece_name[type - 1]
     return side_str + type_str + ".GIF"
-
 
 def to_picture_board(board):
     picture_board = []
@@ -166,7 +171,6 @@ def to_picture_board(board):
             picture_board[x][y] = [piece_img, y * 58, 20 + p_height + x * 57]
     return picture_board
 
-
 def print_picture_board(picture_board, canvas):
     for x in range(10):
         for y in range(9):
@@ -175,17 +179,21 @@ def print_picture_board(picture_board, canvas):
                 [img, img_x, img_y] = picture_board[x][y]
                 canvas.create_image(img_x, img_y, image=img, anchor='nw')
 
-
 def get_pos(x, y):
     if show_side == 1:
         return (x + 3) * 16 + y + 3
     convert_x = 9 - x
     return (convert_x + 3) * 16 + y + 3
 
-
 def set_from_default():
     global x1, y1
     x1 = y1 = -1
+
+def in_legal_move_list(fromPos,toPos):
+    for line in legal_move_list:
+        if fromPos == line[0] and toPos == line[1]:
+            return True
+    return False
 
 
 def mount_xy(event):
@@ -203,23 +211,26 @@ def mount_xy(event):
         x1 = x
         y1 = y
         clear_select_label()
-        if board[get_pos(x1, y1)] * side > 0:
+        if board[get_pos(x1, y1)] * side > 0 and side == show_side and init:
             from_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
         else:
+            canvas.delete(from_select)
             set_from_default()
-    elif board[get_pos(x1, y1)] * side > 0:
+    elif board[get_pos(x1, y1)] * side > 0 and side == show_side and init:
         if board[get_pos(x, y)] * side <= 0:
             to_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
             from_pos = get_pos(x1, y1)
             to_pos = get_pos(x, y)
             if board[from_pos] * side > 0 and board[from_pos] * board[to_pos] <= 0:
-                board_pool.append(copy.deepcopy(board))
-                board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
-                board[from_pos] = 0
-                side = -side
-                set_from_default()
-                write_data(f"{from_pos}->{to_pos}\n")
-        else:
+                print(len(legal_move_list))
+                if in_legal_move_list(from_pos,to_pos):
+                    board_pool.append(copy.deepcopy(board))
+                    board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
+                    board[from_pos] = 0
+                    side = -side
+                    set_from_default()
+                    write_data(f"{from_pos}>{to_pos}\n")
+        elif side == show_side and init:
             x1, y1 = x, y
             clear_select_label()
             from_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
@@ -227,20 +238,63 @@ def mount_xy(event):
         set_from_default()
     root.update()
 
-
 def response_from_ai():
     ai_listen_result = read_data()
     if len(ai_listen_result):
         print(ai_listen_result)
 
+def parse():
+    results = read_data()
+    global legal_move_list
+    global board,board_pool,side
+    if results is not None and len(results):
+        other_side_move = False
+        for index,line in enumerate(results):
+            line = line.strip()
+            if len(line):
+                if line != "the move list of the other side as follows:" and not other_side_move:
+                    splits = line.split(">")
+                    from_pos = int(splits[0])
+                    to_pos = int(splits[1])
+                    board_pool.append(copy.deepcopy(board))
+                    board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
+                    board[from_pos] = 0
+
+                    x_from = (from_pos >> 4) - 3
+                    y_from = (from_pos & 15) - 3
+                    x_to = (to_pos >> 4) - 3
+                    y_to = (to_pos & 15) - 3
+                    global from_select, to_select
+                    canvas.delete(from_select)
+                    canvas.delete(to_select)
+                    from_select = canvas.create_image(y_from * 58, 20 + p_height + x_from * 57, image=select_img,anchor='nw')
+                    to_select = canvas.create_image(y_to * 58, 20 + p_height + x_to * 57, image=select_img, anchor='nw')
+                    side = -side
+                elif line == "the move list of the other side as follows:":
+                    other_side_move = True
+                    legal_move_list = []
+                elif line != "the move list of the other side as follows:" and other_side_move:
+                    splits = line.split(">")
+                    _fromPos = int(splits[0])
+                    _toPos = int(splits[1])
+                    legal_move_list.append([_fromPos, _toPos])
+        if not len(legal_move_list):
+            global init
+            init = False
 
 def main():
-    clear_data()
+    engine_path = "E:\\Projects_chess\\ChineseChess\\src\\cmake-build-release\\bit_src.exe"
+    clear_ui_data()
+    clear_ai_data()
+    os.system("chcp 65001")
+    os.system("taskkill /im bit_src.exe /f")
+    os.system(f"start {engine_path}")
     canvas.create_image(0, 20 + p_height, image=img_board, anchor='nw')
     root.bind('<Button-1>', mount_xy)
     while True:
         pic_board = to_picture_board(board)
         print_picture_board(pic_board, canvas)
+        parse()
         root.update()
         time.sleep(0.01)
 

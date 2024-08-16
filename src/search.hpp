@@ -499,12 +499,17 @@ public:
         //init para
         int vlBest = MIN_VALUE;
         //search
+        clock_t start = clock();
         for(int depth = 1;depth <= maxDepth;depth++){
             int vl = searchRoot(e,depth);
-            cout<<"depth = "<<depth<<" and vl = "<<vl<<endl;
             if(vl > vlBest){
                 vlBest = vl;
                 //toDo something
+            }
+            clock_t now = clock();
+            cout<<"depth = "<<depth<<"  and used time is "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
+            if(now - start >= maxTime / 2){
+                break;
             }
         }
         return vlBest;
@@ -552,4 +557,5 @@ private:
     hashCache hashMap;              //哈希启发表
     vector<int> pvLine;             //主要遍历路线
     vector<step> rootMoveList;      //根节点走法表
+    friend class pipe;
 };

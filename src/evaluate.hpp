@@ -352,7 +352,21 @@ public:
         moveRoad.reserve(MAX_MOVE_NUM);
         hashKeyResource.initHashKey();
         hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey,this->playerKey);
+        resetEvaBoard();
     }
+
+    void initEvaluate(const int anotherBoard[256] = initGameBoard, int initSide = red){
+        clearEvaBoard();
+        drawMoveStatus.reserve(MAX_MOVE_NUM);
+        checkMoveStatus.reserve(MAX_MOVE_NUM);
+        chaseMoveStatus.reserve(MAX_MOVE_NUM);
+        moveRoad.reserve(MAX_MOVE_NUM);
+        hashKeyResource.initHashKey();
+        hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey,this->playerKey);
+        position::initPosition(initGameBoard,initSide);
+        resetEvaBoard();
+    }
+
     void clearEvaBoard(){
         vlRed = 0;
         vlBlack = 0;
@@ -1292,4 +1306,5 @@ private:
     friend class killerCache;
     friend class hashCache;
     friend class moveSort;
+    friend class pipe;
 };

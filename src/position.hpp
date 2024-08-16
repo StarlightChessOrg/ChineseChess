@@ -436,6 +436,13 @@ public:
         this->bitBoard.readFromBoard(anotherBoard);
     }
 
+    void initPosition(const int anotherBoard[256] = initGameBoard, int initSide = red){
+        this->side = initSide;
+        this->board.readFromBoard(anotherBoard);
+        this->swapBoard.readFromBoard(anotherBoard);
+        this->bitBoard.readFromBoard(anotherBoard);
+    }
+
     void makeMove(int fromPos, int toPos){
         changeSide();
         const int fromPiece = this->board.board[fromPos];

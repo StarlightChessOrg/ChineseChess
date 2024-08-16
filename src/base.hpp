@@ -1,20 +1,25 @@
 #pragma once
+#include <iostream>
+#include <cstring>
+#include <fstream>
+#include <io.h>
+using namespace std;
 
 //初始的游戏棋盘
 const int initGameBoard[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0, -8,  0,  0, -2, -1, -3, -5, -7, -9,  0,  0,  0,  0,
+        0,  0,  0, -8, -6, -4, -2, -1, -3, -5, -7, -9,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0, -6,-10,  0,  0, -4,  0,  0,-11,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,-10,  0,  0,  0,  0,  0,-11,  0,  0,  0,  0,  0,
         0,  0,  0,-12,  0,-13,  0,-14,  0,-15,  0,-16,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0, 12,  0, 13,  0, 14,  0, 15,  0, 16,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  6,  0, 10,  0,  0, 11,  0,  0,  0,  0,  0,
+        0,  0,  0,  0, 10,  0,  0,  0,  0,  0, 11,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  8,  4,  2,  1,  3,  5,  7,  9,  0,  0,  0,  0,
+        0,  0,  0,  8,  6,  4,  2,  1,  3,  5,  7,  9,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
@@ -406,3 +411,35 @@ const int SORT_MAX_VALUE = 65536;
 const int DRAW_VALUE = 20;
 const int MAX_QUIESC_DISTANCE = 64;
 const int NULL_DEPTH = 2;
+
+void stringSplit(string str,const char split,vector<string>& splitStr)
+{
+    istringstream iss(str);	// 输入流
+    string token;			// 接收缓冲区
+    while (getline(iss, token, split))	// 以split为分隔符
+    {
+        splitStr.push_back(token);
+    }
+}
+void getFiles(string path, vector<string>& files)
+{
+    intptr_t hFile = 0;
+    struct _finddata_t fileinfo{};
+    string p;
+    if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
+    {
+        do
+        {
+            if ((fileinfo.attrib &  _A_SUBDIR))
+            {
+                if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+                    getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
+            }
+            else
+            {
+                files.push_back(p.assign(path).append("\\").append(fileinfo.name));
+            }
+        } while (_findnext(hFile, &fileinfo) == 0);
+        _findclose(hFile);
+    }
+}

@@ -4,8 +4,7 @@
 #include <random>
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
-#include <io.h>
+
 
 class test{
 public:
@@ -156,41 +155,9 @@ public:
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
         time_t start = clock();
-        s.searchMain(e,11,3000);
+        s.searchMain(e,12,4000);
         time_t end = clock();
         cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
-    }
-protected:
-    static void stringSplit(string str,const char split,vector<string>& splitStr)
-    {
-        istringstream iss(str);	// 输入流
-        string token;			// 接收缓冲区
-        while (getline(iss, token, split))	// 以split为分隔符
-        {
-            splitStr.push_back(token);
-        }
-    }
-    static void getFiles(string path, vector<string>& files)
-    {
-        intptr_t hFile = 0;
-        struct _finddata_t fileinfo{};
-        string p;
-        if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
-        {
-            do
-            {
-                if ((fileinfo.attrib &  _A_SUBDIR))
-                {
-                    if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
-                        getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
-                }
-                else
-                {
-                    files.push_back(p.assign(path).append("\\").append(fileinfo.name));
-                }
-            } while (_findnext(hFile, &fileinfo) == 0);
-            _findclose(hFile);
-        }
     }
 };
 
