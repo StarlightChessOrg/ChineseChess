@@ -19,4 +19,5 @@ add_executable(bit_src
         evaluate.hpp
         search.hpp
         cache.hpp
+        pipe.hpp
 )
