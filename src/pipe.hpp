@@ -36,7 +36,7 @@ public:
                 cout<<message<<endl;
                 if(message == "init and ai is red"){
                     aSide = red;
-                    e.initEvaluate(initGameBoard,red);
+                    e.initEvalugit ate(initGameBoard,red);
                 }else if(message=="init and ai is black"){
                     aSide = black;
                     e.initEvaluate(initGameBoard,red);

@@ -172,15 +172,17 @@ public:
                 vl = -searchPV(e, newDepth, -vlBeta, -vlAlpha);
                 e.unMakeMove();
 
-                if (vl > vlBest) {
+                if(vl > vlBest){
                     vlBest = vl;
-                    if (vl >= vlBeta) {
-                        quit = true;
+                    if(vl >= vlBeta){
+                        pBestMove = &convert_move;
                         nodeType = beta;
+                        quit = true;
                     }
-                    if (vl > vlAlpha) {
-                        vlAlpha = vl;
+                    if(vl > vlAlpha){
+                        pBestMove = &convert_move;
                         nodeType = pv;
+                        vlAlpha = vl;
                     }
                 }
             }
@@ -362,6 +364,7 @@ public:
                 if (vl > vlBest) {
                     vlBest = vl;
                     if (vl >= vlBeta) {
+                        pBestMove = &convert_move;
                         quit = true;
                     }
                 }

@@ -371,6 +371,10 @@ public:
         vlRed = 0;
         vlBlack = 0;
         vlFirstGo = 0;
+        drawMoveStatus.clear();
+        checkMoveStatus.clear();
+        chaseMoveStatus.clear();
+        moveRoad.clear();
         memset(vlRedBoard,0,sizeof(int) * 7 * 256);
         memset(vlBlackBoard,0,sizeof(int) * 7 * 256);
     }
