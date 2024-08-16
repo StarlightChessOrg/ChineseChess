@@ -76,8 +76,11 @@ public:
                 vector<step> moveList;
                 genMove::genMoveList(e,moveList,all);
                 for(step& move : moveList){
-                    string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
-                    messagePool.push_back(uiGoStr);
+                    if(e.makeMove(move.fromPos,move.toPos)){
+                        string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
+                        messagePool.push_back(uiGoStr);
+                        e.unMakeMove();
+                    }
                 }
                 feedback(messagePool);
             }
@@ -86,8 +89,11 @@ public:
             vector<step> moveList;
             genMove::genMoveList(e,moveList,all);
             for(step& move : moveList){
-                string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
-                messagePool.push_back(uiGoStr);
+                if(e.makeMove(move.fromPos,move.toPos)){
+                    string uiGoStr = to_string(move.fromPos) + ">" + to_string(move.toPos);
+                    messagePool.push_back(uiGoStr);
+                    e.unMakeMove();
+                }
             }
             feedback(messagePool);
         }
