@@ -221,7 +221,6 @@ def mount_xy(event):
             from_pos = get_pos(x1, y1)
             to_pos = get_pos(x, y)
             if board[from_pos] * side > 0 and board[from_pos] * board[to_pos] <= 0:
-                print(len(legal_move_list))
                 if in_legal_move_list(from_pos,to_pos):
                     to_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
                     board_pool.append(copy.deepcopy(board))
@@ -237,11 +236,6 @@ def mount_xy(event):
     else:
         set_from_default()
     root.update()
-
-def response_from_ai():
-    ai_listen_result = read_data()
-    if len(ai_listen_result):
-        print(ai_listen_result)
 
 def parse():
     results = read_data()
@@ -267,6 +261,9 @@ def parse():
                     global from_select, to_select
                     canvas.delete(from_select)
                     canvas.delete(to_select)
+                    if show_side != 1:
+                        x_from = 9 - x_from
+                        x_to = 9 - x_to
                     from_select = canvas.create_image(y_from * 58, 20 + p_height + x_from * 57, image=select_img,anchor='nw')
                     to_select = canvas.create_image(y_to * 58, 20 + p_height + x_to * 57, image=select_img, anchor='nw')
                     side = -side
