@@ -166,6 +166,7 @@ public:
         }
 
         //置换表启发
+        bool tMoveHit = false;
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -183,9 +184,11 @@ public:
                         nodeType = pv;
                     }
                 }
+                tMoveHit = true;
             }
-        }else if(depth > 4){
-            depth -= 1 + (depth > 8);
+        }
+        if(!tMoveHit && depth > 4){
+            depth -= 1 + (depth >= 8);
         }
 
         //吃子搜索
@@ -325,8 +328,10 @@ public:
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
             const int static_vl = searchQuesic(e,vlBeta - 1,vlBeta);
-            if(vl >= vlBeta && static_vl >= vlBeta){
-                return vl;
+            if(vl >= vlBeta){
+                if(static_vl >= vlBeta){
+                    return vl;
+                }
             }else if(vl < vlBeta && static_vl < vlBeta){
                 return vl;
             }
@@ -352,6 +357,7 @@ public:
 
         //置换表启发
         bool quit = false;
+        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -365,7 +371,12 @@ public:
                         quit = true;
                     }
                 }
+                tMoveHit = true;
             }
+        }
+
+        if(!tMoveHit && depth >= 8){
+            depth --;
         }
 
         //吃子启发
@@ -490,7 +501,7 @@ public:
         //search
         for(int depth = 1;depth <= maxDepth;depth++){
             int vl = searchRoot(e,depth);
-            cout<<"deapth = "<<depth<<" and vl = "<<vl<<endl;
+            cout<<"depth = "<<depth<<" and vl = "<<vl<<endl;
             if(vl > vlBest){
                 vlBest = vl;
                 //toDo something

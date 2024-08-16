@@ -1,7 +1,7 @@
 #include "experiment.hpp"
 #include "pipe.hpp"
 
-int main(){
+void testFunc(){
     vector<string> messagePool;
     while(true){
         listen_from_ui(messagePool);
@@ -14,5 +14,9 @@ int main(){
         }
         Sleep(1);
     }
+}
+
+int main(){
+    test::testSearch();
     return 0;
 }

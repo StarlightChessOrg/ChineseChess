@@ -156,7 +156,7 @@ public:
         evaluate e = evaluate(initGameBoard,red);
         searchGroup s = searchGroup();
         time_t start = clock();
-        s.searchMain(e,10,3000);
+        s.searchMain(e,11,3000);
         time_t end = clock();
         cout<<(double)(end - start) / CLOCKS_PER_SEC<<endl;
     }
