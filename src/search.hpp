@@ -71,7 +71,7 @@ private:
         }else if(inRiver[move.toPos] && toType == pawn){
             return 1;
         }
-        return 0;
+        return mvv - lva;
     }
     static bool vlAndTypeCompare(const step& firstMove,const step& secondMove){
         if(firstMove.sortType != secondMove.sortType) {
@@ -166,7 +166,6 @@ public:
         }
 
         //置换表启发
-        bool tMoveHit = false;
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -184,11 +183,7 @@ public:
                         nodeType = pv;
                     }
                 }
-                tMoveHit = true;
             }
-        }
-        if(!tMoveHit && !bCheck && depth >= 5){
-            depth -= 2;
         }
 
         //吃子搜索
@@ -357,7 +352,6 @@ public:
 
         //置换表启发
         bool quit = false;
-        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -371,12 +365,7 @@ public:
                         quit = true;
                     }
                 }
-                tMoveHit = true;
             }
-        }
-
-        if(!tMoveHit && !bCheck && depth >= 8){
-            depth -= 2;
         }
 
         //吃子启发
@@ -436,10 +425,6 @@ public:
                     !move.toPiece){
                     //将军延伸
                     int newDepth = bCheck ? depth : depth - 1;
-                    //末招剪裁
-                    if(!bCheck && depth > 4 && cnt > 4){
-                        newDepth -= 1 + (depth > 5 && cnt > 8);
-                    }
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
