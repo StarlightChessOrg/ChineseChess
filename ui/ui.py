@@ -129,6 +129,7 @@ def init_game(set_show_side):
         write_data("init and ai is black\n")
     else:
         write_data("init and ai is red\n")
+    set_from_default()
 
 I_first_go = tk.Button(root, text='我先走', width=8, command=I_first_init)
 You_first_go = tk.Button(root, text='它先走', width=8, command=You_first_init)

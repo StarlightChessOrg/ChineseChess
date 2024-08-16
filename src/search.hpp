@@ -187,7 +187,7 @@ public:
                 tMoveHit = true;
             }
         }
-        if(!tMoveHit && depth >= 8){
+        if(!tMoveHit && depth >= 5){
             depth -= 2;
         }
 

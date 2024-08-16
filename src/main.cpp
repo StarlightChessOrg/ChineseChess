@@ -3,5 +3,6 @@
 int main(){
     pipe job;
     job.work();
+    //test::testSearch();
     return 0;
 }
