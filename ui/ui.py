@@ -218,12 +218,12 @@ def mount_xy(event):
             set_from_default()
     elif board[get_pos(x1, y1)] * side > 0 and side == show_side and init:
         if board[get_pos(x, y)] * side <= 0:
-            to_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
             from_pos = get_pos(x1, y1)
             to_pos = get_pos(x, y)
             if board[from_pos] * side > 0 and board[from_pos] * board[to_pos] <= 0:
                 print(len(legal_move_list))
                 if in_legal_move_list(from_pos,to_pos):
+                    to_select = canvas.create_image(y * 58, 20 + p_height + x * 57, image=select_img, anchor='nw')
                     board_pool.append(copy.deepcopy(board))
                     board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
                     board[from_pos] = 0

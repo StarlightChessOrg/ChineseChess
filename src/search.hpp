@@ -490,7 +490,9 @@ public:
                 }
             }
         }
-        rootMoveList.front().printMove();
+        if(!rootMoveList.empty()){
+            rootMoveList.front().printMove();
+        }
         return vlBest;
     }
     int searchMain(evaluate& e,int maxDepth,int maxTime){
