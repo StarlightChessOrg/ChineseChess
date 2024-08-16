@@ -300,7 +300,7 @@ def main():
         print_picture_board(pic_board, canvas)
         parse()
         root.update()
-        time.sleep(0.05)
+        time.sleep(0.02)
 
 
 if __name__ == "__main__":
