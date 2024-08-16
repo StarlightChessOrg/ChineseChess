@@ -187,8 +187,8 @@ public:
                 tMoveHit = true;
             }
         }
-        if(!tMoveHit && depth > 4){
-            depth -= 1 + (depth >= 8);
+        if(!tMoveHit){
+            depth -= 2;
         }
 
         //吃子搜索
@@ -376,7 +376,7 @@ public:
         }
 
         if(!tMoveHit && depth >= 8){
-            depth --;
+            depth -= 2;
         }
 
         //吃子启发
