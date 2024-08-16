@@ -412,17 +412,16 @@ const int DRAW_VALUE = 20;
 const int MAX_QUIESC_DISTANCE = 64;
 const int NULL_DEPTH = 2;
 
-void stringSplit(string str,const char split,vector<string>& splitStr)
-{
-    istringstream iss(str);	// 输入流
-    string token;			// 接收缓冲区
-    while (getline(iss, token, split))	// 以split为分隔符
+void stringSplit(string str,const char split,vector<string>& splitStr){
+    istringstream iss(str);
+    string token;
+    while (getline(iss, token, split))
     {
         splitStr.push_back(token);
     }
 }
-void getFiles(string path, vector<string>& files)
-{
+
+void getFiles(string path, vector<string>& files){
     intptr_t hFile = 0;
     struct _finddata_t fileinfo{};
     string p;

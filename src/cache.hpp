@@ -82,13 +82,13 @@ protected:
 
 class hashCache{
 public:
-    explicit hashCache(int n = 25){
+    explicit hashCache(uint64 n = 25){
         initCache(n);
     }
     ~hashCache(){
         delCache();
     }
-    void initCache(int n){
+    void initCache(uint64 n){
         //clean entirely
         delCache();
         //reset
