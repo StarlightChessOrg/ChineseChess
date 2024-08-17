@@ -32,8 +32,14 @@ public:
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
-    static void initSortRootMoveSeuqance(evaluate& e,historyCache& h,vector<step>& moveList){
+    static void initSortRootMoveSeuqance(evaluate& e,vector<step>& moveList){
         for(step& move : moveList){
+            if(e.makeMove(move.fromPos,move.toPos)){
+                e.unMakeMove();
+            }else{
+                swap(moveList[moveList.size() - 1],move);
+                moveList.pop_back();
+            }
             if(move.toPiece){
                 move.vl = getMvvLva(e,move);
             }
@@ -428,7 +434,7 @@ public:
             depth -= 1 + (depth > 8);
         }
 
-        //未吃子走法
+        //剩余走法
         if(!quit){
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
@@ -506,7 +512,7 @@ public:
                 //toDo something
             }
             clock_t now = clock();
-            cout<<"depth = "<<depth<<"  and used time is "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
+            cout<<"depth = "<<depth<<" | vlBest = "<<vlBest<<" | time_sum =  "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
             if(now - start >= maxTime / 2){
                 break;
             }
@@ -521,7 +527,7 @@ protected:
         hashMap.clearCache();
         vector<step>().swap(rootMoveList);
         genMove::genMoveList(e,rootMoveList,all);
-        moveSort::initSortRootMoveSeuqance(e,historyMap,rootMoveList);
+        moveSort::initSortRootMoveSeuqance(e,rootMoveList);
     }
 private:
     static int harmlessPruning(evaluate& e,int vlBeta){
