@@ -8,16 +8,16 @@ public:
     }
 protected:
     void clearCache(){
-        memset(history,0,sizeof(int) * 256 * 256);
+        memset(history,0,sizeof(int) * 2 * 256 * 256);
     }
     void recoardCache(step& move,int depth){
-        history[move.fromPos][move.toPos] += (1 << depth);
+        history[move.fromPiece > 0][move.fromPos][move.toPos] += (1 << depth);
     }
     int getCache(step& move){
-        return history[move.fromPos][move.toPos];
+        return history[move.fromPiece > 0][move.fromPos][move.toPos];
     }
 private:
-    int history[256][256]{};
+    int history[2][256][256]{};
     friend class searchGroup;
     friend class moveSort;
 };
@@ -38,8 +38,10 @@ public:
     }
     void recoardCache(evaluate& e,step& move){
         const int nowPosDistance = e.getNowDistance();
-        killerMoveList[nowPosDistance][1] = killerMoveList[nowPosDistance][0];
-        killerMoveList[nowPosDistance][0] = move;
+        if(move != killerMoveList[nowPosDistance][0]){
+            killerMoveList[nowPosDistance][1] = killerMoveList[nowPosDistance][0];
+            killerMoveList[nowPosDistance][0] = move;
+        }
     }
 protected:
     void clearCache(){

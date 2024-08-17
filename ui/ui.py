@@ -248,46 +248,51 @@ def parse():
     results = read_data()
     global legal_move_list,init
     global board,board_pool,side
-    if results is not None and len(results):
-        other_side_move = False
-        for index,line in enumerate(results):
-            line = line.strip()
-            if len(line):
-                if line == "there is no best move":
-                    init = False
-                    break
-                if line != "the move list of the other side as follows:" and not other_side_move:
-                    print(line)
-                    splits = line.split(">")
-                    from_pos = int(splits[0])
-                    to_pos = int(splits[1])
-                    board_pool.append(copy.deepcopy(board))
-                    board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
-                    board[from_pos] = 0
+    try:
+        if results is not None and len(results):
+            other_side_move = False
+            for index, line in enumerate(results):
+                line = line.strip()
+                if len(line):
+                    if line == "there is no best move":
+                        init = False
+                        break
+                    if line != "the move list of the other side as follows:" and not other_side_move:
+                        print(line)
+                        splits = line.split(">")
+                        from_pos = int(splits[0])
+                        to_pos = int(splits[1])
+                        board_pool.append(copy.deepcopy(board))
+                        board[from_pos], board[to_pos] = board[to_pos], board[from_pos]
+                        board[from_pos] = 0
 
-                    x_from = (from_pos >> 4) - 3
-                    y_from = (from_pos & 15) - 3
-                    x_to = (to_pos >> 4) - 3
-                    y_to = (to_pos & 15) - 3
-                    global from_select, to_select
-                    canvas.delete(from_select)
-                    canvas.delete(to_select)
-                    if show_side != 1:
-                        x_from = 9 - x_from
-                        x_to = 9 - x_to
-                    from_select = canvas.create_image(y_from * 58, 20 + p_height + x_from * 57, image=select_img,anchor='nw')
-                    to_select = canvas.create_image(y_to * 58, 20 + p_height + x_to * 57, image=select_img, anchor='nw')
-                    side = -side
-                elif line == "the move list of the other side as follows:":
-                    other_side_move = True
-                    legal_move_list = []
-                elif line != "the move list of the other side as follows:" and other_side_move:
-                    splits = line.split(">")
-                    _fromPos = int(splits[0])
-                    _toPos = int(splits[1])
-                    legal_move_list.append([_fromPos, _toPos])
-        if not len(legal_move_list):
-            init = False
+                        x_from = (from_pos >> 4) - 3
+                        y_from = (from_pos & 15) - 3
+                        x_to = (to_pos >> 4) - 3
+                        y_to = (to_pos & 15) - 3
+                        global from_select, to_select
+                        canvas.delete(from_select)
+                        canvas.delete(to_select)
+                        if show_side != 1:
+                            x_from = 9 - x_from
+                            x_to = 9 - x_to
+                        from_select = canvas.create_image(y_from * 58, 20 + p_height + x_from * 57, image=select_img,
+                                                          anchor='nw')
+                        to_select = canvas.create_image(y_to * 58, 20 + p_height + x_to * 57, image=select_img,
+                                                        anchor='nw')
+                        side = -side
+                    elif line == "the move list of the other side as follows:":
+                        other_side_move = True
+                        legal_move_list = []
+                    elif line != "the move list of the other side as follows:" and other_side_move:
+                        splits = line.split(">")
+                        _fromPos = int(splits[0])
+                        _toPos = int(splits[1])
+                        legal_move_list.append([_fromPos, _toPos])
+            if not len(legal_move_list):
+                init = False
+    except:
+        pass
 
 def main():
     engine_path = "E:\\Projects_chess\\ChineseChess\\src\\cmake-build-release\\bit_src.exe"
