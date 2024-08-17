@@ -534,35 +534,47 @@ protected:
                 isKingPawnStep(new_move.fromPos,new_move.toPos)){
                 return none_rep;
             }
-            const bool mineFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 3];
-            const bool mineSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 1];
-            const bool otherFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 4];
-            const bool otherSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 2];
 
-            const bool mineFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 3];
-            const bool mineSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 1];
-            const bool otherFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 4];
-            const bool otherSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 2];
+            const step& mineFirstStep = moveRoad[moveRoad.size() - 3];
+            const step& mineSecondStep = moveRoad[moveRoad.size() - 1];
+            const step& otherFirstStep = moveRoad[moveRoad.size() - 4];
+            const step& otherSecondStep = moveRoad[moveRoad.size() - 2];
+            if(mineFirstStep.fromPos == mineSecondStep.toPos &&
+                mineFirstStep.toPos == mineSecondStep.fromPos &&
+                otherFirstStep.fromPos == otherSecondStep.toPos &&
+                otherFirstStep.toPos == otherSecondStep.fromPos){
 
-            const int mineBeCheck = (mineFirstBeCheck & mineSecondBeCheck);
-            const int mineBeChase = (mineFirstBeChase & mineSecondBeChase);
-            const int otherBeCheck = (otherFirstBeCheck & otherSecondBeCheck);
-            const int otherBeChase = (otherFirstBeChase & otherSecondBeChase);
+                const bool mineFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 3];
+                const bool mineSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 1];
+                const bool otherFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 4];
+                const bool otherSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 2];
 
-            const int mineRepLevel = otherBeChase + (otherBeCheck << 1);
-            const int otherRepLevel = mineBeChase + (mineBeCheck << 1);
+                const bool mineFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 3];
+                const bool mineSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 1];
+                const bool otherFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 4];
+                const bool otherSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 2];
 
-            if(mineRepLevel && otherRepLevel){
-                if(mineRepLevel == otherRepLevel){
-                    return draw_rep;
-                }else if(mineRepLevel > otherRepLevel){
-                    return killed_rep;
+                const int mineBeCheck = (mineFirstBeCheck & mineSecondBeCheck);
+                const int mineBeChase = (mineFirstBeChase & mineSecondBeChase);
+                const int otherBeCheck = (otherFirstBeCheck & otherSecondBeCheck);
+                const int otherBeChase = (otherFirstBeChase & otherSecondBeChase);
+
+                const int mineRepLevel = otherBeChase + (otherBeCheck << 1);
+                const int otherRepLevel = mineBeChase + (mineBeCheck << 1);
+
+                if(mineRepLevel && otherRepLevel){
+                    if(mineRepLevel == otherRepLevel){
+                        return draw_rep;
+                    }else if(mineRepLevel > otherRepLevel){
+                        return killed_rep;
+                    }else{
+                        return kill_rep;
+                    }
                 }else{
-                    return kill_rep;
+                    return none_rep;
                 }
-            }else{
-                return none_rep;
             }
+
         }
         return none_rep;
     }
