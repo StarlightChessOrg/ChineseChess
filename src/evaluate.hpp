@@ -266,7 +266,7 @@ static const int OTHER_MIDGAME_VALUE = 1;
 static const int TOTAL_MIDGAME_VALUE = ROOK_MIDGAME_VALUE * 4 + KNIGHT_CANNON_MIDGAME_VALUE * 8 + OTHER_MIDGAME_VALUE * 18;
 static const int TOTAL_ADVANCED_VALUE = 4;
 static const int TOTAL_ATTACK_VALUE = 8;
-static const int ADVISOR_BISHOP_ATTACKLESS_VALUE = 80;
+static const int ADVISOR_BISHOP_ATTACKLESS_VALUE = 85;
 static const int TOTAL_ADVISOR_LEAKAGE = 80;
 
 // 偷懒评价的边界
