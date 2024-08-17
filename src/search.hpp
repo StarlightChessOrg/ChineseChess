@@ -430,7 +430,6 @@ public:
 
         //未吃子走法
         if(!quit){
-            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
@@ -448,7 +447,6 @@ public:
                                 break;
                             }
                         }
-                        cnt++;
                     }
                 }
             }
