@@ -679,6 +679,7 @@ private:
     int rookMobility(int side){
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         const int stepList[4] = {1,1,16,16};
+        const int tStepList[4] = {-1,1,-16,16};
         int vlRedMobility = 0;
         int vlBlackMobility = 0;
         for(int piece : redRookPieceList){
@@ -690,6 +691,10 @@ private:
                         vlRedMobility += abs(targetPos - pos) / stepList[i];
                         if(position::board.getPieceByPos(targetPos) * piece > 0){
                             vlRedMobility--;
+                        }
+                    }else{
+                        for(int toPos = pos + tStepList[i];inBoard[toPos];toPos += tStepList[i]){
+                            vlRedMobility++;
                         }
                     }
                 }
@@ -705,6 +710,10 @@ private:
                         if(position::board.getPieceByPos(targetPos) * piece > 0){
                             vlBlackMobility--;
                         }
+                    }else{
+                        for(int toPos = pos + tStepList[i];inBoard[toPos];toPos += tStepList[i]){
+                            vlBlackMobility++;
+                        }
                     }
                 }
             }
@@ -718,10 +727,12 @@ private:
     int knightTrap(int side){
         int vlRedKnightTrap = 0;
         int vlBlackKnightTrap = 0;
+        const int cntPenaltyPool[3] = {5,4,1};
         for(int piece : redKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             int redPenalty = 10;
             if(pos){
+                int cnt = 0;
                 for(int step : knightDelta){
                     const int toPos = pos + step;
                     const int toPiece = position::board.getPieceByPos(toPos);
@@ -731,23 +742,26 @@ private:
                         inBoard[toPos] &&
                         piece * toPiece <= 0){
                         if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            redPenalty -= 5;
-                            if(!redPenalty){
+                            redPenalty -= cntPenaltyPool[cnt];
+                            if(cnt > 3){
                                 break;
                             }
+                            cnt++;
                         }
                     }
                 }
                 if(inKnightEdge[pos]){
-                    redPenalty += 5;
+                    redPenalty += 6;
                 }
             }
-            vlRedKnightTrap -= min(redPenalty,10);
+            vlRedKnightTrap -= redPenalty;
         }
         for(int piece : blackKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             int blackPenalty = 10;
+
             if(pos){
+                int cnt = 0;
                 for(int step : knightDelta){
                     const int toPos = pos + step;
                     const int toPiece = position::board.getPieceByPos(toPos);
@@ -757,19 +771,22 @@ private:
                         inBoard[toPos] &&
                         piece * toPiece <= 0){
                         if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            blackPenalty -= 5;
-                            if(!blackPenalty){
+                            blackPenalty -= cntPenaltyPool[cnt];
+                            if(cnt > 3){
                                 break;
                             }
+                            cnt++;
                         }
                     }
                 }
                 if(inKnightEdge[pos]){
-                    blackPenalty += 5;
+                    blackPenalty += 6;
                 }
             }
-            vlBlackKnightTrap -= min(blackPenalty,10);
+            vlBlackKnightTrap -= blackPenalty;
         }
+        vlRedKnightTrap = max(-20,vlRedKnightTrap);
+        vlBlackKnightTrap = max(-20,vlBlackKnightTrap);
         if(side == red){
             return vlRedKnightTrap - vlBlackKnightTrap;
         }
