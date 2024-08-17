@@ -608,8 +608,7 @@ protected:
         for(int pos = 51;pos < 205;pos++){
             if(inBoard[pos]){
                 //将兵
-                const int vlKingOrPawn = (kingPawnMidgameAttacking[pos] * midgameValue + kingPawnEndgameAttacking[pos] * (TOTAL_MIDGAME_VALUE - midgameValue)) / TOTAL_MIDGAME_VALUE;
-                pawnPieceAttacking[pos] = vlKingOrPawn;
+                pawnPieceAttacking[pos] = (kingPawnMidgameAttacking[pos] * midgameValue + kingPawnEndgameAttacking[pos] * (TOTAL_MIDGAME_VALUE - midgameValue)) / TOTAL_MIDGAME_VALUE;
                 pawnPieceAttackless[pos] = (kingPawnMidgameAttackless[pos] * midgameValue + kingPawnEndgameAttackless[pos] * (TOTAL_MIDGAME_VALUE - midgameValue)) / TOTAL_MIDGAME_VALUE;
                 //马
                 const int vlKnight = (knightMidgame[pos] * midgameValue + knightEndgame[pos] * (TOTAL_MIDGAME_VALUE - midgameValue)) / TOTAL_MIDGAME_VALUE;
@@ -634,9 +633,10 @@ protected:
         for(int pos = 51;pos < 205;pos++){
             if(inBoard[pos]){
                 //士象
-                const int vlAdvisorOrBishop = (advisorBishopThreatened[pos] * blackAttackValue + (advisorBishopThreatless[pos]) * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
-                vlRedBoard[vlIndex(advisor)][pos] = vlBlackBoard[vlIndex(advisor)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
-                vlRedBoard[vlIndex(bishop)][pos] = vlBlackBoard[vlIndex(bishop)][xyMirrorPos(pos)] = vlAdvisorOrBishop;
+                const int vlRedAdvisorOrBishop = (advisorBishopThreatened[pos] * blackAttackValue + (advisorBishopThreatless[pos]) * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
+                const int vlBlackAdvisorOrBishop = (advisorBishopThreatened[pos] * redAttackValue + (advisorBishopThreatless[pos]) * (TOTAL_ATTACK_VALUE - redAttackValue)) / TOTAL_ATTACK_VALUE;
+                vlRedBoard[vlIndex(advisor)][pos] = vlRedBoard[vlIndex(bishop)][pos] = vlRedAdvisorOrBishop;
+                vlBlackBoard[vlIndex(advisor)][xyMirrorPos(pos)] = vlBlackBoard[vlIndex(bishop)][xyMirrorPos(pos)] = vlBlackAdvisorOrBishop;
                 //兵
                 const int vlRedKingPawn = (pawnPieceAttacking[pos] * redAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - redAttackValue)) / TOTAL_ATTACK_VALUE;
                 const int vlBlackKingPawn = (pawnPieceAttacking[pos] * blackAttackValue + pawnPieceAttackless[pos] * (TOTAL_ATTACK_VALUE - blackAttackValue)) / TOTAL_ATTACK_VALUE;
