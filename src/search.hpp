@@ -176,7 +176,6 @@ public:
         }
 
         //置换表启发
-        bool tMoveHit = false;
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -194,7 +193,6 @@ public:
                         vlAlpha = vl;
                     }
                 }
-                tMoveHit = true;
             }
         }
 
@@ -270,10 +268,6 @@ public:
             }
         }
 
-        bool hashPruning = !tMoveHit && !bCheck && depth > 4;
-        if(hashPruning){
-            depth -= 1 + (depth > 7);
-        }
 
         //剩余走法
         if(!quit){
@@ -288,7 +282,7 @@ public:
                         }else{
                             vl = -searchNonPV(e,newDepth,-vlAlpha,false);
                             if(vl > vlAlpha && vl < vlBeta){
-                                vl = -searchPV(e,newDepth + hashPruning,-vlBeta,-vlAlpha);
+                                vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
                         }
                         e.unMakeMove();
@@ -369,7 +363,6 @@ public:
 
         //置换表启发
         bool quit = false;
-        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -383,7 +376,6 @@ public:
                         quit = true;
                     }
                 }
-                tMoveHit = true;
             }
         }
 
@@ -435,10 +427,6 @@ public:
             }
         }
 
-        if(!tMoveHit && !bCheck && depth > 4){
-            depth -= 1 + (depth > 7);
-        }
-
         //剩余走法
         if(!quit){
             int cnt = 0;
@@ -448,15 +436,8 @@ public:
                     !move.toPiece){
                     //将军延伸
                     int newDepth = bCheck ? depth : depth - 1;
-                    bool lmrPruning = !bCheck && depth > 4 && cnt > 2;
-                    if(lmrPruning){
-                        newDepth -= 1 + (cnt > 4 && depth < 10);
-                    }
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
-                        if(vl >= vlBeta && lmrPruning){
-                            vl = -searchNonPV(e,newDepth + 1,-vlBeta + 1);
-                        }
                         e.unMakeMove();
 
                         if(vl > vlBest){
