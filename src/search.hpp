@@ -166,6 +166,7 @@ public:
         }
 
         //置换表启发
+        bool tMoveHit = false;
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -175,16 +176,15 @@ public:
                 if(vl > vlBest){
                     vlBest = vl;
                     if(vl >= vlBeta){
-                        pBestMove = &convert_move;
                         nodeType = beta;
                         quit = true;
                     }
                     if(vl > vlAlpha){
-                        pBestMove = &convert_move;
                         nodeType = pv;
                         vlAlpha = vl;
                     }
                 }
+                tMoveHit = true;
             }
         }
 
@@ -258,6 +258,10 @@ public:
                     }
                 }
             }
+        }
+
+        if(!tMoveHit && !bCheck && depth > 4){
+            depth -= 1 + (depth > 8);
         }
 
         //剩余走法
@@ -354,6 +358,7 @@ public:
 
         //置换表启发
         bool quit = false;
+        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -364,10 +369,10 @@ public:
                 if (vl > vlBest) {
                     vlBest = vl;
                     if (vl >= vlBeta) {
-                        pBestMove = &convert_move;
                         quit = true;
                     }
                 }
+                tMoveHit = true;
             }
         }
 
@@ -419,9 +424,12 @@ public:
             }
         }
 
+        if(!tMoveHit && !bCheck && depth > 4){
+            depth -= 1 + (depth > 8);
+        }
+
         //未吃子走法
         if(!quit){
-            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
@@ -439,7 +447,6 @@ public:
                                 break;
                             }
                         }
-                        cnt++;
                     }
                 }
             }

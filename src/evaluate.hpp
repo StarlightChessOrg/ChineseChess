@@ -688,12 +688,10 @@ private:
                 }
             }
         }
-        vlRedMobility >>= 1;
-        vlBlackMobility >>= 1;
         if(side == red){
-            return vlRedMobility - vlBlackMobility;
+            return (vlRedMobility - vlBlackMobility) / 2;
         }
-        return vlBlackMobility - vlRedMobility;
+        return (vlBlackMobility - vlRedMobility) / 2;
     }
     //劣马
     int knightTrap(int side){
@@ -719,8 +717,11 @@ private:
                         }
                     }
                 }
+                if(inKnightEdge[pos]){
+                    redPenalty += 5;
+                }
             }
-            vlRedKnightTrap -= redPenalty;
+            vlRedKnightTrap -= min(redPenalty,10);
         }
         for(int piece : blackKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
@@ -742,8 +743,11 @@ private:
                         }
                     }
                 }
+                if(inKnightEdge[pos]){
+                    blackPenalty += 5;
+                }
             }
-            vlBlackKnightTrap -= blackPenalty;
+            vlBlackKnightTrap -= min(blackPenalty,10);
         }
         if(side == red){
             return vlRedKnightTrap - vlBlackKnightTrap;
@@ -999,7 +1003,7 @@ private:
             const int toInvPiece = position::board.getPieceByPos(toInvPos);
             const int toType = swapBasicBoard::pieceToAbsType(toPiece);
             const int toInvType = swapBasicBoard::pieceToAbsType(toInvPiece);
-            const int toInvInvPos = position::bitBoard.getRayTargetPos(pos,target,3);
+            const int toInvInvPos = position::bitBoard.getRayTargetPos(pos,target,2);
             //第二个子同类，第三个子异类
             if(piece * toPiece > 0 && piece * toInvPiece < 0){
                 if(fromType == king){
