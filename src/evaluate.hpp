@@ -1125,7 +1125,7 @@ private:
         for(int piece : rookOrKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(piece > 0){
-                if(blackHalf(pos) < 0){
+                if(inSideBoard[pos] * piece < 0){
                     alRed += 2;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == rook){
@@ -1134,7 +1134,7 @@ private:
                     vlRedSimple ++;
                 }
             }else{
-                if(redHalf(pos) < 0){
+                if(inSideBoard[pos] * piece < 0){
                     alBlack += 2;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == rook){
@@ -1151,14 +1151,14 @@ private:
         for(int piece : cannonOrPawnPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             if(piece > 0){
-                if(blackHalf(pos) < 0){
+                if(inSideBoard[pos] * piece < 0){
                     alRed ++;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == cannon){
                     vlRedSimple ++;
                 }
             }else{
-                if(redHalf(pos) < 0){
+                if(inSideBoard[pos] * piece < 0){
                     alBlack ++;
                 }
                 if(swapBasicBoard::pieceToAbsType(piece) == cannon){

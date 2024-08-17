@@ -48,7 +48,7 @@ public:
         }
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
-    static void sortRootMoveSequance(vector<step>& moveList,step& betterMove){
+    static void refreshRootMoveSequance(vector<step>& moveList,step& betterMove){
         for(step& move : moveList){
             if(move == betterMove){
                 move.vl = SORT_MAX_VALUE;
@@ -56,6 +56,8 @@ public:
                 move.vl--;
             }
         }
+    }
+    static void sortRootMoveSequance(vector<step>& moveList){
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
 private:
@@ -76,7 +78,7 @@ private:
             return mvv - lva + 1;
         }else if(mvv == lva && lva >= 4){
             return 1;
-        }else if(inImportantPawnScope[move.toPos] && toType == pawn && lva == 1){
+        }else if(inRiver[move.toPos] && toType == pawn){
             return 1;
         }
         return mvv - lva;
@@ -268,10 +270,9 @@ public:
             }
         }
 
-        bool hashPruning = false;
-        if(!tMoveHit && !bCheck && depth >= 4){
+        bool hashPruning = !tMoveHit && !bCheck && depth > 4;
+        if(hashPruning){
             depth -= 2;
-            hashPruning = true;
         }
 
         //剩余走法
@@ -287,11 +288,7 @@ public:
                         }else{
                             vl = -searchNonPV(e,newDepth,-vlAlpha);
                             if(vl > vlAlpha && vl < vlBeta){
-                                if(!hashPruning){
-                                    vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
-                                }else{
-                                    vl = -searchPV(e,newDepth + 2,-vlBeta,-vlAlpha);
-                                }
+                                vl = -searchPV(e,newDepth + hashPruning,-vlBeta,-vlAlpha);
                             }
                         }
                         e.unMakeMove();
@@ -438,8 +435,8 @@ public:
             }
         }
 
-        if(!tMoveHit && !bCheck && depth >= 4){
-            depth -= 1 + (depth >= 8);
+        if(!tMoveHit && !bCheck && depth > 4){
+            depth -= 1 + (depth > 7);
         }
 
         //剩余走法
@@ -451,10 +448,9 @@ public:
                     !move.toPiece){
                     //将军延伸
                     int newDepth = bCheck ? depth : depth - 1;
-                    bool lmrPruning = false;
-                    if(!bCheck && newDepth >= 2 && cnt > 1 + (newDepth < 10)){
-                        newDepth--;
-                        lmrPruning = true;
+                    bool lmrPruning = !bCheck && depth > 4 && cnt > 2;
+                    if(lmrPruning){
+                        newDepth -= 1 + (cnt > 4 && depth < 10);
                     }
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
@@ -490,6 +486,7 @@ public:
         int vl;
         int vlBest = MIN_VALUE;
         const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
+        moveSort::sortRootMoveSequance(rootMoveList);
         for(step & move : rootMoveList){
             const int newDepth = bCheck ? maxDepth : maxDepth - 1;
             if(e.makeMove(move.fromPos,move.toPos)){
@@ -505,9 +502,7 @@ public:
 
                 if(vl > vlBest){
                     vlBest = vl;
-                    if(vlBest != MIN_VALUE){
-                        moveSort::sortRootMoveSequance(rootMoveList,move);
-                    }
+                    moveSort::refreshRootMoveSequance(rootMoveList,move);
                 }
             }
         }
