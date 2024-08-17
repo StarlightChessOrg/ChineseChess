@@ -246,13 +246,16 @@ def mount_xy(event):
 
 def parse():
     results = read_data()
-    global legal_move_list
+    global legal_move_list,init
     global board,board_pool,side
     if results is not None and len(results):
         other_side_move = False
         for index,line in enumerate(results):
             line = line.strip()
             if len(line):
+                if line == "there is no best move":
+                    init = False
+                    break
                 if line != "the move list of the other side as follows:" and not other_side_move:
                     print(line)
                     splits = line.split(">")
@@ -284,7 +287,6 @@ def parse():
                     _toPos = int(splits[1])
                     legal_move_list.append([_fromPos, _toPos])
         if not len(legal_move_list):
-            global init
             init = False
 
 def main():

@@ -266,8 +266,8 @@ public:
             }
         }
 
-        if(!tMoveHit && !bCheck && depth > 4){
-            depth -= 1 + (depth > 8);
+        if(!tMoveHit && !bCheck && depth >= 4){
+            depth -= 2;
         }
 
         //剩余走法
@@ -430,8 +430,8 @@ public:
             }
         }
 
-        if(!tMoveHit && !bCheck && depth > 4){
-            depth -= 1 + (depth > 8);
+        if(!tMoveHit && !bCheck && depth >= 8){
+            depth -= 2;
         }
 
         //剩余走法
@@ -512,7 +512,7 @@ public:
                 //toDo something
             }
             clock_t now = clock();
-            cout<<"depth = "<<depth<<" | vlBest = "<<vlBest<<" | time_sum =  "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
+            cout<<"depth = "<<depth<<" | vl = "<<vl<<" | time_sum =  "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
             if(now - start >= maxTime / 2){
                 break;
             }

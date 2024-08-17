@@ -390,6 +390,14 @@ inline int yMirrorPos(int y) {
     return 15 - y;
 }
 
+inline bool redHalf(int pos) {
+    return (pos & 0x80) != 0;
+}
+
+inline bool blackHalf(int pos) {
+    return (pos & 0x80) == 0;
+}
+
 const int MAX_MOVE_NUM = 1024;
 const int MIN_VALUE = -32767;
 const int MAX_VALUE = 32767;

@@ -88,6 +88,7 @@ public:
             s.searchMain(e,16,4000);
             if(s.rootMoveList.empty()){
                 messagePool.emplace_back("there is no best move");
+                feedback(messagePool);
             }else{
                 step aiGo = s.rootMoveList.front();
                 e.makeMove(aiGo.fromPos,aiGo.toPos);
