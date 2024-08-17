@@ -272,7 +272,7 @@ public:
 
         bool hashPruning = !tMoveHit && !bCheck && depth > 4;
         if(hashPruning){
-            depth -= 2;
+            depth -= 1 + (depth > 7);
         }
 
         //剩余走法
