@@ -92,7 +92,7 @@ public:
         //clean entirely
         delCache();
         //reset
-        cache.resize((uint64)1 << n);
+        cache.resize(((uint64)1 << n) + 512);
         mask = ((uint64)1 << n) - (uint64)1;
     }
     void delCache(){
@@ -105,7 +105,7 @@ public:
     }
 protected:
     bool getCache(evaluate& e,int depth,int vlAlpha,int vlBeta,int& vl,tinyMove& move){
-        for(int layer = 0;layer < 2;layer++){
+        for(uint64 layer = 0;layer < 2;layer++){
             hashItem& pH = cache[(e.firstHashKey + layer) & mask];
             int vlGet = 0;
             if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
@@ -153,7 +153,7 @@ protected:
         return false;
     }
     void recoardCache(evaluate& e,int nodeType,int vl,int depth,step* pMove = nullptr){
-        for(int layer = 0;layer < 2;layer++){
+        for(uint64 layer = 0;layer < 2;layer++){
             hashItem& pH = cache[(e.firstHashKey + layer) & mask];
             if(!pH.firstKey || !pH.secondKey){
                 if(recoardAdujstValue(e,vl)){

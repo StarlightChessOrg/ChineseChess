@@ -68,7 +68,7 @@ private:
             return mvv - lva + 1;
         }else if(mvv == lva && lva >= 4){
             return 1;
-        }else if(inRiver[move.toPos] && toType == pawn){
+        }else if(inImportantPawnScope[move.toPos] && toType == pawn){
             return 1;
         }
         return mvv - lva;
@@ -483,7 +483,9 @@ public:
 
                 if(vl > vlBest){
                     vlBest = vl;
-                    moveSort::sortRootMoveSequance(rootMoveList,move);
+                    if(vlBest != MIN_VALUE){
+                        moveSort::sortRootMoveSequance(rootMoveList,move);
+                    }
                 }
             }
         }

@@ -536,9 +536,6 @@ protected:
         secondKey ^= keyMatrix[1][from_convert_type][move.toPos];
         if(move.toPiece){
             int to_convert_type = swapBasicBoard::pieceToAbsType(move.toPiece) - 1;
-//            if(to_convert_type < 0|| to_convert_type > 13){
-//                cout<<endl;
-//            }
             assert(to_convert_type >= 0 && to_convert_type <= 13);
             if(move.toPiece < 0){
                 to_convert_type += 7;
@@ -561,7 +558,7 @@ protected:
     }
 private:
     uint64 getKey(){
-        uniform_int_distribution<uint64> u(16384,65534);
+        uniform_int_distribution<uint64> u(16384,32767);
         return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
     }
 protected:
