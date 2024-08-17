@@ -110,7 +110,9 @@ public:
         initWork();
         while(true){
             listen(messagePool);
+            Sleep(1);
             parse(messagePool,e);
+            Sleep(1);
             tryThink(e,s);
             Sleep(1);
         }

@@ -242,6 +242,7 @@ def mount_xy(event):
     else:
         set_from_default()
     root.update()
+    time.sleep(0.001)
 
 def parse():
     results = read_data()
@@ -299,8 +300,9 @@ def main():
         pic_board = to_picture_board(board)
         print_picture_board(pic_board, canvas)
         parse()
+        time.sleep(0.001)
         root.update()
-        time.sleep(0.02)
+        time.sleep(0.05)
 
 
 if __name__ == "__main__":
