@@ -474,6 +474,15 @@ public:
         moveRoad.pop_back();
     }
     int getEvaluate(int side,int vlAlpha,int vlBeta){
+        // 检查将帅是否存在
+        const int sideKingPos = swapBoard.getPosByPiece((side == red) ? redKingPiece : blackKingPiece);
+        if(!sideKingPos){
+            return MIN_VALUE + getNowDistance();
+        }
+        const int reverseSideKingPos = swapBoard.getPosByPiece((side == red) ? blackKingPiece : redKingPiece);
+        if(!reverseSideKingPos){
+            return MAX_VALUE - getNowDistance();
+        }
         // 四级偷懒评价(彻底偷懒评价)，只包括子力平衡；
         int vl = this->material(side);
         if (vl + EVAL_MARGIN1 <= vlAlpha) {
@@ -810,7 +819,6 @@ private:
 
         const int redKingPos = position::swapBoard.getPosByPiece(redKingPiece);
         const int blackKingPos = position::swapBoard.getPosByPiece(blackKingPiece);
-        assert(redKingPos && blackKingPos);
 
         //有双士但是将占花心要扣分
         if(redAdvisorPos.size() == 2 && inFortCenter[redKingPos]){

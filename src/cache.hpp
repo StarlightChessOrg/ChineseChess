@@ -91,6 +91,7 @@ public:
         delCache();
     }
     void initCache(uint64 n){
+        nSize = n;
         //clean entirely
         delCache();
         //reset
@@ -101,8 +102,9 @@ public:
         vector<hashItem>().swap(cache);
     }
     void clearCache(){
-        for(hashItem& h : cache){
-            h = hashItem();
+        cache.resize(((uint64)1 << nSize) + 1024);
+        for(hashItem& item : cache){
+            item = hashItem();
         }
     }
 protected:
@@ -210,6 +212,7 @@ protected:
         return false;
     }
 protected:
+    uint64 nSize;
     uint64 mask{};
     vector<hashItem> cache;
     friend class searchGroup;

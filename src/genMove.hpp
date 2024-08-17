@@ -316,10 +316,6 @@ private:
     static bool getKingRelation(position& p,int fromPos,int fromPiece,int relationType,int exceptPos = 0){
         if(relationType == beThreatened && swapBasicBoard::pieceToAbsType(fromPiece) == king){
             const int toPos = p.swapBoard.getPosByPiece(-fromPiece);
-            if(!toPos){
-                p.board.printBasicBoard();
-            }
-            assert(toPos);
             if(getX(fromPos) == getX(toPos) &&
                 !p.bitBoard.checkLineExistBarrier(fromPos,toPos) &&
                 toPos != exceptPos){
@@ -395,12 +391,13 @@ private:
     static void genKingMove(position& p,vector<step>& moveList,int genType = all){
         const int kingPiece = (p.side == red) ? redKingPiece : blackKingPiece;
         const int kingPos = p.swapBoard.getPosByPiece(kingPiece);
-        assert(kingPos);
-        for(int step : rayDelta){
-            const int toPos = kingPos + step;
-            const int toPiece = p.board.getPieceByPos(toPos);
-            if(toPiece * kingPiece <= genType && inFort[toPos]){
-                moveList.emplace_back(kingPos,toPos,kingPiece,toPiece);
+        if(kingPos){
+            for(int step : rayDelta){
+                const int toPos = kingPos + step;
+                const int toPiece = p.board.getPieceByPos(toPos);
+                if(toPiece * kingPiece <= genType && inFort[toPos]){
+                    moveList.emplace_back(kingPos,toPos,kingPiece,toPiece);
+                }
             }
         }
     }

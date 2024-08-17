@@ -420,6 +420,7 @@ private:
     friend class evaluate;
     friend class hashKey;
     friend class moveSort;
+    friend class searchGroup;
 };
 
 enum gameSide{
@@ -504,5 +505,6 @@ protected:
     friend class genMove;
     friend class test;
     friend class hashKey;
+    friend class searchGroup;
 };
 
