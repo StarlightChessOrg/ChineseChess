@@ -92,7 +92,7 @@ public:
         //clean entirely
         delCache();
         //reset
-        cache.resize(((uint64)1 << n) + 512);
+        cache.resize(((uint64)1 << n) + 1024);
         mask = ((uint64)1 << n) - (uint64)1;
     }
     void delCache(){

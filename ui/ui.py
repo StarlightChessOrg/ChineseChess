@@ -110,8 +110,8 @@ def You_first_init():
 
 
 def regret_move():
-    global board, side,legal_move_list
-    if len(board_pool) > 1:
+    global board, side,legal_move_list,show_side
+    if len(board_pool) > 1 and show_side == side:
         board = copy.deepcopy(board_pool[-2])
         board_pool.pop()
         board_pool.pop()

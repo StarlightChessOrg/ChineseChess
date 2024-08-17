@@ -526,9 +526,6 @@ protected:
         if(move.fromPiece < 0){
             from_convert_type += 7;
         }
-//        if(from_convert_type < 0){
-//            cout<<from_convert_type<<endl;
-//        }
         assert(from_convert_type >= 0 && from_convert_type <= 13);
         firstkey ^= keyMatrix[0][from_convert_type][move.fromPos];
         firstkey ^= keyMatrix[0][from_convert_type][move.toPos];
@@ -558,7 +555,7 @@ protected:
     }
 private:
     uint64 getKey(){
-        uniform_int_distribution<uint64> u(16384,32767);
+        uniform_int_distribution<uint64> u(1,65535);
         return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
     }
 protected:
