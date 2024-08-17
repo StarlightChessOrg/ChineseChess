@@ -152,7 +152,7 @@ public:
     }
 
     static void testSearch(){
-        evaluate e = evaluate(initGameBoard,red);
+        evaluate e = evaluate(initGameBoard,black);
         searchGroup s = searchGroup();
         time_t start = clock();
         s.searchMain(e,12,4000);

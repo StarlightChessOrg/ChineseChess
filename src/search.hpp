@@ -33,13 +33,15 @@ public:
         sort(moveList.begin(),moveList.end(), vlCompare);
     }
     static void initSortRootMoveSeuqance(evaluate& e,vector<step>& moveList){
+        vector<step> tempMoveList;
         for(step& move : moveList){
             if(e.makeMove(move.fromPos,move.toPos)){
+                tempMoveList.push_back(move);
                 e.unMakeMove();
-            }else{
-                swap(moveList[moveList.size() - 1],move);
-                moveList.pop_back();
             }
+        }
+        swap(tempMoveList,moveList);
+        for(step& move : moveList){
             if(move.toPiece){
                 move.vl = getMvvLva(e,move);
             }
