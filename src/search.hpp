@@ -209,7 +209,7 @@ public:
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            vl = -searchNonPV(e,newDepth,-vlAlpha,false);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -246,7 +246,7 @@ public:
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            vl = -searchNonPV(e,newDepth,-vlAlpha,false);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -286,7 +286,7 @@ public:
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha);
+                            vl = -searchNonPV(e,newDepth,-vlAlpha,false);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth + hashPruning,-vlBeta,-vlAlpha);
                             }
@@ -501,8 +501,10 @@ public:
                 e.unMakeMove();
 
                 if(vl > vlBest){
+                    if(vlBest != MIN_VALUE){
+                        moveSort::refreshRootMoveSequance(rootMoveList,move);
+                    }
                     vlBest = vl;
-                    moveSort::refreshRootMoveSequance(rootMoveList,move);
                 }
             }
         }

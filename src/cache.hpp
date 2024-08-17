@@ -22,7 +22,7 @@ private:
     friend class moveSort;
 };
 
-static const int MAX_KILLER_MOVE_NUM = 64;
+static const int MAX_KILLER_MOVE_NUM = 128;
 
 class killerCache{
 public:

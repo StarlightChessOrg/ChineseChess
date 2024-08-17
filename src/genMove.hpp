@@ -230,12 +230,15 @@ private:
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,0);
-            const int toPiece = p.board.getPieceByPos(targetPos);
-            if(swapBasicBoard::pieceToAbsType(toPiece) == rook &&
-                toPiece * fromPiece * relationType > 0 &&
-                targetPos != exceptPos){
-                return true;
+            if(targetPos > -1){
+                const int toPiece = p.board.getPieceByPos(targetPos);
+                if(swapBasicBoard::pieceToAbsType(toPiece) == rook &&
+                   toPiece * fromPiece * relationType > 0 &&
+                   targetPos != exceptPos){
+                    return true;
+                }
             }
+
         }
         return false;
     }
@@ -257,11 +260,13 @@ private:
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,1);
-            const int toPiece = p.board.getPieceByPos(targetPos);
-            if(swapBasicBoard::pieceToAbsType(toPiece) == cannon &&
-                toPiece * fromPiece * relationType > 0 &&
-                targetPos != exceptPos){
-                return true;
+            if(targetPos > -1){
+                const int toPiece = p.board.getPieceByPos(targetPos);
+                if(swapBasicBoard::pieceToAbsType(toPiece) == cannon &&
+                   toPiece * fromPiece * relationType > 0 &&
+                   targetPos != exceptPos){
+                    return true;
+                }
             }
         }
         return false;
@@ -507,7 +512,7 @@ public:
     }
 
 protected:
-    void entireKey(position& p,uint64& firstkey,uint64& secondKey,uint64& playerKey){
+    void entireKey(position& p,uint64& firstkey,uint64& secondKey){
         firstkey = secondKey = 0;
         for(int pos = 51;pos < 205;pos++){
             const int piece = p.board.getPieceByPos(pos);
@@ -517,9 +522,9 @@ protected:
                 secondKey ^= keyMatrix[1][convert_type][pos];
             }
         }
-        playerKey = getKey();
+        this->keyPlayer = getKey();
     }
-    void stepKey(uint64& firstkey,uint64& secondKey,uint64 playerKey,step move){
+    void stepKey(uint64& firstkey,uint64& secondKey,step move){
         int from_convert_type = swapBasicBoard::pieceToAbsType(move.fromPiece) - 1;
         if(move.fromPiece < 0){
             from_convert_type += 7;
@@ -538,7 +543,6 @@ protected:
             firstkey ^= keyMatrix[0][to_convert_type][move.toPos];
             secondKey ^= keyMatrix[1][to_convert_type][move.toPos];
         }
-        playerKey ^= keyPlayer;
     }
     void initHashKey(){
         e.seed(7931);
@@ -553,7 +557,7 @@ protected:
     }
 private:
     uint64 getKey(){
-        uniform_int_distribution<uint64> u(1,65535);
+        uniform_int_distribution<uint64> u(16383,65535);
         return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
     }
 protected:

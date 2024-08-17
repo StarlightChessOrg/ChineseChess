@@ -350,20 +350,17 @@ public:
         checkMoveStatus.reserve(MAX_MOVE_NUM);
         chaseMoveStatus.reserve(MAX_MOVE_NUM);
         moveRoad.reserve(MAX_MOVE_NUM);
-        hashKeyResource.initHashKey();
-        hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey,this->playerKey);
-        resetEvaBoard();
+        firstHashKeyRoad.reserve(MAX_MOVE_NUM);
+        seconHashdKeyRoad.reserve(MAX_MOVE_NUM);
+        initEvaluate(anotherBoard,initSide);
     }
 
     void initEvaluate(const int anotherBoard[256] = initGameBoard, int initSide = red){
         clearEvaBoard();
-        drawMoveStatus.reserve(MAX_MOVE_NUM);
-        checkMoveStatus.reserve(MAX_MOVE_NUM);
-        chaseMoveStatus.reserve(MAX_MOVE_NUM);
-        moveRoad.reserve(MAX_MOVE_NUM);
+        memset(miniHashCache,(uint64)0,sizeof(uint64) * 4096);
         hashKeyResource.initHashKey();
-        hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey,this->playerKey);
-        position::initPosition(initGameBoard,initSide);
+        hashKeyResource.entireKey(*this,this->firstHashKey,this->secondHashKey);
+        position::initPosition(anotherBoard,initSide);
         resetEvaBoard();
     }
 
@@ -422,8 +419,15 @@ public:
                 this->vlBlack -= vlBlackBoard[toIndex][toPos];
             }
         }
+        //记录迷你置换表
+        if(!miniHashCache[firstHashKey & 4095]){
+            miniHashCache[firstHashKey & 4095] = drawMoveStatus.back();
+        }
         //步进哈希键
-        hashKeyResource.stepKey(firstHashKey,secondHashKey,playerKey,step(fromPos,toPos,fromPiece,toPiece));
+        firstHashKeyRoad.push_back(firstHashKey);
+        seconHashdKeyRoad.push_back(secondHashKey);
+        hashKeyResource.stepKey(firstHashKey,secondHashKey,step(fromPos,toPos,fromPiece,toPiece));
+
         //优先记录走法
         moveRoad.emplace_back(fromPos,toPos,fromPiece,toPiece);
         //判断对方是否被我方将军和捉子
@@ -464,8 +468,15 @@ public:
         }
         //步进棋盘
         position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
+        //撤销迷你置换表
+        if(miniHashCache[firstHashKey & 4095] == drawMoveStatus.back()){
+            miniHashCache[firstHashKey & 4095] = 0;
+        }
         //步进哈希键
-        hashKeyResource.stepKey(firstHashKey,secondHashKey,playerKey,step(fromPos,toPos,fromPiece,toPiece));
+        firstHashKey = firstHashKeyRoad.back();
+        secondHashKey = seconHashdKeyRoad.back();
+        firstHashKeyRoad.pop_back();
+        seconHashdKeyRoad.pop_back();
         //撤销棋规记录
         assert(!moveRoad.empty());
         drawMoveStatus.pop_back();
@@ -535,55 +546,34 @@ protected:
     }
     //判断走法线路的重复类型
     bool isRep(){
-        if(getNowDistance() >= 4){
-            const step& new_move = moveRoad.back();
-            if(!new_move.toPiece){
-                return none_rep;
-            }else if(swapBasicBoard::pieceToAbsType(new_move.fromPiece) == pawn &&
-                isKingPawnStep(new_move.fromPos,new_move.toPos)){
+        if(!miniHashCache[firstHashKey & 4095]){
+            return none_rep;
+        }
+        for(int i = (int)moveRoad.size() - 1;i >= 1;i--){
+            const step& lastMove = moveRoad[i-1];
+            if(lastMove.toPiece){
                 return none_rep;
             }
-
-            const step& mineFirstStep = moveRoad[moveRoad.size() - 3];
-            const step& mineSecondStep = moveRoad[moveRoad.size() - 1];
-            const step& otherFirstStep = moveRoad[moveRoad.size() - 4];
-            const step& otherSecondStep = moveRoad[moveRoad.size() - 2];
-            if(mineFirstStep.fromPos == mineSecondStep.toPos &&
-                mineFirstStep.toPos == mineSecondStep.fromPos &&
-                otherFirstStep.fromPos == otherSecondStep.toPos &&
-                otherFirstStep.toPos == otherSecondStep.fromPos){
-
-                const bool mineFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 3];
-                const bool mineSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 1];
-                const bool otherFirstBeCheck = checkMoveStatus[checkMoveStatus.size() - 4];
-                const bool otherSecondBeCheck = checkMoveStatus[checkMoveStatus.size() - 2];
-
-                const bool mineFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 3];
-                const bool mineSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 1];
-                const bool otherFirstBeChase = chaseMoveStatus[chaseMoveStatus.size() - 4];
-                const bool otherSecondBeChase = chaseMoveStatus[chaseMoveStatus.size() - 2];
-
-                const int mineBeCheck = (mineFirstBeCheck & mineSecondBeCheck);
-                const int mineBeChase = (mineFirstBeChase & mineSecondBeChase);
-                const int otherBeCheck = (otherFirstBeCheck & otherSecondBeCheck);
-                const int otherBeChase = (otherFirstBeChase & otherSecondBeChase);
-
-                const int mineRepLevel = otherBeChase + (otherBeCheck << 1);
-                const int otherRepLevel = mineBeChase + (mineBeCheck << 1);
-
-                if(mineRepLevel && otherRepLevel){
-                    if(mineRepLevel == otherRepLevel){
-                        return draw_rep;
-                    }else if(mineRepLevel > otherRepLevel){
-                        return killed_rep;
-                    }else{
-                        return kill_rep;
-                    }
-                }else{
+            if (swapBasicBoard::pieceToAbsType(lastMove.fromPiece) == pawn){
+                if(abs(lastMove.fromPos - lastMove.toPos) == 16){
                     return none_rep;
                 }
             }
-
+            if(firstHashKeyRoad[i - 1] == firstHashKey){
+                const bool iCheckOther = checkMoveStatus[i - 1];
+                const bool iChaseOther = chaseMoveStatus[i - 1];
+                const bool otherCheckI = checkMoveStatus[i];
+                const bool otherChaseI = chaseMoveStatus[i];
+                const int iRepLevel = (iCheckOther << 1) + iChaseOther;
+                const int otherRepLevel = (otherCheckI << 1) + otherChaseI;
+                if(iRepLevel > otherRepLevel){
+                    return killed_rep;
+                }else if(iRepLevel == otherRepLevel){
+                    return draw_rep;
+                }else{
+                    return kill_rep;
+                }
+            }
         }
         return none_rep;
     }
@@ -727,7 +717,6 @@ private:
     int knightTrap(int side){
         int vlRedKnightTrap = 0;
         int vlBlackKnightTrap = 0;
-        const int cntPenaltyPool[3] = {5,4,1};
         for(int piece : redKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
             int redPenalty = 10;
@@ -742,16 +731,13 @@ private:
                         inBoard[toPos] &&
                         piece * toPiece <= 0){
                         if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            redPenalty -= cntPenaltyPool[cnt];
-                            if(cnt > 3){
+                            redPenalty -= 5;
+                            if(cnt > 2){
                                 break;
                             }
                             cnt++;
                         }
                     }
-                }
-                if(inKnightEdge[pos]){
-                    redPenalty += 6;
                 }
             }
             vlRedKnightTrap -= redPenalty;
@@ -771,22 +757,17 @@ private:
                         inBoard[toPos] &&
                         piece * toPiece <= 0){
                         if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            blackPenalty -= cntPenaltyPool[cnt];
-                            if(cnt > 3){
+                            blackPenalty -= 5;
+                            if(cnt > 2){
                                 break;
                             }
                             cnt++;
                         }
                     }
                 }
-                if(inKnightEdge[pos]){
-                    blackPenalty += 6;
-                }
             }
             vlBlackKnightTrap -= blackPenalty;
         }
-        vlRedKnightTrap = max(-20,vlRedKnightTrap);
-        vlBlackKnightTrap = max(-20,vlBlackKnightTrap);
         if(side == red){
             return vlRedKnightTrap - vlBlackKnightTrap;
         }
@@ -1334,6 +1315,9 @@ protected:
     vector<bool> checkMoveStatus;           //走法路线对应的将军状态
     vector<bool> chaseMoveStatus;           //走法瑞安对应的捉子状态
     vector<step> moveRoad;                  //走法路线
+    vector<uint64> firstHashKeyRoad;        //第一哈希键路线
+    vector<uint64> seconHashdKeyRoad;       //第二哈希键路线
+    uint64 miniHashCache[4096];           //长将和长捉专用迷你置换表
     hashKey hashKeyResource;                //哈希键公共资源
 private:
     int vlRed{};

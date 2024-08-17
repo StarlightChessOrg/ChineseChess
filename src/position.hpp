@@ -301,6 +301,10 @@ public:
     }
 protected:
     int getPieceByPos(int pos) const {
+//        if(pos < 0 || pos > 255){
+//            cout<<endl;
+//        }
+        assert(pos >= 0 && pos <= 255);
         return board[pos];
     }
     bool operator==(const basicBoard& other){
@@ -463,8 +467,7 @@ protected:
         if(side != other.side){
             return false;
         }
-        if(playerKey != other.playerKey ||
-           firstHashKey != other.firstHashKey ||
+        if(firstHashKey != other.firstHashKey ||
            secondHashKey != other.secondHashKey){
             return false;
         }
@@ -479,8 +482,7 @@ protected:
         if(side != other.side){
             return true;
         }
-        if(playerKey != other.playerKey ||
-           firstHashKey != other.firstHashKey ||
+        if(firstHashKey != other.firstHashKey ||
            secondHashKey != other.secondHashKey){
             return true;
         }
@@ -499,7 +501,6 @@ protected:
     basicBoard board;
     swapBasicBoard swapBoard;
     class bitBoard bitBoard;
-    uint64 playerKey{};
     uint64 firstHashKey{};
     uint64 secondHashKey{};
     friend class genMove;
