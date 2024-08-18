@@ -1,8 +1,7 @@
 #include "pipe.hpp"
+#include "experiment.hpp"
 
 int main(){
-    pipe job;
-    job.work();
-    //test::testSearch();
+    test::testIterateEvaluate();
     return 0;
 }

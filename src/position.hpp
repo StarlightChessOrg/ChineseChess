@@ -301,9 +301,9 @@ public:
     }
 protected:
     int getPieceByPos(int pos) const {
-//        if(pos < 0 || pos > 255){
-//            cout<<endl;
-//        }
+        if(pos < 0 || pos > 255){
+            cout<<endl;
+        }
         assert(pos >= 0 && pos <= 255);
         return board[pos];
     }

@@ -251,9 +251,9 @@ def parallel_convert_data(filepaths):
     pool.join()
 
 if __name__ == "__main__":
-    #filepaths = get_filepaths("E:\\Projects_chess\\imsa-cbf")
+    filepaths = get_filepaths("E:\\Projects_chess\\imsa-cbf")
     #parallel_convert_data(filepaths)
 
-    filepaths = [os.path.join("E:\\Projects_chess\\imsa-cbf","2013年广东东莞凤岗镇象棋公开赛 {EF70C879-A151-4B84-864A-38BB991418AE}.cbf")]
+    #filepaths = [os.path.join("E:\\Projects_chess\\imsa-cbf","2013年广东东莞凤岗镇象棋公开赛 {EF70C879-A151-4B84-864A-38BB991418AE}.cbf")]
     convert_to_256_data(filepaths)
 

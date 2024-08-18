@@ -151,6 +151,44 @@ public:
         }
     }
 
+    static void testIterateEvaluate(){
+        string rootPath = "E:\\Projects_chess\\dump_2";
+        vector<string> filePaths;
+        getFiles(rootPath,filePaths);
+        cout<<"the sum of files is "<<filePaths.size()<<endl;
+
+        int i = 0;
+        for(const string& path : filePaths) {
+            evaluate e = evaluate(initGameBoard,red);
+            searchGroup s;
+
+            ifstream in(path);
+            string moveStr;
+
+            const string output_filename = "E:\\Projects_chess\\dump_3\\file_" + to_string(i) + ".txt";
+            ofstream outfile;
+            outfile.open(output_filename);
+            while (getline(in, moveStr)) {
+                if(e.isRep() != none_rep){
+                    break;
+                }
+                e.resetEvaBoard();
+                const int mv = atoi(moveStr.c_str());
+                const int eva = s.searchMain(e,6,1000);
+
+                const string output = to_string(mv) + " " + to_string(eva);
+                outfile<<output<<endl;
+
+                if(!e.makeMove(mv & 255,mv >> 8)){
+                    break;
+                }
+            }
+            in.close();
+            outfile.close();
+            i++;
+        }
+    }
+
     static void testSearch(){
         evaluate e = evaluate(initGameBoard,black);
         searchGroup s = searchGroup();

@@ -499,21 +499,18 @@ public:
         initSearch(e);
         //init para
         int vlBest = MIN_VALUE;
+        int vl = MIN_VALUE;
         //search
         clock_t start = clock();
         for(int depth = 1;depth <= maxDepth;depth++){
-            int vl = searchRoot(e,depth);
-            if(vl > vlBest){
-                vlBest = vl;
-                //toDo something
-            }
+            vl = searchRoot(e,depth);
             clock_t now = clock();
-            cout<<"depth = "<<depth<<" | vl = "<<vl<<" | time_sum =  "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
+            //cout<<"depth = "<<depth<<" | vl = "<<vl<<" | time_sum =  "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
             if(now - start >= maxTime / 2){
                 break;
             }
         }
-        return vlBest;
+        return vl;
     }
 protected:
     void initSearch(evaluate& e){
@@ -559,4 +556,5 @@ private:
     vector<int> pvLine;             //主要遍历路线
     vector<step> rootMoveList;      //根节点走法表
     friend class pipe;
+    friend class test;
 };
