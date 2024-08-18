@@ -112,7 +112,7 @@ protected:
             const int targetPool[2] = {leftTarget + pIndex,rightTarget + pIndex};
             for(int target : targetPool){
                 const int toChasePos = p.bitBoard.getRayTargetPos(move.toPos,target,0);
-                if(toChasePos > -1){
+                if(toChasePos > -1 && toChasePos < 255){
                     const int toChasePiece = p.board.getPieceByPos(toChasePos);
                     const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
                     if(move.fromPiece * toChasePiece < 0){
@@ -130,17 +130,19 @@ protected:
             for(int step : knightDelta){
                 const int toChasePos = move.toPos + step;
                 const int toChaseLegPos = getKnightLeg(move.toPos,toChasePos);
-                if(!p.board.getPieceByPos(toChaseLegPos)){
-                    const int toChasePiece = p.board.getPieceByPos(toChasePos);
-                    const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
-                    if(move.fromPiece * toChasePiece < 0){
-                        if(toChaseType == rook){
-                            return true;
-                        }else if((toChaseType == cannon || toChaseType == knight)){
-                            return !getRelation(p,toChasePos,toChasePiece,beProtected);
-                        }else if(toChaseType == pawn){
-                            if(inSideBoard[toChasePos] * toChasePiece < 0){
+                if(toChaseLegPos > -1 && toChaseLegPos < 255){
+                    if(!p.board.getPieceByPos(toChaseLegPos)){
+                        const int toChasePiece = p.board.getPieceByPos(toChasePos);
+                        const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
+                        if(move.fromPiece * toChasePiece < 0){
+                            if(toChaseType == rook){
+                                return true;
+                            }else if((toChaseType == cannon || toChaseType == knight)){
                                 return !getRelation(p,toChasePos,toChasePiece,beProtected);
+                            }else if(toChaseType == pawn){
+                                if(inSideBoard[toChasePos] * toChasePiece < 0){
+                                    return !getRelation(p,toChasePos,toChasePiece,beProtected);
+                                }
                             }
                         }
                     }
@@ -152,7 +154,7 @@ protected:
             const int targetPool[2] = {leftTarget + pIndex,rightTarget + pIndex};
             for(int target : targetPool){
                 const int toChasePos = p.bitBoard.getRayTargetPos(move.toPos,target,1);
-                if(toChasePos > -1){
+                if(toChasePos > -1 && toChasePos < 255){
                     const int toChasePiece = p.board.getPieceByPos(toChasePos);
                     const int toChaseType = swapBasicBoard::pieceToAbsType(toChasePiece);
                     if(move.fromPiece * toChasePiece < 0){
@@ -171,7 +173,7 @@ protected:
     }
     //走法的合法性检查，仅用于截断启发
     static bool legalMove(position& p,step& s){
-        if(!s.fromPiece || !s.fromPos){
+        if(!s.fromPiece || s.fromPos <= 0 || s.toPos <= 0 || s.fromPos > 255 || s.toPos > 255){
             return false;
         }
         const int trueFromPiece = p.board.getPieceByPos(s.fromPos);
@@ -230,7 +232,7 @@ private:
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,0);
-            if(targetPos > -1){
+            if(targetPos > -1 && targetPos < 255){
                 const int toPiece = p.board.getPieceByPos(targetPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == rook &&
                    toPiece * fromPiece * relationType > 0 &&
@@ -245,14 +247,19 @@ private:
     static bool getKnightRelation(position& p,int fromPos,int fromPiece,int relationType,int exceptPos = 0){
         for(int step : knightCheckDelta){
             const int toPos = fromPos + step;
-            const int reverseLegPos = getKnightLeg(toPos,fromPos);
-            const int toPiece = p.board.getPieceByPos(toPos);
-            if(swapBasicBoard::pieceToAbsType(toPiece) == knight &&
-                toPiece * fromPiece * relationType > 0 &&
-                !p.board.getPieceByPos(reverseLegPos) &&
-                toPos != exceptPos){
-                return true;
+            if(toPos > -1){
+                const int reverseLegPos = getKnightLeg(toPos,fromPos);
+                if(reverseLegPos > -1 && reverseLegPos < 255){
+                    const int toPiece = p.board.getPieceByPos(toPos);
+                    if(swapBasicBoard::pieceToAbsType(toPiece) == knight &&
+                       toPiece * fromPiece * relationType > 0 &&
+                       !p.board.getPieceByPos(reverseLegPos) &&
+                       toPos != exceptPos){
+                        return true;
+                    }
+                }
             }
+
         }
         return false;
     }
@@ -260,7 +267,7 @@ private:
         const int targetPool[4] = {leftTarget,rightTarget,upTarget,downTarget};
         for(int target : targetPool){
             const int targetPos = p.bitBoard.getRayTargetPos(fromPos,target,1);
-            if(targetPos > -1){
+            if(targetPos > -1 && targetPos < 255){
                 const int toPiece = p.board.getPieceByPos(targetPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == cannon &&
                    toPiece * fromPiece * relationType > 0 &&
@@ -276,14 +283,16 @@ private:
             const int stepList[3] = {1,-1,16 * (-p.side) * relationType};
             for(int step : stepList){
                 const int toPos = fromPos + step;
-                const int toPiece = p.board.getPieceByPos(toPos);
-                if(swapBasicBoard::pieceToAbsType(toPiece) == pawn &&
-                   toPiece * fromPiece * relationType > 0 &&
-                   toPos != exceptPos) {
-                    if(abs(step) != 1){
-                        return true;
-                    }else if(inSideBoard[toPos] * toPiece < 0){
-                        return true;
+                if(toPos > -1 && toPos < 255){
+                    const int toPiece = p.board.getPieceByPos(toPos);
+                    if(swapBasicBoard::pieceToAbsType(toPiece) == pawn &&
+                       toPiece * fromPiece * relationType > 0 &&
+                       toPos != exceptPos) {
+                        if(abs(step) != 1){
+                            return true;
+                        }else if(inSideBoard[toPos] * toPiece < 0){
+                            return true;
+                        }
                     }
                 }
             }
@@ -294,11 +303,13 @@ private:
         if(inAdvisorLine[fromPos]){
             for(int step : advisorDelta){
                 const int toPos = fromPos + step;
-                const int toPiece = p.board.getPieceByPos(toPos);
-                if(swapBasicBoard::pieceToAbsType(toPiece) == advisor &&
-                    toPiece * fromPiece * relationType > 0 &&
-                    toPos != exceptPos){
-                    return true;
+                if(toPos > -1 && toPos < 255){
+                    const int toPiece = p.board.getPieceByPos(toPos);
+                    if(swapBasicBoard::pieceToAbsType(toPiece) == advisor &&
+                       toPiece * fromPiece * relationType > 0 &&
+                       toPos != exceptPos){
+                        return true;
+                    }
                 }
             }
         }
@@ -308,11 +319,13 @@ private:
         if(inBishopLine[fromPos]){
             for(int step : bishopDelta){
                 const int toPos = fromPos + step;
-                const int toPiece = p.board.getPieceByPos(toPos);
-                if(swapBasicBoard::pieceToAbsType(toPiece) == bishop &&
-                    toPiece * fromPiece * relationType > 0 &&
-                    toPos != exceptPos){
-                    return true;
+                if(toPos > -1 && toPos < 255){
+                    const int toPiece = p.board.getPieceByPos(toPos);
+                    if(swapBasicBoard::pieceToAbsType(toPiece) == bishop &&
+                       toPiece * fromPiece * relationType > 0 &&
+                       toPos != exceptPos){
+                        return true;
+                    }
                 }
             }
         }
@@ -331,11 +344,13 @@ private:
         if(inFort[fromPos]){
             for(int step : rayDelta){
                 const int toPos = fromPos + step;
-                const int toPiece = p.board.getPieceByPos(toPos);
-                if(swapBasicBoard::pieceToAbsType(toPiece) == king &&
-                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
-                    toPos != exceptPos){
-                    return true;
+                if(toPos > -1 && toPos < 255){
+                    const int toPiece = p.board.getPieceByPos(toPos);
+                    if(swapBasicBoard::pieceToAbsType(toPiece) == king &&
+                       toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                       toPos != exceptPos){
+                        return true;
+                    }
                 }
             }
         }
@@ -354,16 +369,20 @@ private:
                     const int stepList[3] = {1,-1,16 * (-p.side)};
                     for(int t : stepList){
                         const int toPos = pawnPos + t;
-                        const int toPiece = p.board.getPieceByPos(toPos);
-                        if(toPiece * pawnPiece <= genType && inBoard[toPos]){
-                            moveList.emplace_back(pawnPos,toPos,pawnPiece,toPiece);
+                        if(toPos > -1 && toPos < 255){
+                            const int toPiece = p.board.getPieceByPos(toPos);
+                            if(toPiece * pawnPiece <= genType && inBoard[toPos]){
+                                moveList.emplace_back(pawnPos,toPos,pawnPiece,toPiece);
+                            }
                         }
                     }
                 }else {
                     const int toPos = pawnPos + 16 * (-p.side);
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    if(toPiece * pawnPiece <= genType && inBoard[toPos]){
-                        moveList.emplace_back(pawnPos,toPos,pawnPiece,toPiece);
+                    if(toPos > -1 && toPos < 255){
+                        const int toPiece = p.board.getPieceByPos(toPos);
+                        if(toPiece * pawnPiece <= genType && inBoard[toPos]){
+                            moveList.emplace_back(pawnPos,toPos,pawnPiece,toPiece);
+                        }
                     }
                 }
             }
@@ -378,17 +397,20 @@ private:
                 if(inFortCenter[advisorPos]){
                     for(int step : advisorDelta){
                         const int toPos = advisorPos + step;
-                        const int toPiece = p.board.getPieceByPos(toPos);
-                        if(toPiece * advisorPiece <= genType && inFort[toPos]){
-                            moveList.emplace_back(advisorPos,toPos,advisorPiece,toPiece);
+                        if(toPos > -1 && toPos < 255){
+                            const int toPiece = p.board.getPieceByPos(toPos);
+                            if(toPiece * advisorPiece <= genType && inFort[toPos]){
+                                moveList.emplace_back(advisorPos,toPos,advisorPiece,toPiece);
+                            }
                         }
                     }
                 }else{
                     const int toPos = (p.side == red) ? redFortCenterPos : blackFortCenterPos;
                     const int toPiece = p.board.getPieceByPos(toPos);
-                    if(toPiece * advisorPiece <= genType && inFort[toPos]){
-                        moveList.emplace_back(advisorPos,toPos,advisorPiece,toPiece);
+                    if (toPiece * advisorPiece <= genType && inFort[toPos]) {
+                        moveList.emplace_back(advisorPos, toPos, advisorPiece, toPiece);
                     }
+
                 }
             }
         }
@@ -399,9 +421,11 @@ private:
         if(kingPos){
             for(int step : rayDelta){
                 const int toPos = kingPos + step;
-                const int toPiece = p.board.getPieceByPos(toPos);
-                if(toPiece * kingPiece <= genType && inFort[toPos]){
-                    moveList.emplace_back(kingPos,toPos,kingPiece,toPiece);
+                if(toPos > -1 && toPos < 255){
+                    const int toPiece = p.board.getPieceByPos(toPos);
+                    if(toPiece * kingPiece <= genType && inFort[toPos]){
+                        moveList.emplace_back(kingPos,toPos,kingPiece,toPiece);
+                    }
                 }
             }
         }
@@ -414,12 +438,16 @@ private:
             if(bishopPos){
                 for(int step : bishopDelta){
                     const int toPos = bishopPos + step;
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    const int eyePos = getBishopEye(bishopPos,toPos);
-                    if(toPiece * bishopPiece <= genType &&
-                        inSideBoard[toPos] * bishopPiece > 0 &&
-                        !p.board.getPieceByPos(eyePos)){
-                        moveList.emplace_back(bishopPos,toPos,bishopPiece,toPiece);
+                    if(toPos > -1 && toPos < 255){
+                        const int toPiece = p.board.getPieceByPos(toPos);
+                        const int eyePos = getBishopEye(bishopPos,toPos);
+                        if(eyePos > -1 && eyePos < 255){
+                            if(toPiece * bishopPiece <= genType &&
+                               inSideBoard[toPos] * bishopPiece > 0 &&
+                               !p.board.getPieceByPos(eyePos)){
+                                moveList.emplace_back(bishopPos,toPos,bishopPiece,toPiece);
+                            }
+                        }
                     }
                 }
             }
@@ -433,12 +461,16 @@ private:
             if(knightPos){
                 for(int step : knightDelta){
                     const int toPos = knightPos + step;
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    const int legPos = getKnightLeg(knightPos,toPos);
-                    if(toPiece * knightPiece <= genType &&
-                        inBoard[toPos] &&
-                        !p.board.getPieceByPos(legPos)){
-                        moveList.emplace_back(knightPos,toPos,knightPiece,toPiece);
+                    if(toPos > -1 && toPos < 255){
+                        const int toPiece = p.board.getPieceByPos(toPos);
+                        const int legPos = getKnightLeg(knightPos,toPos);
+                        if(legPos > -1 && legPos < 255){
+                            if(toPiece * knightPiece <= genType &&
+                               inBoard[toPos] &&
+                               !p.board.getPieceByPos(legPos)){
+                                moveList.emplace_back(knightPos,toPos,knightPiece,toPiece);
+                            }
+                        }
                     }
                 }
             }
@@ -455,7 +487,7 @@ private:
                 for(int a = 0; a < 4; a++){
                     const int mayEatToPos = p.bitBoard.getRayTargetPos(rookPos, targetList[a], 0);
                     //p.bitBoard.printBitBoard();
-                    if(mayEatToPos != -1){
+                    if(mayEatToPos > -1 && mayEatToPos < 255){
                         const int toPiece = p.board.getPieceByPos(mayEatToPos);
                         if(rookPiece * toPiece < 0){
                             moveList.emplace_back(rookPos,mayEatToPos,rookPiece,toPiece);
@@ -480,7 +512,7 @@ private:
                 const int targetList[4] = {leftTarget,rightTarget,upTarget,downTarget};
                 for(int a = 0;a < 4;a++){
                     const int mayEatToPos = p.bitBoard.getRayTargetPos(cannonPos,targetList[a],1);
-                    if(mayEatToPos != -1){
+                    if(mayEatToPos > -1 && mayEatToPos < 255){
                         const int toPiece = p.board.getPieceByPos(mayEatToPos);
                         if(cannonPiece * toPiece < 0){
                             moveList.emplace_back(cannonPos,mayEatToPos,cannonPiece,toPiece);

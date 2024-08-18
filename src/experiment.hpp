@@ -4,6 +4,7 @@
 #include <random>
 #include <cstdlib>
 #include <ctime>
+#include "omp.h"
 
 
 class test{
@@ -158,34 +159,63 @@ public:
         cout<<"the sum of files is "<<filePaths.size()<<endl;
 
         int i = 0;
-        for(const string& path : filePaths) {
+#pragma omp parallel for
+        for(int t = 0;t < filePaths.size();t++) {
+            string path = filePaths[t];
+#pragma omp critical
+            {
+                if(i < 2105){
+                    i++;
+                    continue;
+                }
+            }
+
             evaluate e = evaluate(initGameBoard,red);
             searchGroup s;
 
             ifstream in(path);
             string moveStr;
 
-            const string output_filename = "E:\\Projects_chess\\dump_3\\file_" + to_string(i) + ".txt";
+            string filename;
+            string output_filename;
+#pragma omp critical
+            {
+                filename = "file_" + to_string(i) + ".txt";
+                output_filename = "E:\\Projects_chess\\dump_3\\file_" + to_string(i) + ".txt";
+                cout<<output_filename<<endl;
+                i++;
+            }
             ofstream outfile;
             outfile.open(output_filename);
+
+            vector<string> movePool;
             while (getline(in, moveStr)) {
+                movePool.push_back(moveStr);
+            }
+            for(int a = 0;a < (int)movePool.size() && a < 100;a++){
                 if(e.isRep() != none_rep){
                     break;
                 }
-                e.resetEvaBoard();
-                const int mv = atoi(moveStr.c_str());
-                const int eva = s.searchMain(e,6,1000);
+                const int mv = atoi(movePool[a].c_str());
+                if(!e.makeMove(mv & 255,mv >> 8)){
+                    break;
+                }else{
+                    e.unMakeMove();
+                }
 
-                const string output = to_string(mv) + " " + to_string(eva);
+                const int basicEva = e.getEvaluate(e.side,MIN_VALUE,MAX_VALUE);
+                const int eva = s.searchMain(e,6,1000);
+                const string output = to_string(mv) + " " + to_string(basicEva) +" " +to_string(eva);
                 outfile<<output<<endl;
+                cout<<filename<<" "<<output<<endl;
 
                 if(!e.makeMove(mv & 255,mv >> 8)){
                     break;
                 }
             }
+
             in.close();
             outfile.close();
-            i++;
         }
     }
 

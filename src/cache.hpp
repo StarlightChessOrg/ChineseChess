@@ -65,17 +65,22 @@ enum nodeType{
 class hashItem{
 public:
     hashItem(){
+        reset();
+    }
+    void reset(){
         firstKey = secondKey = 0;
         vlAlpha = 0;
         vlBeta = 0;
         alphaDepth = betaDepth = 0;
+        move.fromPos = move.toPos = 0;
+        move.fromPiece = move.toPiece = 0;
     }
 protected:
     uint64 firstKey;
     int16 vlAlpha;
     int16 vlBeta;
-    uint8 alphaDepth;
-    uint8 betaDepth;
+    int8 alphaDepth;
+    int8 betaDepth;
     tinyMove move;
     uint64 secondKey;
     friend class hashCache;
@@ -84,27 +89,30 @@ protected:
 
 class hashCache{
 public:
-    explicit hashCache(uint64 n = 25){
+    explicit hashCache(uint64 n = 23){
+        cache = nullptr;
         initCache(n);
     }
     ~hashCache(){
         delCache();
     }
     void initCache(uint64 n){
-        nSize = n;
         //clean entirely
         delCache();
         //reset
-        cache.resize(((uint64)1 << n) + 1024);
+        nSize = (uint64)1 << n;
+        cache = new hashItem[(uint64)1 << n];
         mask = ((uint64)1 << n) - (uint64)1;
     }
     void delCache(){
-        vector<hashItem>().swap(cache);
+        if(cache){
+            delete[] cache;
+            cache = nullptr;
+        }
     }
     void clearCache(){
-        cache.resize(((uint64)1 << nSize) + 1024);
-        for(hashItem& item : cache){
-            item = hashItem();
+        for(int i = 0;i < nSize;i++){
+            cache[i].reset();
         }
     }
 protected:
@@ -214,6 +222,6 @@ protected:
 protected:
     uint64 nSize;
     uint64 mask{};
-    vector<hashItem> cache;
+    hashItem* cache;
     friend class searchGroup;
 };

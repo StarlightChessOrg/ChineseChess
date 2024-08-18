@@ -395,6 +395,9 @@ public:
     }
 
     bool makeMove(int fromPos,int toPos) {
+        if(fromPos < 0 || toPos < 0 || fromPos > 255 || toPos > 255){
+            return false;
+        }
         const int fromPiece = position::board.getPieceByPos(fromPos);
         const int fromIndex = swapBasicBoard::pieceToAbsType(fromPiece) - 1;
         const int toPiece = position::board.getPieceByPos(toPos);
@@ -677,7 +680,7 @@ private:
             if(pos){
                 for(int i = 0;i < 4;i++){
                     const int targetPos = position::bitBoard.getRayTargetPos(pos,targetPool[i],0);
-                    if(targetPos > -1){
+                    if(targetPos > -1 && targetPos < 255){
                         vlRedMobility += abs(targetPos - pos) / stepList[i];
                         if(position::board.getPieceByPos(targetPos) * piece > 0){
                             vlRedMobility--;
@@ -695,7 +698,7 @@ private:
             if(pos){
                 for(int i = 0;i < 4;i++){
                     const int targetPos = position::bitBoard.getRayTargetPos(pos,targetPool[i],0);
-                    if(targetPos > -1){
+                    if(targetPos > -1 && targetPos < 255){
                         vlBlackMobility += abs(targetPos - pos) / stepList[i];
                         if(position::board.getPieceByPos(targetPos) * piece > 0){
                             vlBlackMobility--;
@@ -724,18 +727,22 @@ private:
                 int cnt = 0;
                 for(int step : knightDelta){
                     const int toPos = pos + step;
-                    const int toPiece = position::board.getPieceByPos(toPos);
-                    const int legPos = getKnightLeg(pos,toPos);
-                    if(!inKnightEdge[toPos] &&
-                        !position::board.getPieceByPos(legPos) &&
-                        inBoard[toPos] &&
-                        piece * toPiece <= 0){
-                        if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            redPenalty -= 5;
-                            if(cnt > 2){
-                                break;
+                    if(toPos > -1 && toPos < 255){
+                        const int toPiece = position::board.getPieceByPos(toPos);
+                        const int legPos = getKnightLeg(pos,toPos);
+                        if(legPos > -1 && legPos < 255){
+                            if(!inKnightEdge[toPos] &&
+                               !position::board.getPieceByPos(legPos) &&
+                               inBoard[toPos] &&
+                               piece * toPiece <= 0){
+                                if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
+                                    redPenalty -= 5;
+                                    if(cnt > 2){
+                                        break;
+                                    }
+                                    cnt++;
+                                }
                             }
-                            cnt++;
                         }
                     }
                 }
@@ -750,18 +757,22 @@ private:
                 int cnt = 0;
                 for(int step : knightDelta){
                     const int toPos = pos + step;
-                    const int toPiece = position::board.getPieceByPos(toPos);
-                    const int legPos = getKnightLeg(pos,toPos);
-                    if(!inKnightEdge[toPos] &&
-                        !position::board.getPieceByPos(legPos) &&
-                        inBoard[toPos] &&
-                        piece * toPiece <= 0){
-                        if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            blackPenalty -= 5;
-                            if(cnt > 2){
-                                break;
+                    if(toPos > -1 && toPos < 255){
+                        const int toPiece = position::board.getPieceByPos(toPos);
+                        const int legPos = getKnightLeg(pos,toPos);
+                        if(legPos > -1 && legPos < 255){
+                            if(!inKnightEdge[toPos] &&
+                               !position::board.getPieceByPos(legPos) &&
+                               inBoard[toPos] &&
+                               piece * toPiece <= 0){
+                                if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
+                                    blackPenalty -= 5;
+                                    if(cnt > 2){
+                                        break;
+                                    }
+                                    cnt++;
+                                }
                             }
-                            cnt++;
                         }
                     }
                 }
@@ -830,7 +841,7 @@ private:
         if(redAdvisorPos.size() == 2 && inKingFortBottom[redKingPos]){
             if(inAdvisorFortBottom[redAdvisorPos.front()] && inAdvisorFortBottom[redAdvisorPos.back()]){
                 const int toPos = position::bitBoard.getRayTargetPos(redKingPos,upTarget,0);
-                if(toPos > -1){
+                if(toPos > -1 && toPos < 255){
                     const int toPiece = position::board.getPieceByPos(toPos);
                     const int toType = swapBasicBoard::pieceToAbsType(toPiece);
                     //空头炮
@@ -840,7 +851,7 @@ private:
                     //窝心马
                     if(toType == knight && toPiece > 0 && inFortCenter[toPos]){
                         const int toInvInvPos = position::bitBoard.getRayTargetPos(redKingPos,upTarget,2);
-                        if(toInvInvPos > -1){
+                        if(toInvInvPos > -1 && toInvInvPos < 255){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                             const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                             if(toInvInvType == cannon && toInvInvPiece < 0){
@@ -854,7 +865,7 @@ private:
         if(blackAdvisorPos.size() == 2 && inKingFortBottom[blackKingPos]){
             if(inAdvisorFortBottom[blackAdvisorPos.front()] && inAdvisorFortBottom[blackAdvisorPos.back()]){
                 const int toPos = position::bitBoard.getRayTargetPos(blackKingPos,downTarget,0);
-                if(toPos > -1){
+                if(toPos > -1 && toPos < 255){
                     const int toPiece = position::board.getPieceByPos(toPos);
                     const int toType = swapBasicBoard::pieceToAbsType(toPiece);
                     //空头炮
@@ -864,7 +875,7 @@ private:
                     //炮镇窝心马
                     if(toType == knight && toPiece < 0 && inFortCenter[toPos]){
                         const int toInvInvPos = position::bitBoard.getRayTargetPos(redKingPos,downTarget,2);
-                        if(toInvInvPos > -1){
+                        if(toInvInvPos > -1 && toInvInvPos < 255){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                             const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                             if(toInvInvType == cannon && toInvInvPiece > 0){
@@ -884,7 +895,7 @@ private:
                     const int targetPool[2] = {leftTarget,rightTarget};
                     for(int target : targetPool){
                         const int reverseBottomToPos = position::bitBoard.getRayTargetPos(redKingPos,target,2);
-                        if(reverseBottomToPos > -1){
+                        if(reverseBottomToPos > -1 && reverseBottomToPos < 255){
                             const int reverseBottomToPiece = position::board.getPieceByPos(reverseBottomToPos);
                             const int reverseBottomToType = swapBasicBoard::pieceToAbsType(reverseBottomToPiece);
                             if(reverseBottomToType == cannon && reverseBottomToPiece < 0){
@@ -894,24 +905,26 @@ private:
                     }
                     //中路检查
                     const int toInvInvPos = position::bitBoard.getRayTargetPos(redKingPos,upTarget,2);
-                    if(toInvInvPos > -1){
+                    if(toInvInvPos > -1 && toInvInvPos < 255){
                         const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                         const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                         if(toInvInvType == cannon && toInvInvPiece < 0){
                             vlRedAdvisorShape -= (vlHollowThreat[getY(toInvInvPos)] >> 2);
                             //检查将门是否被封锁
                             const int kingDoorPos = !position::board.getPieceByPos(redKingPos - 1) ? redKingPos - 1 : redKingPos + 1;
-                            const int kingDoorTarget = (kingDoorPos == redKingPos - 1) ? leftTarget : rightTarget;
-                            if(!position::board.getPieceByPos(kingDoorPos)){
-                                if(genMove::getRelation(*this,kingDoorPos,redKingPiece,beThreatened)){
-                                    vlRedAdvisorShape -= 20;
-                                    //检查车是否在底线防守将门
-                                    const int bottomToPos = position::bitBoard.getRayTargetPos(kingDoorPos,kingDoorTarget,0);
-                                    if(bottomToPos > -1){
-                                        const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
-                                        const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
-                                        if(bottomToType == rook && bottomToPiece > 0){
-                                            vlRedAdvisorShape -= 80;
+                            if(kingDoorPos > -1 && kingDoorPos < 255){
+                                const int kingDoorTarget = (kingDoorPos == redKingPos - 1) ? leftTarget : rightTarget;
+                                if(!position::board.getPieceByPos(kingDoorPos)){
+                                    if(genMove::getRelation(*this,kingDoorPos,redKingPiece,beThreatened)){
+                                        vlRedAdvisorShape -= 20;
+                                        //检查车是否在底线防守将门
+                                        const int bottomToPos = position::bitBoard.getRayTargetPos(kingDoorPos,kingDoorTarget,0);
+                                        if(bottomToPos > -1 && bottomToPos < 255){
+                                            const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
+                                            const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
+                                            if(bottomToType == rook && bottomToPiece > 0){
+                                                vlRedAdvisorShape -= 80;
+                                            }
                                         }
                                     }
                                 }
@@ -928,7 +941,7 @@ private:
                     const int targetPool[2] = {leftTarget,rightTarget};
                     for(int target : targetPool){
                         const int reverseBottomToPos = position::bitBoard.getRayTargetPos(blackKingPos,target,2);
-                        if(reverseBottomToPos > -1){
+                        if(reverseBottomToPos > -1 && reverseBottomToPos < 255){
                             const int reverseBottomToPiece = position::board.getPieceByPos(reverseBottomToPos);
                             const int reverseBottomToType = swapBasicBoard::pieceToAbsType(reverseBottomToPiece);
                             if(reverseBottomToType == cannon && reverseBottomToPiece < 0){
@@ -938,24 +951,26 @@ private:
                     }
                     //中路检查
                     const int toInvInvPos = position::bitBoard.getRayTargetPos(blackKingPos,upTarget,2);
-                    if(toInvInvPos > -1){
+                    if(toInvInvPos > -1 && toInvInvPos < 255){
                         const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                         const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                         if(toInvInvType == cannon && toInvInvPiece > 0){
                             vlBlackAdvisorShape -= (vlHollowThreat[yMirrorPos(getY(toInvInvPos))] >> 2);
                             //检查将门是否被封锁
                             const int kingDoorPos = !position::board.getPieceByPos(blackKingPos - 1) ? blackKingPos - 1 : blackKingPos + 1;
-                            const int kingDoorTarget = (kingDoorPos == blackKingPos - 1) ? leftTarget : rightTarget;
-                            if(!position::board.getPieceByPos(kingDoorPos)){
-                                if(genMove::getRelation(*this,kingDoorPos,blackKingPiece,beThreatened)){
-                                    vlBlackAdvisorShape -= 20;
-                                    //检查车是否在底线防守将门
-                                    const int bottomToPos = position::bitBoard.getRayTargetPos(kingDoorPos,kingDoorTarget,0);
-                                    if(bottomToPos > -1){
-                                        const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
-                                        const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
-                                        if(bottomToType == rook && bottomToPiece < 0){
-                                            vlBlackAdvisorShape -= 80;
+                            if(kingDoorPos > -1 && kingDoorPos < 255){
+                                const int kingDoorTarget = (kingDoorPos == blackKingPos - 1) ? leftTarget : rightTarget;
+                                if(!position::board.getPieceByPos(kingDoorPos)){
+                                    if(genMove::getRelation(*this,kingDoorPos,blackKingPiece,beThreatened)){
+                                        vlBlackAdvisorShape -= 20;
+                                        //检查车是否在底线防守将门
+                                        const int bottomToPos = position::bitBoard.getRayTargetPos(kingDoorPos,kingDoorTarget,0);
+                                        if(bottomToPos > -1 && bottomToPos < 255){
+                                            const int bottomToPiece = position::board.getPieceByPos(bottomToPos);
+                                            const int bottomToType = swapBasicBoard::pieceToAbsType(bottomToPiece);
+                                            if(bottomToType == rook && bottomToPiece < 0){
+                                                vlBlackAdvisorShape -= 80;
+                                            }
                                         }
                                     }
                                 }
@@ -1016,7 +1031,7 @@ private:
         const int toPos = position::bitBoard.getRayTargetPos(pos,target,0);
         const int toInvPos = position::bitBoard.getRayTargetPos(pos,target,1);
         //第二个和第三个子必须存在
-        if(toPos > -1 && toInvPos > -1){
+        if(toPos > -1 && toInvPos > -1 && toPos < 255 && toInvPos < 255){
             const int toPiece = position::board.getPieceByPos(toPos);
             const int toInvPiece = position::board.getPieceByPos(toInvPos);
             const int toType = swapBasicBoard::pieceToAbsType(toPiece);
@@ -1027,7 +1042,7 @@ private:
                 if(fromType == king){
                     if(toType == rook){
                         //将车车，不成立
-                        if(toInvInvPos > -1){
+                        if(toInvInvPos > -1 && toInvInvPos < 255){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                             const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                             if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
@@ -1040,7 +1055,7 @@ private:
                             //将马车
                             hold = true;
                         }
-                        if(toInvInvPos > -1 && !hold){
+                        if(toInvInvPos > -1 && toInvInvPos < 255 && !hold){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                             const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                             if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
@@ -1065,7 +1080,7 @@ private:
                                 hold = true;
                             }
                         }
-                        if(toInvInvPos > -1 && !hold){
+                        if(toInvInvPos > -1 && toInvInvPos < 255 && !hold){
                             const int toInvInvPiece = position::board.getPieceByPos(toInvInvPos);
                             const int toInvInvType = swapBasicBoard::pieceToAbsType(toInvInvPiece);
                             if(piece * toInvInvPiece < 0 && toInvInvType == cannon){
