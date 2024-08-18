@@ -159,15 +159,11 @@ public:
         cout<<"the sum of files is "<<filePaths.size()<<endl;
 
         int i = 0;
-#pragma omp parallel for
         for(int t = 0;t < filePaths.size();t++) {
             string path = filePaths[t];
-#pragma omp critical
-            {
-                if(i < 2105){
-                    i++;
-                    continue;
-                }
+            if(i < 2136){
+                i++;
+                continue;
             }
 
             evaluate e = evaluate(initGameBoard,red);
@@ -178,13 +174,10 @@ public:
 
             string filename;
             string output_filename;
-#pragma omp critical
-            {
-                filename = "file_" + to_string(i) + ".txt";
-                output_filename = "E:\\Projects_chess\\dump_3\\file_" + to_string(i) + ".txt";
-                cout<<output_filename<<endl;
-                i++;
-            }
+            filename = "file_" + to_string(i) + ".txt";
+            output_filename = "E:\\Projects_chess\\dump_3\\file_" + to_string(i) + ".txt";
+            cout<<output_filename<<endl;
+            i++;
             ofstream outfile;
             outfile.open(output_filename);
 
