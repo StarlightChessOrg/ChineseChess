@@ -89,7 +89,7 @@ protected:
 
 class hashCache{
 public:
-    explicit hashCache(uint64 n = 23){
+    explicit hashCache(uint64 n = 19){
         cache = nullptr;
         initCache(n);
     }

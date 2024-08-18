@@ -161,7 +161,7 @@ public:
         int i = 0;
         for(int t = 0;t < filePaths.size();t++) {
             string path = filePaths[t];
-            if(i < 2136){
+            if(i < 2267){
                 i++;
                 continue;
             }
@@ -197,7 +197,7 @@ public:
                 }
 
                 const int basicEva = e.getEvaluate(e.side,MIN_VALUE,MAX_VALUE);
-                const int eva = s.searchMain(e,6,1000);
+                const int eva = s.searchMain(e,4,1000);
                 const string output = to_string(mv) + " " + to_string(basicEva) +" " +to_string(eva);
                 outfile<<output<<endl;
                 cout<<filename<<" "<<output<<endl;
