@@ -34,6 +34,19 @@ def cal_distance(root_path,start_file_index):
     print(f"basic delta : {round(delta / cnt,3)}")
     return int(delta * 1000)
 
+def convert_to_x_label(game_board,side):
+    x_label = np.zeros(shape=(28 * 256),dtype=np.float32)
+    for i,p in enumerate(game_board):
+        if p > 0 and side > 0:
+            x_label[(abs(p) - 1) * 256 + i] = 1
+        elif p > 0 and side < 0:
+            x_label[(abs(p) - 1 + 14) * 256 + i] = 1
+        elif p < 0 and side < 0:
+            x_label[(abs(p) + 6) * 256 + i] = 1
+        elif p < 0 and side > 0:
+            x_label[(abs(p) + 6 + 14) * 256 + i] = 1
+    return x_label
+
 def convert_to_xy_labels(game_board,side,promote_eva):
     x_label = np.zeros(shape=(28 * 256),dtype=np.float32)
     for i,p in enumerate(game_board):
