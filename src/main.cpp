@@ -1,8 +1,6 @@
-#include "pipe.hpp"
+#include "experiment.hpp"
 
 int main(){
-    pipe job;
-    job.work();
-    //test::testSearch();
+    cout<<endl;
     return 0;
 }
