@@ -7,6 +7,38 @@ import torch.nn as nn
 import torch.nn.functional as F
 import train
 
+[K,A,B,N,R,C,P] = [1,2,3,4,5,6,7]
+[k,a,b,n,r,c,p] = [-1,-2,-3,-4,-5,-6,-7]
+
+single_game_board = np.asarray([
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,r,n,b,a,k,a,b,n,r,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,c,0,0,0,0,0,c,0,0,0,0,0,
+    0,0,0,p,0,p,0,p,0,p,0,p,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,P,0,P,0,P,0,P,0,P,0,0,0,0,
+    0,0,0,0,C,0,0,0,0,0,C,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,R,N,B,A,K,A,B,N,R,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+])
+
+def single_forward():
+    model_path = "./models/model_42.pkl"
+    nnue = torch.load(model_path)
+    game_board = copy.deepcopy(single_game_board)
+    side = 1
+    x_numpy = train.convert_to_x_label(game_board, side)
+    x_label = torch.from_numpy(x_numpy).to(train.device)
+    y = nnue(x_label)
+    print(y)
+
 def hand_forward():
     model_path = "./models/model_42.pkl"
     nnue = torch.load(model_path)
@@ -18,9 +50,9 @@ def hand_forward():
     game_board = copy.deepcopy(get_data.init_game_board)
     #print(game_board.reshape(16,16))
     side = 1
-    x_numpy = train.convert_to_x_label(game_board,1)
+    x_numpy = train.convert_to_x_label(game_board,side)
     x_label = torch.from_numpy(x_numpy).to(train.device)
-    y = nnue(x_label)
+    #y = nnue(x_label)
     #print(y)
     _input_layer_1 = np.zeros(shape=(128),dtype=np.float32)
     for i in range(len(x_numpy)):
@@ -89,4 +121,5 @@ def pop_param():
         f.close()
 
 if __name__ == "__main__":
-    pop_param()
+    #pop_param()
+    single_forward()
