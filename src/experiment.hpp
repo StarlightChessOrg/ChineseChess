@@ -1,13 +1,18 @@
 #pragma once
-#include "preGenMove.hpp"
 #include <iostream>
 #include <ctime>
 #include <random>
 #include <cstdlib>
+#include "genMove.hpp"
 using namespace std;
 
-class test{
-public:
-
+struct test{
+    static void testGenMove(){
+        position p;
+        p.side = black;
+        vector<step> moveList;
+        genMove::genMoveList(p,moveList,all);
+        step::printMoveList(moveList);
+    }
 };
 

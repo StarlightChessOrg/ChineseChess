@@ -1,6 +1,78 @@
 #pragma once
 #include "base.hpp"
 
+class tinyMove{
+public:
+    tinyMove(){
+        fromPos = toPos = 0;
+        fromPiece = toPiece = 0;
+    }
+    tinyMove(uint8 fromPos,uint8 toPos,int8 fromPiece,int8 toPiece){
+        this->fromPos = fromPos;
+        this->toPos = toPos;
+        this->fromPiece = fromPiece;
+        this->toPiece = toPiece;
+    }
+    uint8 fromPos;
+    uint8 toPos;
+    int8 fromPiece;
+    int8 toPiece;
+    friend class hashItem;
+    friend class position;
+    friend class evaluate;
+    friend class searchGroup;
+};
+
+
+class step{
+public:
+    step(){
+        fromPos = 0;
+        toPos = 0;
+        fromPiece = 0;
+        toPiece = 0;
+        vl = 0;
+        sortType = 0;
+    }
+    step(int fromPos,int toPos,int fromPiece,int toPiece,int vl = 0){
+        this->fromPos = fromPos;
+        this->toPos = toPos;
+        this->fromPiece = fromPiece;
+        this->toPiece = toPiece;
+        this->vl = vl;
+        sortType = 0;
+    }
+    void printMove() const{
+        cout<<setw(3)<<fromPiece<<" from "<<fromPos<<" to "<<toPos <<" and eat "<<toPiece<<" with vl = "<<vl<<endl;
+    }
+    static void printMoveList(vector<step>& moveList){
+        cout<<"--------------------------------------"<<endl;
+        for(step& s : moveList){
+            s.printMove();
+        }
+        cout<<"total size of move list is "<<moveList.size()<<endl;
+    }
+    bool operator!=(const step& otherMove) const{
+        return !((fromPos == otherMove.fromPos) &&
+                 (toPos == otherMove.toPos) &&
+                 (fromPiece == otherMove.fromPiece) &&
+                 (toPiece == otherMove.toPiece));
+    }
+    bool operator==(const step& otherMove) const{
+        return  (fromPos == otherMove.fromPos) &&
+                (toPos == otherMove.toPos) &&
+                (fromPiece == otherMove.fromPiece) &&
+                (toPiece == otherMove.toPiece);
+    }
+public:
+    int fromPos;
+    int toPos;
+    int fromPiece;
+    int toPiece;
+    int vl;
+    int sortType;
+};
+
 class preStep{
 public:
     preStep(){
@@ -17,6 +89,7 @@ protected:
     int toPos;
     int barrierPos;
     friend class test;
+    friend class genMove;
 };
 
 enum gameSide{
@@ -88,13 +161,13 @@ private:
             if(inRedPawnLine[pos]){
                 if(inSideBoard[pos] > 0){
                     const int toPos = pos - 16;
-                    RedPawnPreMoveList[pos].emplace_back(pos,toPos);
+                    redPawnPreMoveList[pos].emplace_back(pos,toPos);
                 }else{
                     const int stepList[3] = {-1,1,-16};
                     for(int step : stepList){
                         const int toPos = pos + step;
                         if(inBoard[toPos]){
-                            RedPawnPreMoveList[pos].emplace_back(pos,toPos);
+                            redPawnPreMoveList[pos].emplace_back(pos,toPos);
                         }
                     }
                 }
@@ -102,13 +175,13 @@ private:
             if(inBlackPawnLine[pos]){
                 if(inSideBoard[pos] < 0){
                     const int toPos = pos + 16;
-                    BlackPawnPreMoveList[pos].emplace_back(pos,toPos);
+                    blackPawnPreMoveList[pos].emplace_back(pos,toPos);
                 }else{
                     const int stepList[3] = {-1,1,16};
                     for(int step : stepList){
                         const int toPos = pos + step;
                         if(inBoard[toPos]){
-                            BlackPawnPreMoveList[pos].emplace_back(pos,toPos);
+                            blackPawnPreMoveList[pos].emplace_back(pos,toPos);
                         }
                     }
                 }
@@ -120,8 +193,10 @@ protected:
     vector<preStep> advisorPreMoveList[256];
     vector<preStep> bishopPreMoveList[256];
     vector<preStep> knightPreMoveList[256];
-    vector<preStep> RedPawnPreMoveList[256];
-    vector<preStep> BlackPawnPreMoveList[256];
+    vector<preStep> redPawnPreMoveList[256];
+    vector<preStep> blackPawnPreMoveList[256];
+    friend class test;
+    friend class genMove;
 }preGenMoveInstance;
 
 

@@ -7,19 +7,9 @@
 #include <random>
 #include <iomanip>
 #include <algorithm>
-#include "base.hpp"
+#include "preGenMove.hpp"
 
 using namespace std;
-
-typedef char int8;
-typedef short int16;
-typedef int int32;
-typedef long long int64;
-
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned long long uint64;
 
 enum target{
     leftTarget = 0,
@@ -427,11 +417,6 @@ private:
     friend class searchGroup;
 };
 
-enum gameSide{
-    red = 1,
-    black = -1
-};
-
 class position{
 public:
     explicit position(const int anotherBoard[256] = initGameBoard, int initSide = red){
@@ -509,3 +494,65 @@ protected:
     friend class searchGroup;
 };
 
+class hashKey{
+public:
+    hashKey(){
+        initHashKey();
+    }
+
+protected:
+    void entireKey(position& p,uint64& firstkey,uint64& secondKey){
+        firstkey = secondKey = 0;
+        for(int pos = 51;pos < 205;pos++){
+            const int piece = p.board.getPieceByPos(pos);
+            if(piece){
+                int convert_type = swapBasicBoard::pieceToAbsType(piece) - 1;
+                firstkey ^= keyMatrix[0][convert_type][pos];
+                secondKey ^= keyMatrix[1][convert_type][pos];
+            }
+        }
+        this->keyPlayer = getKey();
+    }
+    void stepKey(uint64& firstkey,uint64& secondKey,step move){
+        int from_convert_type = swapBasicBoard::pieceToAbsType(move.fromPiece) - 1;
+        if(move.fromPiece < 0){
+            from_convert_type += 7;
+        }
+        assert(from_convert_type >= 0 && from_convert_type <= 13);
+        firstkey ^= keyMatrix[0][from_convert_type][move.fromPos];
+        firstkey ^= keyMatrix[0][from_convert_type][move.toPos];
+        secondKey ^= keyMatrix[1][from_convert_type][move.fromPos];
+        secondKey ^= keyMatrix[1][from_convert_type][move.toPos];
+        if(move.toPiece){
+            int to_convert_type = swapBasicBoard::pieceToAbsType(move.toPiece) - 1;
+            assert(to_convert_type >= 0 && to_convert_type <= 13);
+            if(move.toPiece < 0){
+                to_convert_type += 7;
+            }
+            firstkey ^= keyMatrix[0][to_convert_type][move.toPos];
+            secondKey ^= keyMatrix[1][to_convert_type][move.toPos];
+        }
+    }
+    void initHashKey(){
+        e.seed(7931);
+        for(auto& i : keyMatrix){
+            for(auto& a : i){
+                for(auto& c : a){
+                    c = getKey();
+                }
+            }
+        }
+        keyPlayer = getKey();
+    }
+private:
+    uint64 getKey(){
+        uniform_int_distribution<uint64> u(16383,65535);
+        return u(e) ^ (u(e) << 15) ^ (u(e) << 30) ^ (u(e) << 45) ^ (u(e) << 60);
+    }
+protected:
+    default_random_engine e;
+    uint64 keyMatrix[2][14][256]{};
+    uint64 keyPlayer{};
+    friend class searchGroup;
+    friend class evaluate;
+};

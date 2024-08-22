@@ -1,6 +1,6 @@
 #include "experiment.hpp"
 
 int main(){
-    cout<<endl;
+    test::testGenMove();
     return 0;
 }

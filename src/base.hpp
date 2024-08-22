@@ -7,6 +7,16 @@
 #include <io.h>
 using namespace std;
 
+typedef char int8;
+typedef short int16;
+typedef int int32;
+typedef long long int64;
+
+typedef unsigned char uint8;
+typedef unsigned short uint16;
+typedef unsigned int uint32;
+typedef unsigned long long uint64;
+
 //初始的游戏棋盘
 const int initGameBoard[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
