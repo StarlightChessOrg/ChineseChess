@@ -36,10 +36,8 @@ public:
     }
     void recoardCache(evaluate& e,step& move){
         const int nowPosDistance = e.getNowDistance();
-        if(move != killerMoveList[nowPosDistance][0]){
-            killerMoveList[nowPosDistance][1] = killerMoveList[nowPosDistance][0];
-            killerMoveList[nowPosDistance][0] = move;
-        }
+        killerMoveList[nowPosDistance][1] = killerMoveList[nowPosDistance][0];
+        killerMoveList[nowPosDistance][0] = move;
     }
 protected:
     void clearCache(){
