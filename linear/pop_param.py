@@ -42,12 +42,19 @@ def single_forward():
 def hand_forward():
     model_path = "./models/model_42.pkl"
     nnue = torch.load(model_path)
-    layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy()
-    layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy()
-    layer_weight_2 = nnue.fc2.weight.detach().cpu().numpy()
-    layer_bias_2 = nnue.fc2.bias.detach().cpu().numpy()
+    p = 32
+    layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy() * p
+    layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy() * p
+    layer_weight_2 = nnue.fc2.weight.detach().cpu().numpy() * p
+    layer_bias_2 = nnue.fc2.bias.detach().cpu().numpy() * p
+    layer_weight_1 = layer_weight_1.astype(np.int32)
+    layer_bias_1 = layer_bias_1.astype(np.int32)
+    layer_weight_2 = layer_weight_2.astype(np.int32)
+    layer_bias_2 = layer_bias_2.astype(np.int32)
+    print(layer_weight_1)
+    print(layer_weight_2)
     #print(layer_weight_1.shape,layer_bias_1.shape)
-    game_board = copy.deepcopy(get_data.init_game_board)
+    game_board = copy.deepcopy(single_game_board)
     #print(game_board.reshape(16,16))
     side = 1
     x_numpy = train.convert_to_x_label(game_board,side)
@@ -67,6 +74,8 @@ def hand_forward():
     for c in range(128):
         if _input_layer_1[c] < 0:
             _input_layer_1[c] = 0
+
+
 
     _layer_2 = F.relu(_layer_1)
     #print(_input_layer_1)
@@ -122,4 +131,5 @@ def pop_param():
 
 if __name__ == "__main__":
     #pop_param()
-    single_forward()
+    hand_forward()
+    #single_forward()
