@@ -35,6 +35,10 @@ public:
         sortType = 0;
     }
     step(int fromPos,int toPos,int fromPiece,int toPiece,int vl = 0){
+        assert(fromPos >= 0 && fromPos <= 255);
+        assert(toPos >= 0 && toPos <= 255);
+        assert(inBoard[fromPos] && inBoard[toPos]);
+        assert(fromPiece);
         this->fromPos = fromPos;
         this->toPos = toPos;
         this->fromPiece = fromPiece;

@@ -1,5 +1,5 @@
 #pragma once
-#include "genMove.hpp"
+#include "status.hpp"
 
 class historyCache{
 public:
@@ -21,8 +21,6 @@ private:
     friend class searchGroup;
     friend class moveSort;
 };
-
-static const int MAX_KILLER_MOVE_NUM = 128;
 
 class killerCache{
 public:
@@ -51,8 +49,7 @@ protected:
         }
     }
 private:
-    step killerMoveList[MAX_KILLER_MOVE_NUM][2];
-    friend class searchGroup;
+    step killerMoveList[128][2];
 };
 
 enum nodeType{
@@ -79,7 +76,6 @@ protected:
     tinyMove move;
     uint64 secondKey;
     friend class hashCache;
-    friend class searchGroup;
 };
 
 class hashCache{
@@ -95,14 +91,14 @@ public:
         //clean entirely
         delCache();
         //reset
-        cache.resize(((uint64)1 << n) + 1024);
+        cache.resize(((uint64)1 << n));
         mask = ((uint64)1 << n) - (uint64)1;
     }
     void delCache(){
         vector<hashItem>().swap(cache);
     }
     void clearCache(){
-        cache.resize(((uint64)1 << nSize) + 1024);
+        cache.resize(((uint64)1 << nSize));
         for(hashItem& item : cache){
             item = hashItem();
         }
@@ -117,7 +113,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(readAdujstValue(e,pH.vlAlpha,vlGet)){
+                    if(readAdujstValue(e,pH.vlAlpha,vlGet) && e.Stable()){
                         vl = vlGet;
                         return true;
                     }
@@ -127,7 +123,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(readAdujstValue(e,pH.vlBeta,vlGet)){
+                    if(readAdujstValue(e,pH.vlBeta,vlGet) && e.Stable()){
                         vl = vlGet;
                         return true;
                     }
@@ -137,7 +133,6 @@ protected:
         }
         return false;
     }
-
     static bool readAdujstValue(evaluate& e,int vlHash,int& vlGet){
         if(vlHash == e.getDrawValue()){
             return false;
@@ -171,22 +166,27 @@ protected:
                         pH.vlBeta = (int16)vl;
                         pH.betaDepth = (int8)depth;
                     }
-                    if(pMove && pMove->fromPos){
+                    if(pMove){
+                        assert(pMove->fromPos);
                         pH.move = tinyMove(pMove->fromPos,pMove->toPos,pMove->fromPiece,pMove->toPiece);
                     }
                 }
                 break;
             }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
                 if(recoardAdujstValue(e,vl)){
-                    if((nodeType & alpha) && ((depth > pH.alphaDepth || pH.vlAlpha >= vl))){
+                    if((nodeType & alpha) && ((depth > pH.alphaDepth || (depth == pH.alphaDepth && pH.vlAlpha > vl)))){
                         pH.vlAlpha = (int16)vl;
                         pH.alphaDepth = depth;
                     }
-                    if((nodeType & beta) && ((depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta <= vl))){
+                    if((nodeType & beta) &&
+                            ((depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta < vl)) &&
+                            (!pH.move.fromPos || pMove)){
+                        assert(pMove->fromPos);
                         pH.vlBeta = (int16)vl;
                         pH.betaDepth = depth;
                     }
-                    if(pMove && pMove->fromPos){
+                    if(pMove){
+                        assert(pMove->fromPos);
                         pH.move = tinyMove(pMove->fromPos,pMove->toPos,pMove->fromPiece,pMove->toPiece);
                     }
                 }
@@ -213,7 +213,6 @@ protected:
     }
 protected:
     uint64 nSize;
-    uint64 mask{};
+    uint64 mask;
     vector<hashItem> cache;
-    friend class searchGroup;
 };

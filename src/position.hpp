@@ -441,42 +441,11 @@ public:
         this->bitBoard.makeMove(fromPos,toPos);
     }
 
-    virtual void unMakeMove(int fromPos,int toPos,int fromPiece,int toPiece){
+    void unMakeMove(int fromPos,int toPos,int fromPiece,int toPiece){
         changeSide();
         this->board.unMakeMove(fromPos,toPos,toPiece);
         this->swapBoard.unmakeMove(fromPiece,toPiece,fromPos,toPos);
         this->bitBoard.unMakeMove(fromPos,toPos,toPiece);
-    }
-protected:
-    bool operator==(const position& other){
-        if(side != other.side){
-            return false;
-        }
-        if(firstHashKey != other.firstHashKey ||
-           secondHashKey != other.secondHashKey){
-            return false;
-        }
-        if(board != other.board ||
-           swapBoard != other.swapBoard ||
-           bitBoard != other.bitBoard){
-            return false;
-        }
-        return true;
-    }
-    bool operator!=(const position& other){
-        if(side != other.side){
-            return true;
-        }
-        if(firstHashKey != other.firstHashKey ||
-           secondHashKey != other.secondHashKey){
-            return true;
-        }
-        if(board != other.board ||
-           swapBoard != other.swapBoard ||
-           bitBoard != other.bitBoard){
-            return true;
-        }
-        return false;
     }
     void changeSide(){
         this->side = -this->side;

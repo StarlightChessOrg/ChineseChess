@@ -26,13 +26,13 @@ public:
     }
 protected:
     //将军检测
-    static bool CheckedBy(position& p,int side){
+    static bool Check(position& p,int side){
         const int kingPiece = (side == red) ? redKingPiece : blackKingPiece;
         const int kingPos = p.swapBoard.getPosByPiece(kingPiece);
         return getRelation(p,kingPos,kingPiece,beThreatened);
     }
     //捉子判断
-    static bool ChasedBy(position& p,step& move){
+    static bool Chase(position& p,step& move){
         const int fromType = swapBasicBoard::pieceToAbsType(move.fromPiece);
         if(fromType == rook){
             const int pIndex = 2 * (getX(move.fromPos) != getX(move.toPos));
