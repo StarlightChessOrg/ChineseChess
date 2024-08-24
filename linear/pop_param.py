@@ -42,8 +42,8 @@ def single_forward():
 def hand_forward():
     model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
-    p1 = 2048
-    p2 = 32
+    p1 = 4096
+    p2 = 4096
     layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy() * p1
     layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy() * p1
     layer_weight_2 = nnue.fc2.weight.detach().cpu().numpy() * p2
@@ -69,32 +69,30 @@ def hand_forward():
                 _input_layer_1[c] += layer_weight_1[c][i]
     _input_layer_1 += layer_bias_1
     #print(_input_layer_1,_input_layer_1.shape)
-    _layer_1 = nnue.fc1(x_label)
+    #_layer_1 = nnue.fc1(x_label)
     #print(_input_layer_1)
     #print(_layer_1)
     for c in range(128):
         if _input_layer_1[c] < 0:
             _input_layer_1[c] = 0
         else:
-            _input_layer_1[c] //= 64
+            _input_layer_1[c] = int(_input_layer_1[c]) >> 6
 
-
-
-    _layer_2 = F.relu(_layer_1)
+    #_layer_2 = F.relu(_layer_1)
     #print(_input_layer_1)
     #print(_layer_2)
     _output_layer_2 = 0
     for i in range(128):
         _output_layer_2 += _input_layer_1[i] * layer_weight_2[0][i]
     _output_layer_2 += layer_bias_2
-    _layer_2 = nnue.fc2(_layer_2)
-    print(_output_layer_2)
+    #_layer_2 = nnue.fc2(_layer_2)
+    print(_output_layer_2 // 32)
     #print(_layer_2)
     #_output = np.tanh(_output_layer_2)
     #print(_output_layer_2)
 
 def pop_param():
-    model_path = "../model_5__168.pkl"
+    model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
     layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy()
     layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy()
@@ -120,7 +118,7 @@ def pop_param():
     with open("E:\\layer_2_weight.txt","w+",encoding="utf-8") as f:
         for i in range(len(layer_weight_2)):
             for a in range(len(layer_weight_2[i])):
-                f.write(str(round(layer_weight_1[2][a],8)))
+                f.write(str(round(layer_weight_2[i][a],8)))
                 f.write(" ")
             f.write("\n")
         f.close()

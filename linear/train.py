@@ -57,7 +57,7 @@ def convert_to_xy_labels(game_board,side,promote_eva):
         elif p < 0:
             x_label[(abs(p) + 6) * 256 + i] = 1
     if side > 0:
-        x_label[14] = 1
+        x_label[14] = 1 # 14 * 256 is entirely right!
     else:
         x_label[14] = 0
     y_label = np.array([scale_tanh(promote_eva)],dtype=np.float32)

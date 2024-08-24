@@ -30,11 +30,15 @@ struct test{
 
     static void testNNUE(){
         evaluate e = evaluate(initGameBoard,red);
+        //e.makeMove(164,167);
+        //e.makeMove(196,165);
+        e.board.printBasicBoard();
         nnue* pN = nullptr;
         pN = new nnue;
         pN->readPara(R"(E:..\linear\para)");
         pN->initCache(e);
-        cout<<endl;
+        int vl = pN->forward(e);
+        cout<<vl<<endl;
     }
 };
 

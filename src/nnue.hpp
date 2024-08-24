@@ -8,13 +8,15 @@ public:
         initPara();
     }
     void initPara(){
-        memset(layerWeight_1,0,sizeof(int) * 7168 * 128);
+        memset(layerWeight_1,0,sizeof(int) * 3840 * 128);
         memset(layerBias_1,0,sizeof(int) * 128);
         memset(layerWeight_2,0,sizeof(int) * 128);
         memset(inputCache,0,sizeof(int) * 128);
         layerBias_2 = 0;
     }
-    void readPara(const string& rootPath,const double magnify = 4096.0){
+    void readPara(const string& rootPath){
+        const double firstMagnify = 2048.0;
+        const double secondMagnify = 32.0;
         //w1
         ifstream weight_1(rootPath + "\\layer_1_weight.txt");
         string tStr;
@@ -22,11 +24,11 @@ public:
         while(getline(weight_1,tStr)){
             vector<string> splits;
             stringSplit(tStr.c_str(),' ',splits);
-            lineIndex++;
             for(int a = 0;a < splits.size();a++){
-                const int tPara = atof(splits[a].c_str()) * magnify;
+                const int tPara = atof(splits[a].c_str()) * firstMagnify;
                 layerWeight_1[a][lineIndex] = tPara;
             }
+            lineIndex++;
         }
         weight_1.close();
         //b1
@@ -35,9 +37,8 @@ public:
         getline(bias_1,tStr);
         vector<string> splits;
         stringSplit(tStr.c_str(),' ',splits);
-        lineIndex++;
         for(int a = 0;a < splits.size();a++){
-            const int tPara = atof(splits[a].c_str()) * magnify;
+            const int tPara = atof(splits[a].c_str()) * firstMagnify;
             layerBias_1[a] = tPara;
         }
         bias_1.close();
@@ -48,7 +49,7 @@ public:
         splits.clear();
         stringSplit(tStr.c_str(),' ',splits);
         for(int a = 0;a < splits.size();a++){
-            const int tPara = atof(splits[a].c_str()) * magnify;
+            const int tPara = atof(splits[a].c_str()) * secondMagnify;
             layerWeight_2[a] = tPara;
         }
         weight_2.close();
@@ -56,20 +57,41 @@ public:
         ifstream bias_2(rootPath + "\\layer_2_bias.txt");
         tStr.clear();
         bias_2 >> tStr;
-        const int tPara = atof(tStr.c_str()) * magnify;
+        const int tPara = atof(tStr.c_str()) * secondMagnify;
         layerBias_2 = tPara;
         bias_2.close();
     }
 protected:
+    int forward(evaluate& e){
+        int _inputCache[128] = {0};
+        memcpy(_inputCache,inputCache,sizeof(int) * 128);
+        if(e.side == red){
+#pragma omp simd
+            for(int i = 0;i < 128;i++){
+                _inputCache[i] += layerWeight_1[14][i];
+            }
+        }
+#pragma omp simd
+        for(int & v : _inputCache){
+            v = (v > 0) ? (v >> 6) : 0;
+        }
+        int output = 0;
+#pragma omp simd
+        for(int i = 0;i < 128;i++){
+            output += _inputCache[i] * layerWeight_2[i];
+        }
+        output += layerBias_2;
+        return output;
+    }
     void makeMove(evaluate& e,step& move){
-        const int fromIndex = getCacheIndex(move.fromPiece,move.fromPos,e.side);
-        const int toIndex = getCacheIndex(move.fromPiece,move.toPos,e.side);
+        const int fromIndex = getAheadCacheIndex(move.fromPiece,move.fromPos);
+        const int toIndex = getAheadCacheIndex(move.fromPiece,move.toPos);
 #pragma omp simd
         for(int i = 0;i < 128;i++){
             inputCache[i] += layerWeight_1[toIndex][i] - layerWeight_1[fromIndex][i];
         }
         if(move.toPiece){
-            const int _toIndex= getCacheIndex(move.toPiece,move.toPos,-e.side);
+            const int _toIndex= getAheadCacheIndex(move.toPiece,move.toPos);
 #pragma omp simd
             for(int i = 0;i < 128;i++){
                 inputCache[i] -= layerWeight_1[_toIndex][i];
@@ -77,14 +99,14 @@ protected:
         }
     }
     void unmakeMove(evaluate& e,step& move){
-        const int fromIndex = getCacheIndex(move.fromPiece,move.fromPos,e.side);
-        const int toIndex = getCacheIndex(move.fromPiece,move.toPos,e.side);
+        const int fromIndex = getAheadCacheIndex(move.fromPiece,move.fromPos);
+        const int toIndex = getAheadCacheIndex(move.fromPiece,move.toPos);
 #pragma omp simd
         for(int i = 0;i < 128;i++){
             inputCache[i] -= layerWeight_1[toIndex][i] - layerWeight_1[fromIndex][i];
         }
         if(move.toPiece){
-            const int _toIndex= getCacheIndex(move.toPiece,move.toPos,-e.side);
+            const int _toIndex= getAheadCacheIndex(move.toPiece,move.toPos);
 #pragma omp simd
             for(int i = 0;i < 128;i++){
                 inputCache[i] += layerWeight_1[_toIndex][i];
@@ -97,7 +119,7 @@ protected:
             if(inBoard[pos]){
                 const int piece = e.board.getPieceByPos(pos);
                 if(piece){
-                    const int index = getCacheIndex(piece,pos,e.side);
+                    const int index = getAheadCacheIndex(piece,pos);
 #pragma omp simd
                     for(int i = 0;i < 128;i++){
                         inputCache[i] += layerWeight_1[index][i];
@@ -110,23 +132,29 @@ protected:
             inputCache[i] += layerBias_1[i];
         }
     }
-    int getCacheIndex(int piece,int pos,int side){
+private:
+    int getAheadCacheIndex(int piece,int pos){
+        assert(piece && pos);
         const int type = swapBasicBoard::pieceToAbsType(piece);
-        if(piece > 0 && side > 0){
-            return ((type - 1) << 8) + pos;
-        }else if(piece > 0 && side < 0){
-            return ((type - 1 + 14) << 8) + pos;
-        }else if(piece < 0 && side < 0){
-            return ((type + 6) << 8) + pos;
-        }else if(piece < 0 && side > 0){
-            return ((type + 6 + 14) << 8) + pos;
+        if(piece > 0){
+            return ((abs(type) - 1) << 8) + pos;
+        }else if(piece < 0){
+            return ((abs(type) + 6) << 8) + pos;
         }
-        assert(piece && side);
+        return -1;
+    }
+    int getBehindCacheIndex(int side){
+        assert(abs(side) == 1);
+        if(side == red){
+            return 1;
+        }else if(side == black){
+            return 0;
+        }
         return -1;
     }
 private:
     int inputCache[128];
-    int layerWeight_1[7168][128];
+    int layerWeight_1[3840][128];
     int layerBias_1[128];
     int layerWeight_2[128];
     int layerBias_2;

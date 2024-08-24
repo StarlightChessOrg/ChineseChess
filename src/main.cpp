@@ -1,6 +1,7 @@
 #include "experiment.hpp"
 
+
 int main(){
-    test::testGenMove();
+    test::testNNUE();
     return 0;
 }
