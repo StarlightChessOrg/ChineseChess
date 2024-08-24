@@ -30,7 +30,7 @@ single_game_board = np.asarray([
 ])
 
 def single_forward():
-    model_path = "./models/model_42.pkl"
+    model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
     game_board = copy.deepcopy(single_game_board)
     side = 1
@@ -40,13 +40,14 @@ def single_forward():
     print(y)
 
 def hand_forward():
-    model_path = "./models/model_42.pkl"
+    model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
-    p = 32
-    layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy() * p
-    layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy() * p
-    layer_weight_2 = nnue.fc2.weight.detach().cpu().numpy() * p
-    layer_bias_2 = nnue.fc2.bias.detach().cpu().numpy() * p
+    p1 = 2048
+    p2 = 32
+    layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy() * p1
+    layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy() * p1
+    layer_weight_2 = nnue.fc2.weight.detach().cpu().numpy() * p2
+    layer_bias_2 = nnue.fc2.bias.detach().cpu().numpy() * p2
     layer_weight_1 = layer_weight_1.astype(np.int32)
     layer_bias_1 = layer_bias_1.astype(np.int32)
     layer_weight_2 = layer_weight_2.astype(np.int32)
@@ -74,6 +75,8 @@ def hand_forward():
     for c in range(128):
         if _input_layer_1[c] < 0:
             _input_layer_1[c] = 0
+        else:
+            _input_layer_1[c] //= 64
 
 
 
@@ -86,12 +89,12 @@ def hand_forward():
     _output_layer_2 += layer_bias_2
     _layer_2 = nnue.fc2(_layer_2)
     print(_output_layer_2)
-    print(_layer_2)
-    _output = np.tanh(_output_layer_2)
-    print(_output)
+    #print(_layer_2)
+    #_output = np.tanh(_output_layer_2)
+    #print(_output_layer_2)
 
 def pop_param():
-    model_path = "./models/model_42.pkl"
+    model_path = "../model_5__168.pkl"
     nnue = torch.load(model_path)
     layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy()
     layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy()
