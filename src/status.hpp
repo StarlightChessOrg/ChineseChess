@@ -255,6 +255,7 @@ protected:
     int vlSimpleDefenseBlack;               //黑方简单防守分值
 private:
     friend class test;
+    friend class nnue;
     friend class moveSort;
     friend class killerCache;
     friend class hashCache;

@@ -319,6 +319,7 @@ private:
     friend class genMove;
     friend class evaluate;
     friend class hashKey;
+    friend class nnue;
     friend class test;
 };
 
@@ -391,22 +392,6 @@ protected:
         //转换棋子编号到棋子类型
         return swapVector[abs(piece)];
     }
-    bool operator==(const swapBasicBoard& other){
-        for(int i = 0;i < 32;i++){
-            if(swapBoard[i] != other.swapBoard[i]){
-                return false;
-            }
-        }
-        return true;
-    }
-    bool operator!=(const swapBasicBoard& other){
-        for(int i = 0;i < 32;i++){
-            if(swapBoard[i] != other.swapBoard[i]){
-                return true;
-            }
-        }
-        return false;
-    }
 private:
     int swapBoard[32]{};
     friend class position;
@@ -414,7 +399,7 @@ private:
     friend class evaluate;
     friend class hashKey;
     friend class moveSort;
-    friend class searchGroup;
+    friend class nnue;
 };
 
 class position{
@@ -460,7 +445,6 @@ protected:
     friend class genMove;
     friend class test;
     friend class hashKey;
-    friend class searchGroup;
 };
 
 class hashKey{
@@ -522,6 +506,5 @@ protected:
     default_random_engine e;
     uint64 keyMatrix[2][14][256]{};
     uint64 keyPlayer{};
-    friend class searchGroup;
     friend class evaluate;
 };
