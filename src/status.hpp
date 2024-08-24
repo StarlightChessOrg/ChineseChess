@@ -20,7 +20,6 @@ public:
         seconHashdKeyRoad.reserve(MAX_MOVE_NUM);
         initEvaluate(anotherBoard,initSide);
     }
-
     void initEvaluate(const int anotherBoard[256] = initGameBoard, int initSide = red){
         clearEvaBoard();
         memset(miniHashCache,(uint64)0,sizeof(uint64) * 4096);
@@ -29,7 +28,6 @@ public:
         position::initPosition(anotherBoard,initSide);
         initSimpleValue();
     }
-
     void initSimpleValue(){
         vlSimpleAttackRed = vlSimpleAttackBlack = 0;
         vlSimpleDefenseRed = vlSimpleDefenseBlack = 0;
@@ -58,14 +56,12 @@ public:
             }
         }
     }
-
     void clearEvaBoard(){
         drawMoveStatus.clear();
         checkMoveStatus.clear();
         chaseMoveStatus.clear();
         moveRoad.clear();
     }
-
     bool makeNullMove(){
         if(genMove::Check(*this,position::side)){
             return false;
@@ -75,13 +71,11 @@ public:
         drawMoveStatus.push_back(drawMoveStatus.back() + 1);
         return true;
     }
-
     void unMakeNullMove(){
         changeSide();
         assert(!drawMoveStatus.empty());
         drawMoveStatus.pop_back();
     }
-
     bool makeMove(int fromPos,int toPos) {
         const int fromPiece = position::board.getPieceByPos(fromPos);
         const int toPiece = position::board.getPieceByPos(toPos);
@@ -259,5 +253,7 @@ private:
     friend class moveSort;
     friend class killerCache;
     friend class hashCache;
+    friend class searchGroup;
+    friend class searchManager;
     friend class pipe;
 };

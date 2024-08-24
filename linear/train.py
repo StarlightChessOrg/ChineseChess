@@ -9,10 +9,9 @@ import model
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-def scale_tanh(x):
-    x = float(x)
-    x /= 64.0
-    return np.tanh(x)
+def scale(x):
+    x = float(x) / 128.0
+    return min(max(-1.0,x),1.0)
 
 def cal_distance(root_path,start_file_index):
     filepaths = get_data.get_filepaths(root_path,extension='txt')
@@ -29,38 +28,33 @@ def cal_distance(root_path,start_file_index):
                 promote_eva = float(split_str[2])
                 #print(scale_tanh(basic_eva),scale_tanh(promote_eva))
                 delta_origin += abs(basic_eva - promote_eva)
-                delta += abs(scale_tanh(basic_eva) - scale_tanh(promote_eva))
+                delta += abs(scale(basic_eva) - scale(promote_eva))
                 cnt += 1
         #print(f"{i} ; {len(filepaths)}")
     #print(f"delta_origin is {round(delta_origin / cnt, 3)}")
     print(f"basic delta : {round(delta / cnt,3)}")
     return int(delta * 1000)
 
-def convert_to_x_label(game_board,side):
-    x_label = np.zeros(shape=(15 * 256),dtype=np.float32)
+def convert_to_x_label(game_board):
+    x_label = np.zeros(shape=(14 * 256),dtype=np.float32)
     for i,p in enumerate(game_board):
         if p > 0:
             x_label[(abs(p) - 1) * 256 + i] = 1
         elif p < 0:
             x_label[(abs(p) + 6) * 256 + i] = 1
-    if side > 0:
-        x_label[14] = 1
-    else:
-        x_label[14] = 0
     return x_label
 
 def convert_to_xy_labels(game_board,side,promote_eva):
-    x_label = np.zeros(shape=(15 * 256),dtype=np.float32)
+    x_label = np.zeros(shape=(14 * 256),dtype=np.float32)
     for i,p in enumerate(game_board):
         if p > 0:
             x_label[(abs(p) - 1) * 256 + i] = 1
         elif p < 0:
             x_label[(abs(p) + 6) * 256 + i] = 1
-    if side > 0:
-        x_label[14] = 1 # 14 * 256 is entirely right!
-    else:
-        x_label[14] = 0
-    y_label = np.array([scale_tanh(promote_eva)],dtype=np.float32)
+    eva = scale(promote_eva)
+    if side < 0:
+        eva = -eva
+    y_label = np.array([eva],dtype=np.float32)
     return x_label,y_label
 
 def cal_test_data(start_file_index,model):
@@ -92,7 +86,7 @@ def cal_test_data(start_file_index,model):
     return int((delta / delta_cnt) * 1000)
 
 def train_one_circle(filepaths,start_file_index,model):
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     loss_fn = nn.MSELoss()
     learn_delta = 0
     train_sum = 0
@@ -109,6 +103,7 @@ def train_one_circle(filepaths,start_file_index,model):
                 promote_eva = data['promote_eva']
                 #
                 x, y = convert_to_xy_labels(game_board, side, promote_eva)
+                #print(y,promote_eva)
                 data_x.append(x)
                 data_y.append(y)
                 #
@@ -139,8 +134,8 @@ if __name__ == "__main__":
     filepaths = get_data.get_filepaths(root_path,extension="txt")
     #filepaths = filepaths[:256]
     print(os.getcwd())
-    model = torch.load("../model_28__170.pkl").to(device)
-    #model = model.net().to(device)
+    #model = torch.load("../model_28__170.pkl").to(device)
+    model = model.net().to(device)
     start_file_index = 64
     for epoch in range(1,128):
         print("---------------------------")

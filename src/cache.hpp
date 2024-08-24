@@ -10,11 +10,13 @@ protected:
     void clearCache(){
         memset(history,0,sizeof(int) * 2 * 256 * 256);
     }
-    void recoardCache(step& move,int depth){
-        history[move.fromPiece > 0][move.fromPos][move.toPos] += (1 << depth);
+    void recoardCache(step* pBestMove,int depth){
+        assert(pBestMove);
+        history[pBestMove->fromPiece > 0][pBestMove->fromPos][pBestMove->toPos] += (1 << depth);
     }
-    int getCache(step& move){
-        return history[move.fromPiece > 0][move.fromPos][move.toPos];
+    int getCache(step* pBestMove){
+        assert(pBestMove);
+        return history[pBestMove->fromPiece > 0][pBestMove->fromPos][pBestMove->toPos];
     }
 private:
     int history[2][256][256]{};
@@ -34,10 +36,10 @@ public:
             }
         }
     }
-    void recoardCache(evaluate& e,step& move){
+    void recoardCache(evaluate& e,step* pBestMove){
         const int nowPosDistance = e.getNowDistance();
         killerMoveList[nowPosDistance][1] = killerMoveList[nowPosDistance][0];
-        killerMoveList[nowPosDistance][0] = move;
+        killerMoveList[nowPosDistance][0] = *pBestMove;
     }
 protected:
     void clearCache(){
@@ -48,6 +50,7 @@ protected:
     }
 private:
     step killerMoveList[128][2];
+    friend class searchGroup;
 };
 
 enum nodeType{
@@ -78,7 +81,7 @@ protected:
 
 class hashCache{
 public:
-    explicit hashCache(uint64 n = 25){
+    explicit hashCache(uint64 n = 22){
         initCache(n);
     }
     ~hashCache(){
@@ -97,6 +100,7 @@ public:
     }
     void clearCache(){
         cache.resize(((uint64)1 << nSize));
+#pragma omp parallel for
         for(hashItem& item : cache){
             item = hashItem();
         }
@@ -111,7 +115,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(readAdujstValue(e,pH.vlAlpha,vlGet) && e.Stable()){
+                    if(readAdujstValue(e,pH.vlAlpha,vlGet)){
                         vl = vlGet;
                         return true;
                     }
@@ -121,7 +125,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(readAdujstValue(e,pH.vlBeta,vlGet) && e.Stable()){
+                    if(readAdujstValue(e,pH.vlBeta,vlGet)){
                         vl = vlGet;
                         return true;
                     }
@@ -213,4 +217,6 @@ protected:
     uint64 nSize;
     uint64 mask;
     vector<hashItem> cache;
+    friend class searchGroup;
+    friend class searchManager;
 };

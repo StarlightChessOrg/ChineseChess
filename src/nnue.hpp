@@ -1,6 +1,7 @@
 #pragma once
 #include "position.hpp"
 #include <omp.h>
+#include <cmath>
 
 class nnue{
 public:
@@ -83,7 +84,7 @@ protected:
         output += layerBias_2;
         return output;
     }
-    void makeMove(evaluate& e,step& move){
+    void makeMove(step& move){
         const int fromIndex = getAheadCacheIndex(move.fromPiece,move.fromPos);
         const int toIndex = getAheadCacheIndex(move.fromPiece,move.toPos);
 #pragma omp simd
@@ -98,7 +99,7 @@ protected:
             }
         }
     }
-    void unmakeMove(evaluate& e,step& move){
+    void unmakeMove(step& move){
         const int fromIndex = getAheadCacheIndex(move.fromPiece,move.fromPos);
         const int toIndex = getAheadCacheIndex(move.fromPiece,move.toPos);
 #pragma omp simd
@@ -106,7 +107,7 @@ protected:
             inputCache[i] -= layerWeight_1[toIndex][i] - layerWeight_1[fromIndex][i];
         }
         if(move.toPiece){
-            const int _toIndex= getAheadCacheIndex(move.toPiece,move.toPos);
+            const int _toIndex = getAheadCacheIndex(move.toPiece,move.toPos);
 #pragma omp simd
             for(int i = 0;i < 128;i++){
                 inputCache[i] += layerWeight_1[_toIndex][i];
@@ -159,4 +160,5 @@ private:
     int layerWeight_2[128];
     int layerBias_2;
     friend class test;
+    friend class searchGroup;
 };

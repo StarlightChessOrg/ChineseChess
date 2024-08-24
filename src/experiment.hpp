@@ -3,8 +3,7 @@
 #include <ctime>
 #include <random>
 #include <cstdlib>
-#include "status.hpp"
-#include "nnue.hpp"
+#include "search.hpp"
 using namespace std;
 
 struct test{
@@ -29,16 +28,21 @@ struct test{
     }
 
     static void testNNUE(){
-        evaluate e = evaluate(initGameBoard,red);
-        //e.makeMove(164,167);
-        //e.makeMove(196,165);
-        e.board.printBasicBoard();
-        nnue* pN = nullptr;
-        pN = new nnue;
+        nnue* pN = new nnue;
         pN->readPara(R"(E:..\linear\para)");
+        evaluate e = evaluate(initGameBoard,red);
+        e.makeMove(164,167);
+        e.board.printBasicBoard();
         pN->initCache(e);
         int vl = pN->forward(e);
         cout<<vl<<endl;
+    }
+
+    static void testSearch(){
+        searchManager* pM = new searchManager(initGameBoard,red);
+        step s = step(196,165,6,0);
+        pM->s.makeMove(s);
+        pM->searchMain(16,4000);
     }
 };
 

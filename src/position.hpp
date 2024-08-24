@@ -321,6 +321,7 @@ private:
     friend class hashKey;
     friend class nnue;
     friend class test;
+    friend class pipe;
 };
 
 //将士象马车炮兵
@@ -410,7 +411,7 @@ public:
         this->swapBoard.readFromBoard(anotherBoard);
         this->bitBoard.readFromBoard(anotherBoard);
     }
-
+protected:
     void initPosition(const int anotherBoard[256] = initGameBoard, int initSide = red){
         this->side = initSide;
         this->board.readFromBoard(anotherBoard);
@@ -445,6 +446,7 @@ protected:
     friend class genMove;
     friend class test;
     friend class hashKey;
+    friend class pipe;
 };
 
 class hashKey{

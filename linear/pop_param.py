@@ -17,20 +17,21 @@ single_game_board = np.asarray([
     0,0,0,r,n,b,a,k,a,b,n,r,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,c,0,0,0,0,0,c,0,0,0,0,0,
-    0,0,0,p,0,p,0,p,0,p,0,p,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+    0,0,0,p,0,0,0,p,0,p,0,p,0,0,0,0,
+    0,0,0,0,0,p,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,P,0,P,0,P,0,P,0,P,0,0,0,0,
-    0,0,0,0,C,0,0,0,0,0,C,0,0,0,0,0,
+    0,0,0,0,C,N,0,0,0,0,C,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,R,N,B,A,K,A,B,N,R,0,0,0,0,
+    0,0,0,R,0,B,A,K,A,B,N,R,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 ])
 
+model_path = "../model_31__132.pkl"
+
 def single_forward():
-    model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
     game_board = copy.deepcopy(single_game_board)
     side = 1
@@ -40,25 +41,24 @@ def single_forward():
     print(y)
 
 def hand_forward():
-    model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
-    p1 = 4096
-    p2 = 4096
+    p1 = 1
+    p2 = 1
     layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy() * p1
     layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy() * p1
     layer_weight_2 = nnue.fc2.weight.detach().cpu().numpy() * p2
     layer_bias_2 = nnue.fc2.bias.detach().cpu().numpy() * p2
-    layer_weight_1 = layer_weight_1.astype(np.int32)
-    layer_bias_1 = layer_bias_1.astype(np.int32)
-    layer_weight_2 = layer_weight_2.astype(np.int32)
-    layer_bias_2 = layer_bias_2.astype(np.int32)
+    # layer_weight_1 = layer_weight_1.astype(np.int32)
+    # layer_bias_1 = layer_bias_1.astype(np.int32)
+    # layer_weight_2 = layer_weight_2.astype(np.int32)
+    # layer_bias_2 = layer_bias_2.astype(np.int32)
     print(layer_weight_1)
     print(layer_weight_2)
     #print(layer_weight_1.shape,layer_bias_1.shape)
     game_board = copy.deepcopy(single_game_board)
     #print(game_board.reshape(16,16))
     side = 1
-    x_numpy = train.convert_to_x_label(game_board,side)
+    x_numpy = train.convert_to_x_label(game_board)
     x_label = torch.from_numpy(x_numpy).to(train.device)
     #y = nnue(x_label)
     #print(y)
@@ -68,31 +68,21 @@ def hand_forward():
             for c in range(128):
                 _input_layer_1[c] += layer_weight_1[c][i]
     _input_layer_1 += layer_bias_1
-    #print(_input_layer_1,_input_layer_1.shape)
-    #_layer_1 = nnue.fc1(x_label)
-    #print(_input_layer_1)
-    #print(_layer_1)
+
     for c in range(128):
         if _input_layer_1[c] < 0:
             _input_layer_1[c] = 0
-        else:
-            _input_layer_1[c] = int(_input_layer_1[c]) >> 6
+        #else:
+            #_input_layer_1[c] = int(_input_layer_1[c]) >> 6
 
-    #_layer_2 = F.relu(_layer_1)
-    #print(_input_layer_1)
-    #print(_layer_2)
     _output_layer_2 = 0
     for i in range(128):
         _output_layer_2 += _input_layer_1[i] * layer_weight_2[0][i]
     _output_layer_2 += layer_bias_2
-    #_layer_2 = nnue.fc2(_layer_2)
-    print(_output_layer_2 // 32)
-    #print(_layer_2)
-    #_output = np.tanh(_output_layer_2)
-    #print(_output_layer_2)
+
+    print(_output_layer_2 * 128)
 
 def pop_param():
-    model_path = "./models/model_5__168.pkl"
     nnue = torch.load(model_path)
     layer_weight_1 = nnue.fc1.weight.detach().cpu().numpy()
     layer_bias_1 = nnue.fc1.bias.detach().cpu().numpy()
@@ -131,6 +121,6 @@ def pop_param():
         f.close()
 
 if __name__ == "__main__":
-    #pop_param()
-    hand_forward()
+    pop_param()
+    #hand_forward()
     #single_forward()

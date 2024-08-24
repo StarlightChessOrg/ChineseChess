@@ -404,6 +404,7 @@ private:
     friend class moveSort;
     friend class killerCache;
     friend class searchGroup;
+    friend class searchManager;
 };
 
 
