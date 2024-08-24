@@ -42,7 +42,11 @@ struct test{
         searchManager* pM = new searchManager(initGameBoard,red);
         step s = step(196,165,6,0);
         pM->s.makeMove(s);
-        pM->searchMain(16,4000);
+        s = step(58,89,-7,0);
+        pM->s.makeMove(s);
+        s = step(170,138,11,0);
+        pM->s.makeMove(s);
+        pM->searchMain(16,100000000);
     }
 };
 

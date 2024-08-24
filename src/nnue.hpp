@@ -9,15 +9,15 @@ public:
         initPara();
     }
     void initPara(){
-        memset(layerWeight_1,0,sizeof(int) * 3840 * 128);
+        memset(layerWeight_1,0,sizeof(int) * 3584 * 128);
         memset(layerBias_1,0,sizeof(int) * 128);
         memset(layerWeight_2,0,sizeof(int) * 128);
         memset(inputCache,0,sizeof(int) * 128);
         layerBias_2 = 0;
     }
     void readPara(const string& rootPath){
-        const double firstMagnify = 2048.0;
-        const double secondMagnify = 32.0;
+        const double firstMagnify = 128.0;
+        const double secondMagnify = 64.0;
         //w1
         ifstream weight_1(rootPath + "\\layer_1_weight.txt");
         string tStr;
@@ -66,15 +66,9 @@ protected:
     int forward(evaluate& e){
         int _inputCache[128] = {0};
         memcpy(_inputCache,inputCache,sizeof(int) * 128);
-        if(e.side == red){
-#pragma omp simd
-            for(int i = 0;i < 128;i++){
-                _inputCache[i] += layerWeight_1[14][i];
-            }
-        }
 #pragma omp simd
         for(int & v : _inputCache){
-            v = (v > 0) ? (v >> 6) : 0;
+            v = (v > 0) ? v : 0;
         }
         int output = 0;
 #pragma omp simd
@@ -82,6 +76,10 @@ protected:
             output += _inputCache[i] * layerWeight_2[i];
         }
         output += layerBias_2;
+        output = min(max(SAFE_MIN_VALUE,output),SAFE_MAX_VALUE);
+        if(e.side < 0){
+            return -output;
+        }
         return output;
     }
     void makeMove(step& move){
@@ -155,7 +153,7 @@ private:
     }
 private:
     int inputCache[128];
-    int layerWeight_1[3840][128];
+    int layerWeight_1[3584][128];
     int layerBias_1[128];
     int layerWeight_2[128];
     int layerBias_2;

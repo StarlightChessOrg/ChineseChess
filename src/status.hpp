@@ -36,7 +36,7 @@ public:
                 const int piece = board.getPieceByPos(pos);
                 if(piece){
                     const int type = swapBasicBoard::pieceToAbsType(piece);
-                    const int vlSimplePiece = vlMvvLva[type - 1];
+                    const int vlSimplePiece = vlSimple[type - 1];
                     if(type != king){
                         if(piece > 0){
                             if(vlSimplePiece >= 9){
@@ -87,8 +87,8 @@ public:
             return false;
         }
         if(toPiece){
-            const int vlToSimple = vlMvvLva[abs(toPiece) - 1];
-            assert(vlToSimple <= 19);
+            const int vlToSimple = vlSimple[abs(toPiece) - 1];
+            assert(vlToSimple <= 20);
             if(toPiece > 0){
                 if(vlToSimple >= 9){
                     vlSimpleAttackRed -= vlToSimple;
@@ -135,8 +135,8 @@ public:
         const int fromPiece = moveRoad.back().fromPiece;
         const int toPiece = moveRoad.back().toPiece;
         if(toPiece){
-            const int vlToSimple = vlMvvLva[abs(toPiece) - 1];
-            assert(vlToSimple <= 19);
+            const int vlToSimple = vlSimple[abs(toPiece) - 1];
+            assert(vlToSimple <= 20);
             if(toPiece > 0){
                 if(vlToSimple >= 9){
                     vlSimpleAttackRed += vlToSimple;
@@ -201,12 +201,12 @@ protected:
         int iRepLevel = 0;
         int otherRepLevel = 0;
         for(int i = (int)moveRoad.size() - 1,virtualSide = side;i >= 0;i--,virtualSide = -virtualSide){
-            const step& lastMove = moveRoad[i-1];
-            if(lastMove.toPiece){
+            const step& nowMove = moveRoad[i];
+            if(nowMove.toPiece){
                 return none_rep;
             }
-            if (swapBasicBoard::pieceToAbsType(lastMove.fromPiece) == pawn){
-                if(abs(lastMove.fromPos - lastMove.toPos) == 16){
+            if (swapBasicBoard::pieceToAbsType(nowMove.fromPiece) == pawn){
+                if(abs(nowMove.fromPos - nowMove.toPos) == 16){
                     return none_rep;
                 }
             }

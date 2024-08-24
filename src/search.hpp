@@ -76,7 +76,7 @@ private:
         const int toType = swapBasicBoard::pieceToAbsType(move.toPiece);
         if(mvv > lva){
             return mvv - lva + 1;
-        }else if(mvv == lva && lva >= 9){
+        }else if(mvv == lva && lva >= 3){
             return 1;
         }else if(inRiver[move.toPos] && toType == pawn){
             return 1;
@@ -326,20 +326,32 @@ protected:
             }
         }
 
+        const int originNewDepth = bCheck ? depth : depth - 1;
+        int newDepth = originNewDepth;
+
+        if(!quit && !tMoveHit && !bCheck){
+            if(newDepth >= 5){
+                newDepth -= 1 + (newDepth >= 8);
+            }
+        }
+
         //剩余走法
         if(!quit){
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                    move != convert_move &&
                    !move.toPiece){
-                    const int newDepth = bCheck ? depth : depth - 1;
                     if(s.makeMove(move)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(s, newDepth,-vlBeta,-vlAlpha);
                         }else{
                             vl = -searchNonPV(s,newDepth,-vlAlpha);
                             if(vl > vlAlpha && vl < vlBeta){
-                                vl = -searchPV(s,newDepth,-vlBeta,-vlAlpha);
+                                if(originNewDepth == newDepth){
+                                    vl = -searchPV(s,newDepth,-vlBeta,-vlAlpha);
+                                }else{
+                                    vl = -searchPV(s,originNewDepth - 1,-vlBeta,-vlAlpha);
+                                }
                             }
                         }
                         s.unmakeMove();
@@ -415,7 +427,7 @@ protected:
 
         //置换表启发
         bool quit = false;
-        //bool tMoveHit = false;
+        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -429,7 +441,7 @@ protected:
                         quit = true;
                     }
                 }
-                //tMoveHit = true;
+                tMoveHit = true;
             }
         }
 
@@ -481,11 +493,14 @@ protected:
             }
         }
 
-//        if(!quit && !tMoveHit && !bCheck){
-//            if(depth >= 8){
-//                depth -= 2;
-//            }
-//        }
+        const int originNewDepth = bCheck ? depth : depth - 1;
+        int newDepth = originNewDepth;
+
+        if(!quit && !tMoveHit && !bCheck){
+            if(newDepth >= 4){
+                newDepth -= 1 + (newDepth >= 8);
+            }
+        }
 
         //剩余走法
         if(!quit){
@@ -495,12 +510,14 @@ protected:
                    move != convert_move &&
                    !move.toPiece){
                     //将军延伸
-                    int newDepth = bCheck ? depth : depth - 1;
-//                    if(!bCheck && newDepth >= 4 && cnt > 2){
-//                        newDepth--;
-//                    }
+                    if(!bCheck && newDepth >= 4 && cnt > 2){
+                        newDepth--;
+                    }
                     if(s.makeMove(move)){
                         vl = -searchNonPV(s,newDepth,-vlBeta + 1);
+                        if(vl >= vlBeta && originNewDepth != newDepth){
+                            vl = -searchNonPV(s,originNewDepth - 1,-vlBeta + 1);
+                        }
                         s.unmakeMove();
 
                         if(vl > vlBest){
