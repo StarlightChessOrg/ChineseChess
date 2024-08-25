@@ -492,11 +492,11 @@ public:
         clock_t start = clock();
         for(int depth = 1;depth <= maxDepth;depth++){
             vl = searchRoot(e,depth);
-            clock_t now = clock();
+//            clock_t now = clock();
             //cout<<"depth = "<<depth<<" | vl = "<<vl<<" | time_sum =  "<<setprecision(3)<<(double)(now - start) / CLOCKS_PER_SEC<<"s"<<endl;
-            if(now - start >= maxTime / 2){
-                break;
-            }
+//            if(now - start >= maxTime / 2){
+//                break;
+//            }
         }
         return vl;
     }
