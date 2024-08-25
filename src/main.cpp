@@ -1,8 +1,8 @@
 #include "pipe.hpp"
 
 int main(){
+    //test::testSearch();
     pipe job;
     job.work();
-    //test::testSearch();
     return 0;
 }

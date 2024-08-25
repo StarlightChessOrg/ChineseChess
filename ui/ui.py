@@ -63,6 +63,7 @@ to_select = None
 root = tk.Tk()
 root.title("ways49")
 root.geometry(f"{screen_width}x{screen_height}")
+root.resizable(False,False)
 canvas = tk.Canvas(root, width=screen_width, height=screen_height)
 canvas.pack()
 
@@ -295,7 +296,7 @@ def parse():
         pass
 
 def main():
-    engine_path = "E:\\Projects_chess\\ChineseChess\\src\\cmake-build-release\\bit_src.exe"
+    engine_path = "E:\\Projects_chess\\ChineseChess-basic\\src\\cmake-build-release\\bit_src.exe"
     clear_ui_data()
     clear_ai_data()
     os.system("chcp 65001")

@@ -71,17 +71,21 @@ private:
     }
     static int getMvvLva(evaluate& e,step& move){
         assert(move.toPiece);
-        const int lva = vlMvvLva[abs(move.fromPiece) - 1];
-        const int mvv = genMove::getRelation(e,move.toPos,move.toPiece,beProtected) ? vlMvvLva[abs(move.toPiece) - 1] : 0;
-        const int toType = swapBasicBoard::pieceToAbsType(move.toPiece);
-        if(mvv > lva){
-            return mvv - lva + 1;
-        }else if(mvv == lva && lva >= 4){
-            return 1;
-        }else if(inRiver[move.toPos] && toType == pawn){
-            return 1;
+        if(genMove::getRelation(e,move.toPos,move.toPiece,beProtected)){
+            const int lva = vlMvvLva[abs(move.fromPiece) - 1];
+            const int mvv = vlMvvLva[abs(move.toPiece) - 1];
+            const int toType = swapBasicBoard::pieceToAbsType(move.toPiece);
+            if(mvv > lva){
+                return mvv - lva + 1;
+            }else if(mvv == lva && lva >= 7){
+                return 1;
+            }else if(inRiver[move.toPos] && toType == pawn){
+                return 1;
+            }
+            return mvv - lva;
         }
-        return mvv - lva;
+        return vlMvvLva[abs(move.toPiece) - 1];
+
     }
     static bool vlAndTypeCompare(const step& firstMove,const step& secondMove){
         if(firstMove.sortType != secondMove.sortType) {
@@ -167,6 +171,7 @@ public:
 
         tinyMove tMove;
         step convert_move;
+
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
             if(vl <= vlAlpha && searchQuesic(e,vlAlpha,vlAlpha + 1) <= vlAlpha){
                 return vl;
@@ -176,6 +181,7 @@ public:
         }
 
         //置换表启发
+        bool tMoveHit = false;
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -193,6 +199,7 @@ public:
                         vlAlpha = vl;
                     }
                 }
+                tMoveHit = true;
             }
         }
 
@@ -231,6 +238,10 @@ public:
                     }
                 }
             }
+        }
+
+        if(!quit && !bCheck && !tMoveHit){
+            depth -= 2;
         }
 
         //截断启发
@@ -363,6 +374,7 @@ public:
 
         //置换表启发
         bool quit = false;
+        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -376,7 +388,12 @@ public:
                         quit = true;
                     }
                 }
+                tMoveHit = true;
             }
+        }
+
+        if(!quit && !bCheck && !tMoveHit && depth >= 8){
+            depth -= 2;
         }
 
         //吃子启发

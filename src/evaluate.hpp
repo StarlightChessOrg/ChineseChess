@@ -380,7 +380,7 @@ public:
         changeSide();
         moveRoad.emplace_back(0,0,0,0);
         drawMoveStatus.push_back(drawMoveStatus.back() + 1);
-        const bool originSideCheck = genMove::CheckedBy(*this,-position::side);
+        const bool originSideCheck = genMove::Check(*this,-position::side);
         if(originSideCheck){
             unMakeNullMove();
             return false;
@@ -400,7 +400,7 @@ public:
         const int toPiece = position::board.getPieceByPos(toPos);
         //检查将军
         position::makeMove(fromPos,toPos);
-        const bool originSideCheck = genMove::CheckedBy(*this,-position::side);
+        const bool originSideCheck = genMove::Check(*this,-position::side);
         if(originSideCheck){
             position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
             return false;
@@ -431,8 +431,8 @@ public:
         //优先记录走法
         moveRoad.emplace_back(fromPos,toPos,fromPiece,toPiece);
         //判断对方是否被我方将军和捉子
-        const bool chase = genMove::ChasedBy(*this,moveRoad.back());
-        const bool check = genMove::CheckedBy(*this,position::side);
+        const bool chase = genMove::Chase(*this,moveRoad.back());
+        const bool check = genMove::Check(*this,position::side);
         const int lastDrawMoveSum = drawMoveStatus.empty() ? 0 : drawMoveStatus.back();
         if(check || (!checkMoveStatus.empty() && checkMoveStatus.back())){
            drawMoveStatus.push_back(lastDrawMoveSum);
@@ -549,8 +549,10 @@ protected:
         if(!miniHashCache[firstHashKey & 4095]){
             return none_rep;
         }
-        for(int i = (int)moveRoad.size() - 1;i >= 1;i--){
-            const step& lastMove = moveRoad[i-1];
+        int iRepLevel = 0;
+        int oRepLevel = 0;
+        for(int i = (int)moveRoad.size() - 1,vSide = side;i >= 0;i--,vSide=-vSide){
+            const step& lastMove = moveRoad[i];
             if(lastMove.toPiece){
                 return none_rep;
             }
@@ -559,16 +561,18 @@ protected:
                     return none_rep;
                 }
             }
-            if(firstHashKeyRoad[i - 1] == firstHashKey){
-                const bool iCheckOther = checkMoveStatus[i - 1];
-                const bool iChaseOther = chaseMoveStatus[i - 1];
-                const bool otherCheckI = checkMoveStatus[i];
-                const bool otherChaseI = chaseMoveStatus[i];
-                const int iRepLevel = (iCheckOther << 1) + iChaseOther;
-                const int otherRepLevel = (otherCheckI << 1) + otherChaseI;
-                if(iRepLevel > otherRepLevel){
+            const int iCheck = checkMoveStatus[i];
+            const int iChase = chaseMoveStatus[i];
+            if(vSide == side){
+                iRepLevel += iCheck * 2 + iChase;
+            }else{
+                oRepLevel += iCheck * 2 + iChase;
+            }
+
+            if(firstHashKeyRoad[i] == firstHashKey){
+                if(iRepLevel > oRepLevel){
                     return killed_rep;
-                }else if(iRepLevel == otherRepLevel){
+                }else if(iRepLevel == oRepLevel){
                     return draw_rep;
                 }else{
                     return kill_rep;

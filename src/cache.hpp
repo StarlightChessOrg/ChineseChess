@@ -182,7 +182,9 @@ protected:
                         pH.vlAlpha = (int16)vl;
                         pH.alphaDepth = depth;
                     }
-                    if((nodeType & beta) && ((depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta <= vl))){
+                    if((nodeType & beta) &&
+                            ((depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta <= vl)) &&
+                            (!pH.move.fromPos || pMove)){
                         pH.vlBeta = (int16)vl;
                         pH.betaDepth = depth;
                     }

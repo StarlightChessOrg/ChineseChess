@@ -1,77 +1,6 @@
 #pragma once
 #include "position.hpp"
-
-class tinyMove{
-public:
-    tinyMove(){
-        fromPos = toPos = 0;
-        fromPiece = toPiece = 0;
-    }
-    tinyMove(uint8 fromPos,uint8 toPos,int8 fromPiece,int8 toPiece){
-        this->fromPos = fromPos;
-        this->toPos = toPos;
-        this->fromPiece = fromPiece;
-        this->toPiece = toPiece;
-    }
-    uint8 fromPos;
-    uint8 toPos;
-    int8 fromPiece;
-    int8 toPiece;
-    friend class hashItem;
-    friend class position;
-    friend class evaluate;
-    friend class searchGroup;
-};
-
-
-class step{
-public:
-    step(){
-        fromPos = 0;
-        toPos = 0;
-        fromPiece = 0;
-        toPiece = 0;
-        vl = 0;
-        sortType = 0;
-    }
-    step(int fromPos,int toPos,int fromPiece,int toPiece,int vl = 0){
-        this->fromPos = fromPos;
-        this->toPos = toPos;
-        this->fromPiece = fromPiece;
-        this->toPiece = toPiece;
-        this->vl = vl;
-        sortType = 0;
-    }
-    void printMove() const{
-        cout<<setw(3)<<fromPiece<<" from "<<fromPos<<" to "<<toPos <<" and eat "<<toPiece<<" with vl = "<<vl<<endl;
-     }
-    static void printMoveList(vector<step>& moveList){
-        cout<<"--------------------------------------"<<endl;
-        for(step& s : moveList){
-            s.printMove();
-        }
-        cout<<"total size of move list is "<<moveList.size()<<endl;
-    }
-    bool operator!=(const step& otherMove) const{
-        return !((fromPos == otherMove.fromPos) &&
-                (toPos == otherMove.toPos) &&
-                (fromPiece == otherMove.fromPiece) &&
-                (toPiece == otherMove.toPiece));
-    }
-    bool operator==(const step& otherMove) const{
-        return  (fromPos == otherMove.fromPos) &&
-                (toPos == otherMove.toPos) &&
-                (fromPiece == otherMove.fromPiece) &&
-                (toPiece == otherMove.toPiece);
-    }
-public:
-    int fromPos;
-    int toPos;
-    int fromPiece;
-    int toPiece;
-    int vl;
-    int sortType;
-};
+#include "preGenMove.hpp"
 
 //全部走法 or 吃子走法
 enum genMoveType{
@@ -98,13 +27,13 @@ public:
     }
 protected:
     //将军检测
-    static bool CheckedBy(position& p,int side){
+    static bool Check(position& p,int side){
         const int kingPiece = (side == red) ? redKingPiece : blackKingPiece;
         const int kingPos = p.swapBoard.getPosByPiece(kingPiece);
         return getRelation(p,kingPos,kingPiece,beThreatened);
     }
     //捉子判断
-    static bool ChasedBy(position& p,step& move){
+    static bool Chase(position& p,step& move){
         const int fromType = swapBasicBoard::pieceToAbsType(move.fromPiece);
         if(fromType == rook){
             const int pIndex = 2 * (getX(move.fromPos) != getX(move.toPos));
@@ -248,9 +177,9 @@ private:
             const int reverseLegPos = getKnightLeg(toPos,fromPos);
             const int toPiece = p.board.getPieceByPos(toPos);
             if(swapBasicBoard::pieceToAbsType(toPiece) == knight &&
-                toPiece * fromPiece * relationType > 0 &&
-                !p.board.getPieceByPos(reverseLegPos) &&
-                toPos != exceptPos){
+               toPiece * fromPiece * relationType > 0 &&
+               !p.board.getPieceByPos(reverseLegPos) &&
+               toPos != exceptPos){
                 return true;
             }
         }
@@ -296,8 +225,8 @@ private:
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == advisor &&
-                    toPiece * fromPiece * relationType > 0 &&
-                    toPos != exceptPos){
+                   toPiece * fromPiece * relationType > 0 &&
+                   toPos != exceptPos){
                     return true;
                 }
             }
@@ -310,8 +239,8 @@ private:
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == bishop &&
-                    toPiece * fromPiece * relationType > 0 &&
-                    toPos != exceptPos){
+                   toPiece * fromPiece * relationType > 0 &&
+                   toPos != exceptPos){
                     return true;
                 }
             }
@@ -322,8 +251,8 @@ private:
         if(relationType == beThreatened && swapBasicBoard::pieceToAbsType(fromPiece) == king){
             const int toPos = p.swapBoard.getPosByPiece(-fromPiece);
             if(getX(fromPos) == getX(toPos) &&
-                !p.bitBoard.checkLineExistBarrier(fromPos,toPos) &&
-                toPos != exceptPos){
+               !p.bitBoard.checkLineExistBarrier(fromPos,toPos) &&
+               toPos != exceptPos){
                 return true;
             }
         }
@@ -333,8 +262,8 @@ private:
                 const int toPos = fromPos + step;
                 const int toPiece = p.board.getPieceByPos(toPos);
                 if(swapBasicBoard::pieceToAbsType(toPiece) == king &&
-                    toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
-                    toPos != exceptPos){
+                   toPiece * p.board.getPieceByPos(fromPos) * relationType > 0 &&
+                   toPos != exceptPos){
                     return true;
                 }
             }
@@ -345,25 +274,16 @@ private:
 private:
     static void genPawnMove(position& p,vector<step>& moveList,int genType = all){
         const int *pawnPieceList = (p.side == red) ? redPawnPieceList : blackPawnPieceList;
+        vector<preStep> *pMoveMatrix = (p.side == red) ? preGenMoveInstance.redPawnPreMoveList : preGenMoveInstance.blackPawnPreMoveList;
+        assert(pMoveMatrix);
         for(int i = 0;i < 5;i++){
             const int pawnPiece = pawnPieceList[i];
             const int pawnPos = p.swapBoard.getPosByPiece(pawnPiece);
             if(pawnPos){
-                //判断是否在本方界限内
-                if(inSideBoard[pawnPos] * pawnPiece < 0){
-                    const int stepList[3] = {1,-1,16 * (-p.side)};
-                    for(int t : stepList){
-                        const int toPos = pawnPos + t;
-                        const int toPiece = p.board.getPieceByPos(toPos);
-                        if(toPiece * pawnPiece <= genType && inBoard[toPos]){
-                            moveList.emplace_back(pawnPos,toPos,pawnPiece,toPiece);
-                        }
-                    }
-                }else {
-                    const int toPos = pawnPos + 16 * (-p.side);
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    if(toPiece * pawnPiece <= genType && inBoard[toPos]){
-                        moveList.emplace_back(pawnPos,toPos,pawnPiece,toPiece);
+                for(preStep& preMove : pMoveMatrix[pawnPos]){
+                    const int toPiece = p.board.getPieceByPos(preMove.toPos);
+                    if(toPiece * pawnPiece <= genType){
+                        moveList.emplace_back(pawnPos,preMove.toPos,pawnPiece,toPiece);
                     }
                 }
             }
@@ -375,19 +295,10 @@ private:
             const int advisorPiece = advisorPieceList[i];
             const int advisorPos = p.swapBoard.getPosByPiece(advisorPiece);
             if(advisorPos){
-                if(inFortCenter[advisorPos]){
-                    for(int step : advisorDelta){
-                        const int toPos = advisorPos + step;
-                        const int toPiece = p.board.getPieceByPos(toPos);
-                        if(toPiece * advisorPiece <= genType && inFort[toPos]){
-                            moveList.emplace_back(advisorPos,toPos,advisorPiece,toPiece);
-                        }
-                    }
-                }else{
-                    const int toPos = (p.side == red) ? redFortCenterPos : blackFortCenterPos;
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    if(toPiece * advisorPiece <= genType && inFort[toPos]){
-                        moveList.emplace_back(advisorPos,toPos,advisorPiece,toPiece);
+                for(preStep& preMove : preGenMoveInstance.advisorPreMoveList[advisorPos]){
+                    const int toPiece = p.board.getPieceByPos(preMove.toPos);
+                    if(toPiece * advisorPiece <= genType){
+                        moveList.emplace_back(advisorPos,preMove.toPos,advisorPiece,toPiece);
                     }
                 }
             }
@@ -396,13 +307,11 @@ private:
     static void genKingMove(position& p,vector<step>& moveList,int genType = all){
         const int kingPiece = (p.side == red) ? redKingPiece : blackKingPiece;
         const int kingPos = p.swapBoard.getPosByPiece(kingPiece);
-        if(kingPos){
-            for(int step : rayDelta){
-                const int toPos = kingPos + step;
-                const int toPiece = p.board.getPieceByPos(toPos);
-                if(toPiece * kingPiece <= genType && inFort[toPos]){
-                    moveList.emplace_back(kingPos,toPos,kingPiece,toPiece);
-                }
+        assert(kingPos);
+        for (preStep& preMove: preGenMoveInstance.kingPreMoveList[kingPos]) {
+            const int toPiece = p.board.getPieceByPos(preMove.toPos);
+            if (toPiece * kingPiece <= genType) {
+                moveList.emplace_back(kingPos, preMove.toPos, kingPiece, toPiece);
             }
         }
     }
@@ -412,14 +321,11 @@ private:
             const int bishopPiece = bishopPieceList[i];
             const int bishopPos = p.swapBoard.getPosByPiece(bishopPiece);
             if(bishopPos){
-                for(int step : bishopDelta){
-                    const int toPos = bishopPos + step;
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    const int eyePos = getBishopEye(bishopPos,toPos);
-                    if(toPiece * bishopPiece <= genType &&
-                        inSideBoard[toPos] * bishopPiece > 0 &&
-                        !p.board.getPieceByPos(eyePos)){
-                        moveList.emplace_back(bishopPos,toPos,bishopPiece,toPiece);
+                for(preStep& preMove : preGenMoveInstance.bishopPreMoveList[bishopPos]){
+                    const int toPiece = p.board.getPieceByPos(preMove.toPos);
+                    assert(preMove.barrierPos);
+                    if (toPiece * bishopPiece <= genType && !p.board.getPieceByPos(preMove.barrierPos)) {
+                        moveList.emplace_back(bishopPos, preMove.toPos, bishopPiece, toPiece);
                     }
                 }
             }
@@ -431,14 +337,11 @@ private:
             const int knightPiece = knightPieceList[i];
             const int knightPos = p.swapBoard.getPosByPiece(knightPiece);
             if(knightPos){
-                for(int step : knightDelta){
-                    const int toPos = knightPos + step;
-                    const int toPiece = p.board.getPieceByPos(toPos);
-                    const int legPos = getKnightLeg(knightPos,toPos);
-                    if(toPiece * knightPiece <= genType &&
-                        inBoard[toPos] &&
-                        !p.board.getPieceByPos(legPos)){
-                        moveList.emplace_back(knightPos,toPos,knightPiece,toPiece);
+                for(preStep& preMove : preGenMoveInstance.knightPreMoveList[knightPos]){
+                    const int toPiece = p.board.getPieceByPos(preMove.toPos);
+                    assert(preMove.barrierPos);
+                    if (toPiece * knightPiece <= genType && !p.board.getPieceByPos(preMove.barrierPos)) {
+                        moveList.emplace_back(knightPos, preMove.toPos,knightPiece, toPiece);
                     }
                 }
             }
@@ -455,7 +358,7 @@ private:
                 for(int a = 0; a < 4; a++){
                     const int mayEatToPos = p.bitBoard.getRayTargetPos(rookPos, targetList[a], 0);
                     //p.bitBoard.printBitBoard();
-                    if(mayEatToPos != -1){
+                    if(mayEatToPos > -1){
                         const int toPiece = p.board.getPieceByPos(mayEatToPos);
                         if(rookPiece * toPiece < 0){
                             moveList.emplace_back(rookPos,mayEatToPos,rookPiece,toPiece);
@@ -480,7 +383,7 @@ private:
                 const int targetList[4] = {leftTarget,rightTarget,upTarget,downTarget};
                 for(int a = 0;a < 4;a++){
                     const int mayEatToPos = p.bitBoard.getRayTargetPos(cannonPos,targetList[a],1);
-                    if(mayEatToPos != -1){
+                    if(mayEatToPos > -1){
                         const int toPiece = p.board.getPieceByPos(mayEatToPos);
                         if(cannonPiece * toPiece < 0){
                             moveList.emplace_back(cannonPos,mayEatToPos,cannonPiece,toPiece);
@@ -502,6 +405,7 @@ private:
     friend class moveSort;
     friend class killerCache;
     friend class searchGroup;
+    friend class searchManager;
 };
 
 

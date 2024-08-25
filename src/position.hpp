@@ -509,3 +509,4 @@ protected:
     friend class searchGroup;
 };
 
+
