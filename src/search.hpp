@@ -52,7 +52,7 @@ public:
         for(step& move : moveList){
             if(move == betterMove){
                 move.vl = SORT_MAX_VALUE;
-            }else if(move.vl != 0){
+            }else if(move.vl > SAFE_MAX_VALUE){
                 move.vl--;
             }
         }
@@ -77,9 +77,11 @@ private:
             const int toType = swapBasicBoard::pieceToAbsType(move.toPiece);
             if(mvv > lva){
                 return mvv - lva + 1;
-            }else if(mvv == lva && lva >= 7){
+            }
+            if(mvv == lva && lva >= 7){
                 return 1;
-            }else if(inRiver[move.toPos] && toType == pawn){
+            }
+            if(inSideBoard[move.toPos] * move.toPiece < 0 && toType == pawn){
                 return 1;
             }
             return mvv - lva;
@@ -176,11 +178,6 @@ public:
 
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
             return vl;
-//            if(vl <= vlAlpha && searchQuesic(e,vlAlpha,vlAlpha + 1) <= vlAlpha){
-//                return vl;
-//            }else if(vl >= vlBeta && searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
-//                return vl;
-//            }
         }
 
         if(!tMove.fromPos && newDepth >= 2){
@@ -216,12 +213,12 @@ public:
             genMove::genMoveList(e,moveList,all);
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
             for(step & move : moveList){
-                if(move != convert_move && move.toPiece){
+                if(move != convert_move && move.toPiece && move.vl > 0){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha,false);
+                            vl = -searchNonPV(e,newDepth,-vlAlpha);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -252,12 +249,12 @@ public:
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
-                if(move != convert_move && !move.toPiece){
+                if(move != convert_move && (!move.toPiece || move.vl <= 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha,false);
+                            vl = -searchNonPV(e,newDepth,-vlAlpha);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -281,8 +278,8 @@ public:
             }
         }
 
-        if(!quit){
-            newDepth -= depth / 4;
+        if(!quit && !bCheck && vl < vlAlpha){
+            newDepth -= 2;
         }
 
         //剩余走法
@@ -290,12 +287,12 @@ public:
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
-                    !move.toPiece){
+                    (!move.toPiece || move.vl <= 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
                         }else{
-                            vl = -searchNonPV(e,newDepth,-vlAlpha,false);
+                            vl = -searchNonPV(e,newDepth,-vlAlpha);
                             if(vl > vlAlpha && vl < vlBeta){
                                 vl = -searchPV(e,newDepth,-vlBeta,-vlAlpha);
                             }
@@ -351,12 +348,6 @@ public:
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
             return vl;
-//            const int static_vl = searchQuesic(e,vlBeta - 1,vlBeta);
-//            if(vl >= vlBeta && static_vl >= vlBeta){
-//                return vl;
-//            }else if(vl < vlBeta && static_vl < vlBeta){
-//                return vl;
-//            }
         }
 
         //空着启发
@@ -400,7 +391,7 @@ public:
             genMove::genMoveList(e,moveList,all);
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
             for(step & move : moveList){
-                if(move != convert_move && move.toPiece){
+                if(move != convert_move && move.toPiece && move.vl > 0){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -423,7 +414,7 @@ public:
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
-                if(move != convert_move && !move.toPiece){
+                if(move != convert_move && (!move.toPiece || move.vl <= 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -440,8 +431,8 @@ public:
             }
         }
 
-        if(!quit && depth >= 4){
-            newDepth -= depth / 4;
+        if(!quit && !bCheck && depth >= 8){
+            newDepth -= 2;
         }
 
         //剩余走法
@@ -449,7 +440,7 @@ public:
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
-                    !move.toPiece){
+                    (!move.toPiece || move.vl <= 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
