@@ -240,10 +240,6 @@ public:
             }
         }
 
-        if(!quit && !bCheck && !tMoveHit){
-            depth -= 2;
-        }
-
         //截断启发
         vector<step> killerMoveList;
         if(!quit){
@@ -374,7 +370,6 @@ public:
 
         //置换表启发
         bool quit = false;
-        bool tMoveHit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             const int newDepth = bCheck ? depth : depth - 1;
@@ -388,12 +383,7 @@ public:
                         quit = true;
                     }
                 }
-                tMoveHit = true;
             }
-        }
-
-        if(!quit && !bCheck && !tMoveHit && depth >= 8){
-            depth -= 2;
         }
 
         //吃子启发
@@ -446,7 +436,6 @@ public:
 
         //剩余走法
         if(!quit){
-            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
@@ -464,7 +453,6 @@ public:
                                 break;
                             }
                         }
-                        cnt++;
                     }
                 }
             }

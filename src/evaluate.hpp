@@ -136,9 +136,9 @@ const int knightMidgame[256] = {
         0,  0,  0, 90,100, 99,103,104,103, 99,100, 90,  0,  0,  0,  0,
         0,  0,  0, 90, 98,101,102,103,102,101, 98, 90,  0,  0,  0,  0,
         0,  0,  0, 92, 94, 98, 95, 98, 95, 98, 94, 92,  0,  0,  0,  0,
-        0,  0,  0, 93, 92, 94, 95, 92, 95, 94, 92, 93,  0,  0,  0,  0,
+        0,  0,  0, 90, 92, 94, 95, 92, 95, 94, 92, 90,  0,  0,  0,  0,
         0,  0,  0, 85, 90, 92, 93, 78, 93, 92, 90, 85,  0,  0,  0,  0,
-        0,  0,  0, 88, 85, 90, 88, 90, 88, 90, 85, 88,  0,  0,  0,  0,
+        0,  0,  0, 88, 84, 90, 88, 90, 88, 90, 84, 88,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
@@ -178,7 +178,7 @@ const int rookMidgame[256] = {
         0,  0,  0,204,209,204,212,214,212,204,209,204,  0,  0,  0,  0,
         0,  0,  0,198,208,204,212,212,212,204,208,198,  0,  0,  0,  0,
         0,  0,  0,200,208,206,212,200,212,206,208,200,  0,  0,  0,  0,
-        0,  0,  0,194,206,204,212,200,212,204,206,194,  0,  0,  0,  0,
+        0,  0,  0,194,212,204,212,200,212,204,212,194,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
@@ -420,9 +420,7 @@ public:
             }
         }
         //记录迷你置换表
-        if(!miniHashCache[firstHashKey & 4095]){
-            miniHashCache[firstHashKey & 4095] = drawMoveStatus.back();
-        }
+        miniHashCache[firstHashKey & 4095] = 1;
         //步进哈希键
         firstHashKeyRoad.push_back(firstHashKey);
         seconHashdKeyRoad.push_back(secondHashKey);
@@ -469,9 +467,7 @@ public:
         //步进棋盘
         position::unMakeMove(fromPos,toPos,fromPiece,toPiece);
         //撤销迷你置换表
-        if(miniHashCache[firstHashKey & 4095] == drawMoveStatus.back()){
-            miniHashCache[firstHashKey & 4095] = 0;
-        }
+        miniHashCache[firstHashKey & 4095] = 0;
         //步进哈希键
         firstHashKey = firstHashKeyRoad.back();
         secondHashKey = seconHashdKeyRoad.back();
@@ -683,9 +679,6 @@ private:
                     const int targetPos = position::bitBoard.getRayTargetPos(pos,targetPool[i],0);
                     if(targetPos > -1){
                         vlRedMobility += abs(targetPos - pos) / stepList[i];
-                        if(position::board.getPieceByPos(targetPos) * piece > 0){
-                            vlRedMobility--;
-                        }
                     }else{
                         for(int toPos = pos + tStepList[i];inBoard[toPos];toPos += tStepList[i]){
                             vlRedMobility++;
@@ -701,9 +694,6 @@ private:
                     const int targetPos = position::bitBoard.getRayTargetPos(pos,targetPool[i],0);
                     if(targetPos > -1){
                         vlBlackMobility += abs(targetPos - pos) / stepList[i];
-                        if(position::board.getPieceByPos(targetPos) * piece > 0){
-                            vlBlackMobility--;
-                        }
                     }else{
                         for(int toPos = pos + tStepList[i];inBoard[toPos];toPos += tStepList[i]){
                             vlBlackMobility++;
