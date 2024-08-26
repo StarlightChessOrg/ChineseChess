@@ -159,31 +159,40 @@ public:
         }
 
         int vl = harmlessPruning(e,vlBeta);
+        if(vl > MIN_VALUE){
+            return vl;
+        }
         int vlBest = MIN_VALUE;
         int nodeType = alpha;
         vector<step> moveList;
         step* pBestMove = nullptr;
         const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
-        if(vl > MIN_VALUE){
-            return vl;
-        }
+        int newDepth = bCheck ? depth : depth - 1;
+
         bool quit = false;
 
         tinyMove tMove;
         step convert_move;
 
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            if(vl <= vlAlpha && searchQuesic(e,vlAlpha,vlAlpha + 1) <= vlAlpha){
-                return vl;
-            }else if(vl >= vlBeta && searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
-                return vl;
+            return vl;
+//            if(vl <= vlAlpha && searchQuesic(e,vlAlpha,vlAlpha + 1) <= vlAlpha){
+//                return vl;
+//            }else if(vl >= vlBeta && searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
+//                return vl;
+//            }
+        }
+
+        if(!tMove.fromPos && newDepth >= 2){
+            vl = searchPV(e,newDepth / 2,vlAlpha,vlBeta);
+            if(vl <= vlAlpha){
+                vl = searchPV(e,newDepth / 2,MIN_VALUE,vlBeta);
             }
+            hashMap.getCacheMove(e,tMove);
         }
 
         //置换表启发
-        bool tMoveHit = false;
         if (genMove::legalMove(e, convert_move)) {
-            const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
                 vl = -searchPV(e, newDepth, -vlBeta, -vlAlpha);
                 e.unMakeMove();
@@ -199,7 +208,6 @@ public:
                         vlAlpha = vl;
                     }
                 }
-                tMoveHit = true;
             }
         }
 
@@ -209,7 +217,6 @@ public:
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
             for(step & move : moveList){
                 if(move != convert_move && move.toPiece){
-                    const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
@@ -246,7 +253,6 @@ public:
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
                 if(move != convert_move && !move.toPiece){
-                    const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
@@ -275,6 +281,9 @@ public:
             }
         }
 
+        if(!quit){
+            newDepth -= depth / 4;
+        }
 
         //剩余走法
         if(!quit){
@@ -282,7 +291,6 @@ public:
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
                     !move.toPiece){
-                    const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
@@ -331,23 +339,24 @@ public:
         }
 
         int vl = harmlessPruning(e,vlBeta);
-        int vlBest = MIN_VALUE;
-        step* pBestMove = nullptr;
-        const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
         if(vl > MIN_VALUE){
             return vl;
         }
+        int vlBest = MIN_VALUE;
+        step* pBestMove = nullptr;
+        const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
+        int newDepth = bCheck ? depth : depth - 1;
+
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
-            const int static_vl = searchQuesic(e,vlBeta - 1,vlBeta);
-            if(vl >= vlBeta){
-                if(static_vl >= vlBeta){
-                    return vl;
-                }
-            }else if(vl < vlBeta && static_vl < vlBeta){
-                return vl;
-            }
+            return vl;
+//            const int static_vl = searchQuesic(e,vlBeta - 1,vlBeta);
+//            if(vl >= vlBeta && static_vl >= vlBeta){
+//                return vl;
+//            }else if(vl < vlBeta && static_vl < vlBeta){
+//                return vl;
+//            }
         }
 
         //空着启发
@@ -372,7 +381,6 @@ public:
         bool quit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
-            const int newDepth = bCheck ? depth : depth - 1;
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
                 vl = -searchNonPV(e, newDepth, -vlBeta + 1);
                 e.unMakeMove();
@@ -393,7 +401,6 @@ public:
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
             for(step & move : moveList){
                 if(move != convert_move && move.toPiece){
-                    const int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -416,7 +423,6 @@ public:
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
-                const int newDepth = bCheck ? depth : depth - 1;
                 if(move != convert_move && !move.toPiece){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
@@ -434,14 +440,16 @@ public:
             }
         }
 
+        if(!quit && depth >= 4){
+            newDepth -= depth / 4;
+        }
+
         //剩余走法
         if(!quit){
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
                     !move.toPiece){
-                    //将军延伸
-                    int newDepth = bCheck ? depth : depth - 1;
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();

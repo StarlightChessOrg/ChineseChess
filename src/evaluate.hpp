@@ -526,6 +526,9 @@ public:
         return vl + this->knightTrap(side);
     }
 protected:
+    bool stable(){
+        return !miniHashCache[firstHashKey & 4095];
+    }
     bool nullSafe(){
         return (position::side == red ? vlRed : vlBlack) > NULL_SAFE_MARGIN;
     }

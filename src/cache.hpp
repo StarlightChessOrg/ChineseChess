@@ -108,6 +108,17 @@ public:
         }
     }
 protected:
+    void getCacheMove(evaluate& e,tinyMove& move){
+        for(uint64 layer = 0;layer < 2;layer++) {
+            hashItem &pH = cache[(e.firstHashKey + layer) & mask];
+            if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
+                if(pH.move.fromPos){
+                    move = pH.move;
+                }
+                break;
+            }
+        }
+    }
     bool getCache(evaluate& e,int depth,int vlAlpha,int vlBeta,int& vl,tinyMove& move){
         for(uint64 layer = 0;layer < 2;layer++){
             hashItem& pH = cache[(e.firstHashKey + layer) & mask];
@@ -117,7 +128,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(readAdujstValue(e,pH.vlAlpha,vlGet)){
+                    if(e.stable() && readAdujstValue(e,pH.vlAlpha,vlGet)){
                         vl = vlGet;
                         return true;
                     }
@@ -127,7 +138,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(readAdujstValue(e,pH.vlBeta,vlGet)){
+                    if(e.stable() && readAdujstValue(e,pH.vlBeta,vlGet)){
                         vl = vlGet;
                         return true;
                     }
