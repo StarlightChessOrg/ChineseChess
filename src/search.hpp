@@ -278,10 +278,6 @@ public:
             }
         }
 
-        if(!quit && !bCheck && vl < vlAlpha){
-            newDepth -= 2;
-        }
-
         //剩余走法
         if(!quit){
             for(step & move : moveList){
@@ -320,9 +316,7 @@ public:
         if(pBestMove){
             historyMap.recoardCache(*pBestMove,depth);
             hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
-            if(nodeType == beta){
-                killerMap.recoardCache(e,*pBestMove);
-            }
+            killerMap.recoardCache(e,*pBestMove);
         }
 
         if(vlBest == MIN_VALUE){
@@ -431,18 +425,22 @@ public:
             }
         }
 
-        if(!quit && !bCheck && depth >= 8){
-            newDepth -= 2;
-        }
-
         //剩余走法
         if(!quit){
+            int cnt = 0;
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
                     (!move.toPiece || move.vl <= 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
-                        vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        if(!bCheck && cnt > 1 + (depth < 8) && depth >= 5){
+                            vl = -searchNonPV(e,newDepth - 3,-vlBeta + 1);
+                            if(vl >= vlBeta){
+                                vl = -searchNonPV(e,newDepth - 1,-vlBeta + 1);
+                            }
+                        }else{
+                            vl = -searchNonPV(e,newDepth,-vlBeta + 1);
+                        }
                         e.unMakeMove();
 
                         if(vl > vlBest){
@@ -452,6 +450,7 @@ public:
                                 break;
                             }
                         }
+                        cnt++;
                     }
                 }
             }

@@ -8,16 +8,16 @@ public:
     }
 protected:
     void clearCache(){
-        memset(history,0,sizeof(int) * 2 * 256 * 256);
+        memset(history,0,sizeof(int) * 65536);
     }
     void recoardCache(step& move,int depth){
-        history[move.fromPiece > 0][move.fromPos][move.toPos] += (1 << depth);
+        history[(move.toPos << 8) | move.fromPos] += (1 << depth);
     }
     int getCache(step& move){
-        return history[move.fromPiece > 0][move.fromPos][move.toPos];
+        return history[(move.toPos << 8) | move.fromPos];
     }
 private:
-    int history[2][256][256]{};
+    int history[65536]{};
     friend class searchGroup;
     friend class moveSort;
 };
