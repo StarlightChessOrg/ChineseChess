@@ -206,6 +206,8 @@ public:
                     }
                 }
             }
+        }else if(!bCheck && depth >= 5){
+            newDepth -= 2;
         }
 
         //吃子搜索
@@ -278,6 +280,10 @@ public:
             }
         }
 
+        if(!quit && !bCheck && vlBest != MIN_VALUE && vlBest + depth * 2 < vlAlpha){
+            newDepth -= depth / 4;
+        }
+
         //剩余走法
         if(!quit){
             for(step & move : moveList){
@@ -346,6 +352,13 @@ public:
 
         //空着启发
         if(!noNull && !bCheck && e.nullOkay()){
+            if(depth <= 3 && e.material(e.side) + 10 + 10 * depth * depth < vlBeta){
+                int static_vl = searchQuesic(e,vlBeta - 1,vlBeta);
+                if(static_vl < vlBeta){
+                    return static_vl;
+                }
+            }
+
             if(e.makeNullMove()){
                 vl = -searchNonPV(e,depth - NULL_DEPTH - 1,-vlBeta + 1,true);
                 e.unMakeNullMove();
@@ -377,6 +390,8 @@ public:
                     }
                 }
             }
+        }else if(!bCheck && depth >= 8){
+            newDepth -= 2;
         }
 
         //吃子启发
@@ -433,7 +448,7 @@ public:
                     move != convert_move &&
                     (!move.toPiece || move.vl <= 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
-                        if(!bCheck && cnt > 1 + (depth < 8) && depth >= 5){
+                        if(!bCheck && (cnt > 1 + (depth < 8)) && depth >= 5){
                             vl = -searchNonPV(e,newDepth - 3,-vlBeta + 1);
                             if(vl >= vlBeta){
                                 vl = -searchNonPV(e,newDepth - 1,-vlBeta + 1);
