@@ -189,6 +189,7 @@ public:
         }
 
         //置换表启发
+        bool tMovePrune = false;
         if (genMove::legalMove(e, convert_move)) {
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
                 vl = -searchPV(e, newDepth, -vlBeta, -vlAlpha);
@@ -207,7 +208,7 @@ public:
                 }
             }
         }else if(!bCheck && depth >= 5){
-            newDepth -= 2;
+            newDepth -= depth / 5;
         }
 
         //吃子搜索
@@ -278,10 +279,6 @@ public:
                     }
                 }
             }
-        }
-
-        if(!quit && !bCheck && vlBest != MIN_VALUE && vlBest + depth * 2 < vlAlpha){
-            newDepth -= depth / 4;
         }
 
         //剩余走法
@@ -377,6 +374,7 @@ public:
 
         //置换表启发
         bool quit = false;
+        bool tMovePrune = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
         if (genMove::legalMove(e, convert_move)) {
             if (e.makeMove(convert_move.fromPos, convert_move.toPos)) {
@@ -391,7 +389,7 @@ public:
                 }
             }
         }else if(!bCheck && depth >= 8){
-            newDepth -= 2;
+            newDepth -= depth / 4;
         }
 
         //吃子启发
