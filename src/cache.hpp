@@ -189,12 +189,13 @@ protected:
                 break;
             }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
                 if(recoardAdujstValue(e,vl)){
-                    if((nodeType & alpha) && ((depth > pH.alphaDepth || pH.vlAlpha >= vl))){
+                    bool bMate = abs(vl) > SAFE_MAX_VALUE;
+                    if((nodeType & alpha) && (bMate || (depth > pH.alphaDepth || pH.vlAlpha >= vl))){
                         pH.vlAlpha = (int16)vl;
                         pH.alphaDepth = depth;
                     }
                     if((nodeType & beta) &&
-                            ((depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta <= vl)) &&
+                            (bMate || (depth > pH.betaDepth) || (depth == pH.betaDepth && pH.vlBeta <= vl)) &&
                             (!pH.move.fromPos || pMove)){
                         pH.vlBeta = (int16)vl;
                         pH.betaDepth = depth;
