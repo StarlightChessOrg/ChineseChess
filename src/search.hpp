@@ -9,6 +9,11 @@ enum moveType{
     historyMove = 1
 };
 
+enum rootMoveType{
+    nonFindPv = 1,
+    findPv = 2
+};
+
 class moveSort{
 public:
     static void sortNormalMoveSeuqance(evaluate& e,historyCache& h,vector<step>& moveList){
@@ -43,6 +48,7 @@ public:
         swap(tempMoveList,moveList);
         for(step& move : moveList){
             if(move.toPiece){
+                move.sortType = nonFindPv;
                 move.vl = getMvvLva(e,move);
             }
         }
@@ -51,14 +57,15 @@ public:
     static void refreshRootMoveSequance(vector<step>& moveList,step& betterMove){
         for(step& move : moveList){
             if(move == betterMove){
+                move.sortType = findPv;
                 move.vl = SORT_MAX_VALUE;
-            }else if(move.vl > SAFE_MAX_VALUE){
+            }else if(move.sortType == findPv){
                 move.vl--;
             }
         }
     }
     static void sortRootMoveSequance(vector<step>& moveList){
-        sort(moveList.begin(),moveList.end(), vlCompare);
+        sort(moveList.begin(),moveList.end(), vlAndTypeCompare);
     }
 private:
     static int inOtherStepList(step& move,vector<step>& moveList){
@@ -78,7 +85,7 @@ private:
             if(mvv > lva){
                 return mvv - lva + 1;
             }
-            if(mvv == lva && lva >= 7){
+            if(mvv == lva && lva >= 3){
                 return 1;
             }
             if(inSideBoard[move.toPos] * move.toPiece < 0 && toType == pawn){
@@ -513,9 +520,8 @@ public:
                 e.unMakeMove();
 
                 if(vl > vlBest){
-                    if(vlBest != MIN_VALUE){
-                        moveSort::refreshRootMoveSequance(rootMoveList,move);
-                    }
+                    move.vl = vl;
+                    moveSort::refreshRootMoveSequance(rootMoveList,move);
                     vlBest = vl;
                 }
             }

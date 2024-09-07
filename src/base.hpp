@@ -25,7 +25,7 @@ const int initGameBoard[256] = {
         0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-const int vlMvvLva[16] = {31,3,3,3,3,7,7,15,15,7,7,1,1,1,1,1};
+const int vlMvvLva[16] = {5,2,2,2,2,3,3,4,4,3,3,1,1,1,1,1};
 
 //const int initGameBoard[256] = {
 //        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -441,7 +441,7 @@ const int SAFE_MIN_VALUE = MIN_VALUE / 2;
 const int SAFE_MAX_VALUE = MAX_VALUE / 2;
 const int SORT_MAX_VALUE = 65536;
 const int DRAW_VALUE = 20;
-const int MAX_QUIESC_DISTANCE = 64;
+const int MAX_QUIESC_DISTANCE = 32;
 const int NULL_DEPTH = 2;
 
 void stringSplit(string str,const char split,vector<string>& splitStr){
