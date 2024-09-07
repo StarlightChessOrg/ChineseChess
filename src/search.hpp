@@ -177,7 +177,19 @@ public:
         step convert_move;
 
         if(hashMap.getCache(e,depth,vlAlpha,vlBeta,vl,tMove)){
-            return vl;
+            if(e.stable()){
+                return vl;
+            }else{
+                if(vl >= vlBeta && searchQuesic(e,vlBeta - 1,vlBeta) >= vlBeta){
+                    return vl;
+                }else if(vl <= vlAlpha && searchQuesic(e,vlAlpha,vlAlpha + 1) <= vlAlpha){
+                    return vl;
+                }else if(vl > vlAlpha && vl < vlBeta){
+                    if(searchQuesic(e,vlAlpha,vlAlpha + 1) > vlAlpha && searchQuesic(e,vlBeta - 1,vlBeta) < vlBeta){
+                        return vl;
+                    }
+                }
+            }
         }
 
         if(!tMove.fromPos && newDepth >= 2){
@@ -186,7 +198,11 @@ public:
                 vl = searchPV(e,newDepth / 2,MIN_VALUE,vlBeta);
             }
             hashMap.getCacheMove(e,tMove);
+            if(!tMove.fromPos){
+                newDepth -= 2;
+            }
         }
+
 
         //置换表启发
         if (genMove::legalMove(e, convert_move)) {
@@ -206,10 +222,6 @@ public:
                     }
                 }
             }
-        }
-
-        if(!bCheck && nodeType == alpha){
-            newDepth -= 2;
         }
 
         //吃子搜索
@@ -248,10 +260,6 @@ public:
             }
         }
 
-        if(!bCheck && nodeType == alpha){
-            newDepth -= 2;
-        }
-
         //截断启发
         vector<step> killerMoveList;
         if(!quit){
@@ -284,10 +292,6 @@ public:
                     }
                 }
             }
-        }
-
-        if(!bCheck && nodeType == alpha){
-            newDepth -= 2;
         }
 
         //剩余走法
@@ -353,12 +357,20 @@ public:
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
-            return vl;
+            if(e.stable()){
+                return vl;
+            }else{
+                const int svl = searchQuesic(e,vlBeta - 1,vlBeta);
+                if(vl >= vlBeta && svl >= vlBeta){
+                    return vl;
+                }else if(vl < vlBeta && svl < vlBeta){
+                    return vl;
+                }
+            }
         }
 
         //空着启发
         if(!noNull && !bCheck && e.nullOkay()){
-
             if(e.makeNullMove()){
                 vl = -searchNonPV(e,depth - NULL_DEPTH - 1,-vlBeta + 1,true);
                 e.unMakeNullMove();
@@ -375,7 +387,17 @@ public:
             }
         }
 
-        int cnt = 0;
+        if(!tMove.fromPos && newDepth >= 2){
+            vl = searchPV(e,newDepth / 2,vlBeta - 1,vlBeta);
+            if(vl < vlBeta){
+                vl = searchPV(e,newDepth / 2,MIN_VALUE,vlBeta);
+            }
+            hashMap.getCacheMove(e,tMove);
+            if(!tMove.fromPos){
+                newDepth -= 2;
+            }
+        }
+
         //置换表启发
         bool quit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
@@ -390,13 +412,9 @@ public:
                         quit = true;
                     }
                 }
-                cnt++;
             }
         }
 
-        if(!quit && !bCheck && cnt > 0 && depth >= 8){
-            newDepth -= 2;
-        }
 
         //吃子启发
         vector<step> moveList;
@@ -417,7 +435,6 @@ public:
                                 break;
                             }
                         }
-                        cnt++;
                     }
                 }
             }
@@ -440,14 +457,9 @@ public:
                                 break;
                             }
                         }
-                        cnt++;
                     }
                 }
             }
-        }
-
-        if(!quit && !bCheck && cnt > 2 && depth > 5){
-            newDepth -= 2;
         }
 
         //剩余走法
@@ -467,7 +479,6 @@ public:
                                 break;
                             }
                         }
-                        cnt++;
                     }
                 }
             }

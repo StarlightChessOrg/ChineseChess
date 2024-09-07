@@ -128,7 +128,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(e.stable() && readAdujstValue(e,pH.vlAlpha,vlGet)){
+                    if(readAdujstValue(e,pH.vlAlpha,vlGet)){
                         vl = vlGet;
                         return true;
                     }
@@ -138,7 +138,7 @@ protected:
                     if(pH.move.fromPos){
                         move = pH.move;
                     }
-                    if(e.stable() && readAdujstValue(e,pH.vlBeta,vlGet)){
+                    if(readAdujstValue(e,pH.vlBeta,vlGet)){
                         vl = vlGet;
                         return true;
                     }
@@ -167,7 +167,7 @@ protected:
         }
         return false;
     }
-    void recoardCache(evaluate& e,int nodeType,int vl,int depth,step* pMove = nullptr){
+    bool recoardCache(evaluate& e,int nodeType,int vl,int depth,step* pMove = nullptr){
         for(uint64 layer = 0;layer < 2;layer++){
             hashItem& pH = cache[(e.firstHashKey + layer) & mask];
             if(!pH.firstKey || !pH.secondKey){
@@ -186,7 +186,7 @@ protected:
                         pH.move = tinyMove(pMove->fromPos,pMove->toPos,pMove->fromPiece,pMove->toPiece);
                     }
                 }
-                break;
+                return true;
             }else if(pH.firstKey == e.firstHashKey && pH.secondKey == e.secondHashKey){
                 if(recoardAdujstValue(e,vl)){
                     bool bMate = abs(vl) > SAFE_MAX_VALUE;
@@ -204,9 +204,10 @@ protected:
                         pH.move = tinyMove(pMove->fromPos,pMove->toPos,pMove->fromPiece,pMove->toPiece);
                     }
                 }
-                break;
+                return true;
             }
         }
+        return false;
     }
     static int recoardAdujstValue(evaluate& e,int& vlGet){
         if(vlGet == e.getDrawValue()){

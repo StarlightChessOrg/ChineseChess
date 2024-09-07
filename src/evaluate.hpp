@@ -705,18 +705,23 @@ private:
                 }
             }
         }
+        vlRedMobility >>= 1;
+        vlBlackMobility >>= 1;
         if(side == red){
-            return (vlRedMobility - vlBlackMobility) / 2;
+            return vlRedMobility - vlBlackMobility;
         }
-        return (vlBlackMobility - vlRedMobility) / 2;
+        return vlBlackMobility - vlRedMobility;
     }
     //劣马
     int knightTrap(int side){
         int vlRedKnightTrap = 0;
         int vlBlackKnightTrap = 0;
+        const int maxCnt = 5;
+        const int singleScore = 2;
+        const int maxScore = maxCnt * singleScore;
         for(int piece : redKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
-            int redPenalty = 10;
+            int redPenalty = maxScore;
             if(pos){
                 int cnt = 0;
                 for(int step : knightDelta){
@@ -728,8 +733,8 @@ private:
                         inBoard[toPos] &&
                         piece * toPiece <= 0){
                         if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            redPenalty -= 5;
-                            if(cnt > 2){
+                            redPenalty -= singleScore;
+                            if(cnt > maxCnt){
                                 break;
                             }
                             cnt++;
@@ -741,8 +746,7 @@ private:
         }
         for(int piece : blackKnightPieceList){
             const int pos = position::swapBoard.getPosByPiece(piece);
-            int blackPenalty = 10;
-
+            int blackPenalty = maxScore;
             if(pos){
                 int cnt = 0;
                 for(int step : knightDelta){
@@ -754,8 +758,8 @@ private:
                         inBoard[toPos] &&
                         piece * toPiece <= 0){
                         if(!genMove::getRelation(*this,toPos,piece,beThreatened)){
-                            blackPenalty -= 5;
-                            if(cnt > 2){
+                            blackPenalty -= singleScore;
+                            if(cnt > maxCnt){
                                 break;
                             }
                             cnt++;
