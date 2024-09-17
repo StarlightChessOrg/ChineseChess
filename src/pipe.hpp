@@ -85,7 +85,7 @@ public:
     void tryThink(evaluate& e,searchGroup& s){
         vector<string> messagePool;
         if(aSide == e.side && aSide){
-            s.searchMain(e,32,4000);
+            s.searchMain(e,32,3000);
             if(s.rootMoveList.empty()){
                 messagePool.emplace_back("there is no best move");
                 feedback(messagePool);

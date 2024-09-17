@@ -47,8 +47,8 @@ public:
         }
         swap(tempMoveList,moveList);
         for(step& move : moveList){
+            move.sortType = nonFindPv;
             if(move.toPiece){
-                move.sortType = nonFindPv;
                 move.vl = getMvvLva(e,move);
             }
         }
@@ -162,7 +162,7 @@ public:
         }
         return vlBest;
     }
-    int searchPV(evaluate& e,int depth,int vlAlpha,int vlBeta){
+    int searchPV(evaluate& e,int depth,int vlAlpha,int vlBeta,bool noNull = false){
         if(depth <= 0){
             return searchQuesic(e,vlAlpha,vlBeta);
         }
@@ -205,9 +205,6 @@ public:
                 vl = searchPV(e,newDepth / 2,MIN_VALUE,vlBeta);
             }
             hashMap.getCacheMove(e,tMove);
-            if(!tMove.fromPos){
-                newDepth -= 2;
-            }
         }
 
 
@@ -301,6 +298,14 @@ public:
             }
         }
 
+        if(!quit && !bCheck && nodeType == alpha && depth >= 5){
+            if(e.getEvaluate(e.side,vlAlpha - 1,vlAlpha) < vlAlpha){
+                if(searchQuesic(e,vlAlpha - 1,vlAlpha) < vlAlpha){
+                    newDepth -= 2;
+                }
+            }
+        }
+
         //剩余走法
         if(!quit){
             for(step & move : moveList){
@@ -336,9 +341,10 @@ public:
             }
         }
 
+
         if(pBestMove){
-            historyMap.recoardCache(*pBestMove,depth);
             hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
+            historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
         }
 
@@ -360,7 +366,6 @@ public:
         step* pBestMove = nullptr;
         const bool bCheck = !e.checkMoveStatus.empty() && e.checkMoveStatus.back();
         int newDepth = bCheck ? depth : depth - 1;
-
 
         tinyMove tMove;
         if(hashMap.getCache(e,depth,vlBeta - 1,vlBeta,vl,tMove)){
@@ -394,17 +399,6 @@ public:
             }
         }
 
-        if(!tMove.fromPos && newDepth >= 2){
-            vl = searchPV(e,newDepth / 2,vlBeta - 1,vlBeta);
-            if(vl < vlBeta){
-                vl = searchPV(e,newDepth / 2,MIN_VALUE,vlBeta);
-            }
-            hashMap.getCacheMove(e,tMove);
-            if(!tMove.fromPos){
-                newDepth -= 2;
-            }
-        }
-
         //置换表启发
         bool quit = false;
         step convert_move = step(tMove.fromPos,tMove.toPos,tMove.fromPiece,tMove.toPiece);
@@ -421,7 +415,6 @@ public:
                 }
             }
         }
-
 
         //吃子启发
         vector<step> moveList;
@@ -469,6 +462,14 @@ public:
             }
         }
 
+        if(!quit && !bCheck && depth >= 5){
+            if(e.getEvaluate(e.side,vlBeta-1,vlBeta) < vlBeta){
+                if(searchQuesic(e,vlBeta-1,vlBeta) < vlBeta){
+                    newDepth -= 2;
+                }
+            }
+        }
+
         //剩余走法
         if(!quit){
             for(step & move : moveList){
@@ -492,9 +493,9 @@ public:
         }
 
         if(pBestMove){
+            hashMap.recoardCache(e,beta,vlBest,depth,pBestMove);
             historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
-            hashMap.recoardCache(e,beta,vlBest,depth,pBestMove);
         }
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
@@ -526,6 +527,7 @@ public:
                 }
             }
         }
+
         if(!rootMoveList.empty()){
             rootMoveList.front().printMove();
         }
