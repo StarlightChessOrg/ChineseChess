@@ -14,7 +14,7 @@ add_executable(bit_src
         main.cpp
         position.hpp
         base.hpp
-	preGenMove.hpp
+	    preGenMove.hpp
         genMove.hpp
         experiment.hpp
         evaluate.hpp

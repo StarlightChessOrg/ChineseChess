@@ -233,7 +233,7 @@ public:
             genMove::genMoveList(e,moveList,all);
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
             for(step & move : moveList){
-                if(move != convert_move && move.toPiece && move.vl > 0){
+                if(move != convert_move && move.toPiece && move.vl >= 0){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
@@ -269,7 +269,7 @@ public:
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
-                if(move != convert_move && (!move.toPiece || move.vl <= 0)){
+                if(move != convert_move && (!move.toPiece || move.vl < 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
@@ -298,20 +298,12 @@ public:
             }
         }
 
-        if(!quit && !bCheck && nodeType == alpha && depth >= 5){
-            if(e.getEvaluate(e.side,vlAlpha - 1,vlAlpha) < vlAlpha){
-                if(searchQuesic(e,vlAlpha - 1,vlAlpha) < vlAlpha){
-                    newDepth -= 2;
-                }
-            }
-        }
-
         //剩余走法
         if(!quit){
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
-                    (!move.toPiece || move.vl <= 0)){
+                    (!move.toPiece || move.vl < 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         if(vlBest == MIN_VALUE){
                             vl = -searchPV(e, newDepth,-vlBeta,-vlAlpha);
@@ -345,7 +337,9 @@ public:
         if(pBestMove){
             hashMap.recoardCache(e,nodeType,vlBest,depth,pBestMove);
             historyMap.recoardCache(*pBestMove,depth);
-            killerMap.recoardCache(e,*pBestMove);
+            if(nodeType == beta){
+                killerMap.recoardCache(e,*pBestMove);
+            }
         }
 
         if(vlBest == MIN_VALUE){
@@ -422,7 +416,7 @@ public:
             genMove::genMoveList(e,moveList,all);
             moveSort::sortNormalMoveSeuqance(e,historyMap,moveList);
             for(step & move : moveList){
-                if(move != convert_move && move.toPiece && move.vl > 0){
+                if(move != convert_move && move.toPiece && move.vl >= 0){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -445,7 +439,7 @@ public:
         if(!quit){
             killerMap.getCache(e,killerMoveList);
             for(step & move : killerMoveList){
-                if(move != convert_move && (!move.toPiece || move.vl <= 0)){
+                if(move != convert_move && (!move.toPiece || move.vl < 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -462,20 +456,12 @@ public:
             }
         }
 
-        if(!quit && !bCheck && depth >= 5){
-            if(e.getEvaluate(e.side,vlBeta-1,vlBeta) < vlBeta){
-                if(searchQuesic(e,vlBeta-1,vlBeta) < vlBeta){
-                    newDepth -= 2;
-                }
-            }
-        }
-
         //剩余走法
         if(!quit){
             for(step & move : moveList){
                 if(!moveSort::inOtherStepList(move,killerMoveList) &&
                     move != convert_move &&
-                    (!move.toPiece || move.vl <= 0)){
+                    (!move.toPiece || move.vl < 0)){
                     if(e.makeMove(move.fromPos,move.toPos)){
                         vl = -searchNonPV(e,newDepth,-vlBeta + 1);
                         e.unMakeMove();
@@ -496,7 +482,10 @@ public:
             hashMap.recoardCache(e,beta,vlBest,depth,pBestMove);
             historyMap.recoardCache(*pBestMove,depth);
             killerMap.recoardCache(e,*pBestMove);
+        }else{
+            hashMap.recoardCache(e,beta,vlBest,depth, nullptr);
         }
+
         if(vlBest == MIN_VALUE){
             return MIN_VALUE + e.getNowDistance();
         }
@@ -529,7 +518,10 @@ public:
         }
 
         if(!rootMoveList.empty()){
-            rootMoveList.front().printMove();
+            step& bestMove = rootMoveList.front();
+            hashMap.recoardCache(e,beta,vlBest,maxDepth,&bestMove);
+            historyMap.recoardCache(bestMove,maxDepth);
+            bestMove.printMove();
         }
         return vlBest;
     }

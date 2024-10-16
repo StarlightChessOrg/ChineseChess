@@ -3,8 +3,8 @@
 #include "experiment.hpp"
 #include <windows.h>
 
-const string ui_path = R"(E:\Projects_chess\ChineseChess-basic\ui\ui.txt)";
-const string ai_path = R"(E:\Projects_chess\ChineseChess-basic\ui\ai.txt)";
+const string ui_path = R"(..\ui\ui.txt)";
+const string ai_path = R"(..\ui\ai.txt)";
 
 class pipe{
 public:

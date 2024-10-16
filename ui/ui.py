@@ -86,13 +86,15 @@ def read_data():
     return result
 
 def clear_ai_data():
-    os.remove("./ai.txt")
+    if os.path.exists("./ai.txt"):
+        os.remove("./ai.txt")
     with open(f"./ai.txt", "w+", encoding='utf-8') as f:
         f.truncate()
         f.close()
 
 def clear_ui_data():
-    os.remove("./ui.txt")
+    if os.path.exists("./ui.txt"):
+        os.remove("./ui.txt")
     with open("./ui.txt","w+",encoding='utf-8') as f:
         f.truncate()
         f.close()
@@ -296,7 +298,7 @@ def parse():
         pass
 
 def main():
-    engine_path = "E:\\Projects_chess\\ChineseChess-basic\\src\\cmake-build-release\\bit_src.exe"
+    engine_path = "../src/cmake-build-release/bit_src.exe"
     clear_ui_data()
     clear_ai_data()
     os.system("chcp 65001")
