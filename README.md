@@ -1,5 +1,5 @@
 # ChineseChess
 
-> Note: This project is still under development.
+This repository has been archived. It used to be a Xiangqi AI application.
 
-一个用 C++ 实现的中国象棋和自动走棋功能。
+And development of it has been moved to (Chess98)[https://github.com/StarlightChessOrg/Chess98].
